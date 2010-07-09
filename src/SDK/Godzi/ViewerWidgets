@@ -1,0 +1,110 @@
+/* --*-c++-*-- */
+/* Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+#ifndef GODZI_VIEWER_WIDGETS
+#define GODZI_VIEWER_WIDGETS 1
+
+#include <Godzi/Common>
+
+#include <osg/Config>
+
+#if defined(_MSC_VER) && defined(OSG_DISABLE_MSVC_WARNINGS)
+// disable warning "'QtConcurrent::BlockSizeManager' : assignment operator could not be generated"
+#pragma warning( disable : 4512 )
+#endif
+
+#include <QtCore/QString>
+#include <QtCore/QTimer>
+#include <QtGui/QKeyEvent>
+#include <QtGui/QApplication>
+#include <QtGui/QtGui>
+#include <QtGui/QWidget>
+
+using Qt::WindowFlags;
+
+#include <osgViewer/Viewer>
+#include <osgViewer/CompositeViewer>
+#include <osgViewer/ViewerEventHandlers>
+#include <osgViewer/GraphicsWindow>
+#include <osgViewer/ViewerEventHandlers>
+
+#if defined(WIN32) && !defined(__CYGWIN__)
+#include <osgViewer/api/Win32/GraphicsWindowWin32>
+typedef HWND WindowHandle;
+typedef osgViewer::GraphicsWindowWin32::WindowData WindowData;
+#elif defined(__APPLE__)  // Assume using Carbon on Mac.
+#include <osgViewer/api/Carbon/GraphicsWindowCarbon>
+typedef WindowRef WindowHandle;
+typedef osgViewer::GraphicsWindowCarbon::WindowData WindowData;
+#else // all other unix
+#include <osgViewer/api/X11/GraphicsWindowX11>
+typedef Window WindowHandle;
+typedef osgViewer::GraphicsWindowX11::WindowData WindowData;
+#endif
+
+#include <osgEarthUtil/EarthManipulator>
+#include <osgGA/StateSetManipulator>
+#include <osgDB/ReadFile>
+#include <iostream>
+#include <sstream>
+
+namespace Godzi
+{
+    /**
+     * An OSG windows embedded in a Qt widget.
+     */
+    class GODZI_EXPORT ViewerWidget : public QWidget
+    {
+    public:
+        ViewerWidget( QWidget* parent =0, const char* name =0, WindowFlags flags =0, bool overrideTraits =false );
+
+        osgViewer::View* getView() const { return _viewer.get(); }
+
+#ifdef WIN32
+        // Prevent flicker on Windows Qt
+        QPaintEngine* paintEngine() const { return 0; }
+#endif
+
+         void paintEvent( QPaintEvent* event ) { _viewer->frame(); }
+
+    protected:
+
+        void init();
+        void createContext();
+
+        //  The GraphincsWindowWin32 implementation already takes care of message handling
+#ifndef WIN32 
+        virtual void mouseDoubleClickEvent ( QMouseEvent * event );
+        virtual void closeEvent( QCloseEvent * event );
+        virtual void destroyEvent( bool destroyWindow = true, bool destroySubWindows = true);
+        virtual void resizeEvent( QResizeEvent * event );
+        virtual void keyPressEvent( QKeyEvent* event );
+        virtual void keyReleaseEvent( QKeyEvent* event );
+        virtual void mousePressEvent( QMouseEvent* event );
+        virtual void mouseReleaseEvent( QMouseEvent* event );
+        virtual void mouseMoveEvent( QMouseEvent* event );
+#endif
+        osg::ref_ptr<osgViewer::GraphicsWindow> _gw;
+        osg::ref_ptr<osgViewer::Viewer> _viewer;
+        bool _overrideTraits;
+        QTimer _timer;
+    };
+}
+
+#endif // GODZI_VIEWER_WIDGETS

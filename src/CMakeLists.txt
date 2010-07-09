@@ -86,8 +86,12 @@ include( CMakeModules/ImportSQLITE3.cmake )
 
 
 # --- Qt -----------------------------
-find_package(Qt4)
+include( CMakeModules/ImportQT.cmake )
 
-# subprojects
+
+
+# subprojects =================================================
+
 add_subdirectory(Applications)
+add_subdirectory(SDK)
 

@@ -11,8 +11,8 @@ create_executable(
         ${PROJECT_FILES}
     PROJECTLABEL
         "Application - Godzi Desktop"
-#    LIBDEPENDENCIES
-#	GODZI_SDK
+    LIBDEPENDENCIES
+        GODZI_SDK
     INSTALLATION_COMPONENT
-	"Applications"
+        "Applications"
 )
