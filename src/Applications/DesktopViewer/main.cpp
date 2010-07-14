@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#include <Godzi/ViewerWidgets>
+#include <Godzi/UI/ViewerWidgets>
 #include <osgViewer/View>
 
 #include <QtGui/QApplication>
@@ -36,7 +36,7 @@ main( int argc, char** argv )
     QGridLayout* layout = new QGridLayout();
     top->setLayout( layout );
 
-    Godzi::ViewerWidget* osg = new Godzi::ViewerWidget( top, 0, 0, true );
+    Godzi::UI::ViewerWidget* osg = new Godzi::UI::ViewerWidget( top, 0, 0, true );
     layout->addWidget( osg );
 
     osg::Node* map = osgDB::readNodeFile( EARTH_FILE );

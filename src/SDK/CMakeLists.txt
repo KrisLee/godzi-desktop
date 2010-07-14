@@ -1,7 +1,7 @@
 create_project(
     GODZI_SDK             # project name    
     INCLUDE_PATH
-        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${QT_INCLUDES}
     LIBDEPENDENCIES
         ${OSG_ALL_LIBDEPENDENCIES}
@@ -9,36 +9,36 @@ create_project(
         ${QT_ALL_LIBRARIES}
 )
 
-# ----- common --------------------------------------------------------
+# ----- CORE namespace -------------------------------------------------
 
-set(COMMON_HEADERS
-	Godzi/Common
+set(CORE_INCLUDE
+    include/Godzi/Common
+	include/Godzi/Actions
+	include/Godzi/Application
+	include/Godzi/Project
 )
-source_group( Headers FILES ${COMMON_HEADERS} )
-
-# ----- graphics -------------------------------------------------------
-
-set(HEADERS
-	Godzi/Actions
-	Godzi/Application
-	Godzi/Project
-	Godzi/ViewerWidgets
+set(CORE_SOURCE
+	src/Godzi/Actions.cpp
+	src/Godzi/Application.cpp
+	src/Godzi/Project.cpp
 )   
-source_group( Headers FILES ${HEADERS} )
+source_group( Core FILES ${CORE_INCLUDE} ${CORE_SOURCE} )
 
-set(SOURCES
-	Godzi/Actions.cpp
-	Godzi/Application.cpp
-	Godzi/Project.cpp
-	Godzi/ViewerWidgets.cpp
+# ----- UI namespace ---------------------------------------------------
+
+set(UI_INCLUDE
+	include/Godzi/UI/ViewerWidgets
 )
-source_group( Sources FILES ${SOURCES} )
+set(UI_SOURCE
+	src/Godzi/UI/ViewerWidgets.cpp
+)
+source_group( UI FILES ${UI_INCLUDE} ${UI_SOURCE} )
 
 # ----------------------------------------------------------------------
 
 set(PROJECT_FILES
-    ${COMMON_HEADERS}
-    ${HEADERS} ${SOURCES}
+    ${CORE_INCLUDE} ${CORE_SOURCE}
+    ${UI_INCLUDE} ${UI_SOURCE}
 )
 
 create_library(
