@@ -1,5 +1,6 @@
 /* --*-c++-*-- */
-/* Godzi
+/**
+ * Godzi
  * Copyright 2010 Pelican Mapping
  * http://pelicanmapping.com
  * http://github.com/gwaldron/godzi
@@ -67,12 +68,12 @@ typedef osgViewer::GraphicsWindowX11::WindowData WindowData;
 namespace Godzi
 {
     /**
-     * An OSG windows embedded in a Qt widget.
+     * An OSG window embedded in a Qt widget.
      */
     class GODZI_EXPORT ViewerWidget : public QWidget
     {
     public:
-        ViewerWidget( QWidget* parent =0, const char* name =0, WindowFlags flags =0, bool overrideTraits =false );
+        ViewerWidget( QWidget* parent, const char* name =0, WindowFlags flags =0, bool overrideTraits =false );
 
         osgViewer::View* getView() const { return _viewer.get(); }
 

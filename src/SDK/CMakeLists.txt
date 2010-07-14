@@ -19,11 +19,17 @@ source_group( Headers FILES ${COMMON_HEADERS} )
 # ----- graphics -------------------------------------------------------
 
 set(HEADERS
+	Godzi/Actions
+	Godzi/Application
+	Godzi/Project
 	Godzi/ViewerWidgets
 )   
 source_group( Headers FILES ${HEADERS} )
 
 set(SOURCES
+	Godzi/Actions.cpp
+	Godzi/Application.cpp
+	Godzi/Project.cpp
 	Godzi/ViewerWidgets.cpp
 )
 source_group( Sources FILES ${SOURCES} )
