@@ -54,7 +54,7 @@ namespace Godzi
     {
     public:
         Project();
-        Project( const osgEarth::Config& conf );
+        Project( const Config& conf );
 
         /** serializes the project to a Config object */
         Config toConfig() const;

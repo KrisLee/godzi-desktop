@@ -53,7 +53,7 @@ Project::Project()
     _map = new osgEarth::Map();
 }
 
-Project::Project( const osgEarth::Config& conf )
+Project::Project( const Config& conf )
 {
     _props = ProjectProperties( conf.child( "properties" ) );
 }
@@ -89,7 +89,7 @@ OpenProjectAction::doAction( const ActionContext& ac, Application* app )
     osg::ref_ptr<osgEarth::XmlDocument> doc = osgEarth::XmlDocument::load( input );
     if ( doc.valid() )
     {
-        osgEarth::Config conf = doc->toConfig().child( "godzi_project" );
+        Config conf = doc->toConfig().child( "godzi_project" );
         Project* project = new Project( conf );
         app->setProject( project, _location );
         return true;

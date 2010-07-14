@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#ifndef GODZI_VIEWER_WIDGETS
-#define GODZI_VIEWER_WIDGETS 1
+#ifndef GODZI_UI_VIEWER_WIDGETS
+#define GODZI_UI_VIEWER_WIDGETS 1
 
 #include <Godzi/Common>
 
@@ -65,7 +65,7 @@ typedef osgViewer::GraphicsWindowX11::WindowData WindowData;
 #include <iostream>
 #include <sstream>
 
-namespace Godzi
+namespace Godzi { namespace UI
 {
     /**
      * An OSG window embedded in a Qt widget.
@@ -106,6 +106,7 @@ namespace Godzi
         bool _overrideTraits;
         QTimer _timer;
     };
-}
 
-#endif // GODZI_VIEWER_WIDGETS
+} } // namesapce Godzi::UI
+
+#endif // GODZI_UI_VIEWER_WIDGETS
