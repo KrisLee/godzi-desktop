@@ -1,0 +1,55 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+#ifndef GODZI_PLACE
+#define GODZI_PLACE 1
+
+#include <Godzi/Common>
+#include <osgEarth/GeoData>
+#include <vector>
+
+namespace Godzi
+{
+    class Application;
+
+    /**
+     * A named geographic location.
+     */
+    class GODZI_EXPORT Place
+    {
+    public:
+        Place( const std::string& name, const osgEarth::GeoExtent& extent );
+
+        /** The primary name of the place. */
+        const std::string& getName() const { return _name; }
+
+        /** The geographic extent of the place. */
+        const osgEarth::GeoExtent& getExtent() const { return _extent; }
+
+    protected:
+        std::string _name;
+        osgEarth::GeoExtent _extent;
+    };
+
+    typedef std::vector<Place> PlaceList;
+
+} // namespace Godzi
+
+#endif // GODZI_PLACE

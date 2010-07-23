@@ -23,6 +23,7 @@
 
 #include <Godzi/Common>
 #include <Godzi/Project>
+#include <Godzi/SearchEngine>
 
 namespace Godzi
 {
@@ -58,12 +59,21 @@ namespace Godzi
         /** Sets the project to "clean" (no unsaved changes) */
         void setProjectClean();
 
+        /** Gets the active search engine. */
+        SearchEngine* getSearchEngine() {
+            return _searchEngine.get(); }
+
+        /** Sets the active search engine. */
+        void setSearchEngine( SearchEngine* value ) {
+            _searchEngine = value; }
+
     protected:
         osg::ref_ptr<Project> _project;
         osgEarth::Revision    _projectCheckpoint;
         std::string           _projectLocation;
 
-        ActionManager*        _actionMgr;
+        ActionManager*             _actionMgr;
+        osg::ref_ptr<SearchEngine> _searchEngine;
     };
 
 } // namespace Godzi

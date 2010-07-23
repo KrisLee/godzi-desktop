@@ -13,24 +13,28 @@ create_project(
 
 set(CORE_INCLUDE
     include/Godzi/Common
-	include/Godzi/Actions
-	include/Godzi/Application
-	include/Godzi/Project
+    include/Godzi/Actions
+    include/Godzi/Application
+    include/Godzi/Place
+    include/Godzi/Project
+    include/Godzi/SearchEngine
 )
 set(CORE_SOURCE
-	src/Godzi/Actions.cpp
-	src/Godzi/Application.cpp
-	src/Godzi/Project.cpp
+    src/Godzi/Actions.cpp
+    src/Godzi/Application.cpp
+    src/Godzi/Place.cpp
+    src/Godzi/Project.cpp
+    src/Godzi/SearchEngine.cpp
 )   
 source_group( Core FILES ${CORE_INCLUDE} ${CORE_SOURCE} )
 
 # ----- UI namespace ---------------------------------------------------
 
 set(UI_INCLUDE
-	include/Godzi/UI/ViewerWidgets
+    include/Godzi/UI/ViewerWidgets
 )
 set(UI_SOURCE
-	src/Godzi/UI/ViewerWidgets.cpp
+    src/Godzi/UI/ViewerWidgets.cpp
 )
 source_group( UI FILES ${UI_INCLUDE} ${UI_SOURCE} )
 
