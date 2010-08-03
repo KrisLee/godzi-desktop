@@ -1,5 +1,8 @@
 project( GODZI_DESKTOP_VIEWER )
 
+
+include_directories(${GODZI_SDK_LIB_INCLUDE_PATH} )
+
 set(PROJECT_FILES
     main.cpp
 )
