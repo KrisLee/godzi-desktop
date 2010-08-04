@@ -3,10 +3,12 @@ create_project(
     INCLUDE_PATH
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${QT_INCLUDES}
+        ${KML_INCLUDES}
     LIBDEPENDENCIES
         ${OSG_ALL_LIBDEPENDENCIES}
         ${OSGEARTH_ALL_LIBDEPENDENCIES}
         ${QT_ALL_LIBRARIES}
+        ${KML_ALL_LIBDEPENDENCIES}
 )
 
 # ----- CORE namespace -------------------------------------------------
