@@ -19,18 +19,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef GODZI_KML
-#define GODZI_KML 1
+#ifndef GODZI_EARTH
+#define GODZI_EARTH 1
 
 #include <Godzi/Common>
-#include <Godzi/Features/Feature>
-#include <osg/ref_ptr>
-#include <vector>
+#include <osgEarth/MapNode>
 
 namespace Godzi { 
 
-    typedef std::vector<osg::ref_ptr<Features::Feature> > FeatureList;
-    extern GODZI_EXPORT FeatureList readFeaturesFromKML(const std::string& file);
+    extern GODZI_EXPORT osgEarth::MapNode* readEarthFile(const std::string& file);
 
 }
 

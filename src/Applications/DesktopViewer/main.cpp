@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 #include <Godzi/UI/ViewerWidgets>
+#include <Godzi/Earth>
 #include <osgViewer/View>
 
 #include <QtGui/QApplication>
@@ -39,7 +40,7 @@ main( int argc, char** argv )
     Godzi::UI::ViewerWidget* osg = new Godzi::UI::ViewerWidget( top, 0, 0, true );
     layout->addWidget( osg );
 
-    osg::Node* map = osgDB::readNodeFile( EARTH_FILE );
+    osg::Node* map = Godzi::readEarthFile( EARTH_FILE );
     map->getOrCreateStateSet()->setMode( GL_LIGHTING, 0 );
     osg->getView()->setSceneData( map );
     

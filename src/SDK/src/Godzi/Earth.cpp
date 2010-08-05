@@ -19,19 +19,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef GODZI_KML
-#define GODZI_KML 1
+#include <Godzi/Earth>
 
-#include <Godzi/Common>
-#include <Godzi/Features/Feature>
-#include <osg/ref_ptr>
-#include <vector>
-
-namespace Godzi { 
-
-    typedef std::vector<osg::ref_ptr<Features::Feature> > FeatureList;
-    extern GODZI_EXPORT FeatureList readFeaturesFromKML(const std::string& file);
-
+osgEarth::MapNode* Godzi::readEarthFile(const std::string& file)
+{
+    osg::Node* result = osgDB::readNodeFile( file );
+    osg::ref_ptr<osgEarth::MapNode> mapNode = dynamic_cast<osgEarth::MapNode*>(result);
+    if (mapNode.valid())
+        return mapNode.release();
+    
+    result->unref();
+    return 0;
 }
-
-#endif
