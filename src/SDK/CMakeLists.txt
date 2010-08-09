@@ -20,6 +20,7 @@ set(CORE_INCLUDE
 	include/Godzi/Project
 	include/Godzi/Earth
 	include/Godzi/KML
+	include/Godzi/Features/ApplyFeature
 	include/Godzi/Features/Placemark
 	include/Godzi/Features/Feature
         )
@@ -29,8 +30,9 @@ set(CORE_SOURCE
 	src/Godzi/Project.cpp
 	src/Godzi/Earth.cpp
 	src/Godzi/KML.cpp
-	src/Godzi/Features/Placemark.cpp
+	src/Godzi/Features/ApplyFeature
 	src/Godzi/Features/Feature.cpp
+	src/Godzi/Features/Placemark.cpp
 )   
 source_group( Core FILES ${CORE_INCLUDE} ${CORE_SOURCE} )
 

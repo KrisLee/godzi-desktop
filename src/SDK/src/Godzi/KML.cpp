@@ -19,12 +19,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
+#include <osg/Math>
 #include <Godzi/KML>
 #include <Godzi/Features/Placemark>
 #include <iostream>
 
 #include "kml/dom.h"
 #include "kml/base/file.h"
+#include "kml/engine.h"
 using namespace Godzi;
 using namespace Godzi::Features;
 
@@ -65,9 +67,20 @@ void collectFeature(FeatureList& fl, const kmldom::FeaturePtr& feature, int dept
         break;
     case kmldom::Type_Placemark:
     {
-        Placemark* p = new Placemark;
-        printIndented("Placemark", depth);
-        fl.push_back(p);
+        const kmldom::PlacemarkPtr placemark = kmldom::AsPlacemark(feature);
+        if (placemark) {
+            Placemark* p = new Placemark;
+            p->setName(placemark->get_name());
+            if (placemark->has_geometry()) {
+                double lat, lon;
+                if (kmlengine::GetPlacemarkLatLon(placemark, &lat, &lon) ) {
+                    p->setCoordinates(osg::DegreesToRadians(lat),osg::DegreesToRadians(lon));
+                }
+            }
+            printIndented("Placemark", depth);
+
+            fl.push_back(p);
+        }
     }
     break;
     case kmldom::Type_ScreenOverlay:
@@ -91,7 +104,7 @@ void collectFeature(FeatureList& fl, const kmldom::FeaturePtr& feature, int dept
 }
 
 
-FeatureList readFeaturesFromKML(const std::string& file)
+FeatureList Godzi::readFeaturesFromKML(const std::string& file)
 {
     FeatureList features;
     // Read it.

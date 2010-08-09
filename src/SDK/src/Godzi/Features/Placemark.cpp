@@ -31,6 +31,10 @@ Placemark::Placemark(const Placemark& pm, const osg::CopyOp& cp):
 {
 }
 
+double Placemark::getLat() const { return _coordinate[0]; }
+double Placemark::getLong() const { return _coordinate[1]; }
+double Placemark::getAlt() const { return _coordinate[2]; }
+
 void Placemark::setCoordinates(double lat, double lon, double alt)
 {
     _coordinate[0] = lat;

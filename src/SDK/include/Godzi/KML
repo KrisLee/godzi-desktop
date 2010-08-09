@@ -29,9 +29,9 @@
 
 namespace Godzi { 
 
-    typedef std::vector<osg::ref_ptr<Features::Feature> > FeatureList;
-    extern GODZI_EXPORT FeatureList readFeaturesFromKML(const std::string& file);
-
+    extern GODZI_EXPORT Godzi::Features::FeatureList readFeaturesFromKML(const std::string& file);
+    
+    
 }
 
 #endif
