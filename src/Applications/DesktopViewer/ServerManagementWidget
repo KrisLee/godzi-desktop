@@ -18,28 +18,33 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#include <Godzi/UI/ViewerWidgets>
-#include <Godzi/Earth>
-#include <osgViewer/View>
 
-#include <QtGui/QApplication>
-#include <QtGui/QWidget>
-#include <QtGui/QGridLayout>
+#ifndef SERVER_MANAGEMENT_WIDGET
+#define SERVER_MANAGEMENT_WIDGET 1
 
-#include "DesktopMainWindow"
+#include <QWidget>
+#include <QToolBar>
+#include <QListWidget>
 
-#define EARTH_FILE "http://demo.pelicanmapping.com/rmweb/maps/bluemarble.earth"
-
-int
-main( int argc, char** argv )
+class ServerManagementWidget : public QWidget
 {
-    QApplication app( argc, argv );
+	Q_OBJECT
 
-		DesktopMainWindow* top = new DesktopMainWindow( EARTH_FILE );
-    
-    top->resize( 800, 600 );
-    top->show();
+	public:
+		ServerManagementWidget();
+		
+	private slots:
+		void addServer();
 
-    app.connect( &app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()) );
-    return app.exec();
-}
+	private:
+		QAction *_addServerAction;
+		QAction *_removeServerAction;
+		QToolBar *_toolbar;
+		QListWidget *_serverList;
+		
+		void CreateActions();
+		void InitUi();
+};
+
+
+#endif // SERVER_MANAGEMENT_WIDGET

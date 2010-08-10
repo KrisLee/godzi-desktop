@@ -1,0 +1,61 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef DESKTOP_MAINWINDOW
+#define DESKTOP_MAINWINDOW 1
+
+#include <QMainWindow>
+#include <Godzi/UI/ViewerWidgets>
+#include "ServerManagementWidget"
+
+class DesktopMainWindow : public QMainWindow
+{
+	Q_OBJECT
+	
+	public:
+		DesktopMainWindow(const std::string& filename);
+		
+	private slots:
+		void open();
+		void saveProject();
+		void showAbout();
+		
+	private:
+		void CreateActions();
+		void CreateMenus();
+		void CreateToolbars();
+		void CreateDockWindows();
+		void UpdateStatusBar(const QString &message);
+		void LoadScene(const std::string& filename);
+	
+		Godzi::UI::ViewerWidget* _osgViewer;
+		QAction *_openAction;
+		QAction *_saveProjectAction;
+		QAction *_aboutAction;
+		QMenu *_fileMenu;
+		QMenu *_viewMenu;
+		QMenu *_helpMenu;
+		QToolBar *_fileToolbar;
+		ServerManagementWidget *_serverManager;
+		
+};
+
+#endif // DESKTOP_MAINWINDOW

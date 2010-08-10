@@ -1,6 +1,5 @@
 project( GODZI_DESKTOP_VIEWER )
 
-
 set(PROJECT_FILES
     main.cpp
     DesktopMainWindow.cpp
@@ -42,7 +41,7 @@ QT4_WRAP_CPP( GODZI_DESKTOP_MOC_SRCS ${GODZI_DESKTOP_MOC_HDRS} )
 INCLUDE_DIRECTORIES( ${CMAKE_BINARY_DIR} )
 
 create_executable(
-    godzi                          # executable name
+    Godzi                          # executable name
     GODZI_DESKTOP_VIEWER           # project from which to build executable
     FILES
         ${PROJECT_FILES}
@@ -55,8 +54,8 @@ create_executable(
 	${GODZI_DESKTOP_MOC_SRCS}
     PROJECTLABEL
         "Application - Godzi Desktop"
-    LIBDEPENDENCIES ${GODZI_SDK_LIB_LIBDEPENDENCIES} GODZI_SDK
-    INCLUDE_PATH ${GODZI_SDK_LIB_INCLUDE_PATH}
+    LIBDEPENDENCIES
+        GODZI_SDK
     INSTALLATION_COMPONENT
         "Applications"
 )
