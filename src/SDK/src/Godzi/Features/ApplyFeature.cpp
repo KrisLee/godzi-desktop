@@ -49,6 +49,9 @@ void ApplyFeature::apply(osg::CoordinateSystemNode& node)
 static osg::Group* createPlacemarkSymbology()
 {
     osg::ref_ptr<osgEarth::Symbology::GeometryContent> content = new osgEarth::Symbology::GeometryContent;
+    osg::Vec3dArray* array = new osg::Vec3dArray;
+    array->push_back(osg::Vec3d(0, 0, 0));
+    content->getGeometryList().push_back(osgEarth::Symbology::Geometry::create(osgEarth::Symbology::Geometry::TYPE_POINTSET, array));
 
     osg::ref_ptr<osgEarth::Symbology::Style> style = new osgEarth::Symbology::Style;
     style->setName("Marker");
@@ -60,22 +63,14 @@ static osg::Group* createPlacemarkSymbology()
     node->setSymbolizer( new osgEarth::Symbology::MarkerSymbolizer() );
     node->getState()->setStyle(style.get());
     node->getState()->setContent(content.get());
-#if 0
-    osg::MatrixTransform* tr = new osg::MatrixTransform;
-    {
-    tr->setMatrix(osg::Matrix::scale(10000,10000,10000));
-    tr->addChild(osgDB::readNodeFile(pointSymbol->marker().value()));
-    }
-#else
+
     osg::AutoTransform* tr = new osg::AutoTransform;
     {
-    tr->addChild(osgDB::readNodeFile(pointSymbol->marker().value()));
+    tr->addChild(node);
     tr->setAutoScaleToScreen(true);
-    tr->setScale(1000000.0);
     tr->setAutoRotateMode(osg::AutoTransform::ROTATE_TO_SCREEN);
-//    tr->addChild(osgDB::readNodeFile("quad.osg"));
     }
-#endif
+
     return tr;
 }
 
