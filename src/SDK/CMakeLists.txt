@@ -3,38 +3,46 @@ create_project(
     INCLUDE_PATH
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${QT_INCLUDES}
+        ${KML_INCLUDES}
     LIBDEPENDENCIES
         ${OSG_ALL_LIBDEPENDENCIES}
         ${OSGEARTH_ALL_LIBDEPENDENCIES}
         ${QT_ALL_LIBRARIES}
+        ${KML_ALL_LIBDEPENDENCIES}
 )
 
 # ----- CORE namespace -------------------------------------------------
 
 set(CORE_INCLUDE
     include/Godzi/Common
-    include/Godzi/Actions
-    include/Godzi/Application
-    include/Godzi/Place
-    include/Godzi/Project
-    include/Godzi/SearchEngine
-)
+	include/Godzi/Actions
+	include/Godzi/Application
+	include/Godzi/Project
+	include/Godzi/Earth
+	include/Godzi/KML
+	include/Godzi/Features/ApplyFeature
+	include/Godzi/Features/Placemark
+	include/Godzi/Features/Feature
+        )
 set(CORE_SOURCE
-    src/Godzi/Actions.cpp
-    src/Godzi/Application.cpp
-    src/Godzi/Place.cpp
-    src/Godzi/Project.cpp
-    src/Godzi/SearchEngine.cpp
+	src/Godzi/Actions.cpp
+	src/Godzi/Application.cpp
+	src/Godzi/Project.cpp
+	src/Godzi/Earth.cpp
+	src/Godzi/KML.cpp
+	src/Godzi/Features/ApplyFeature
+	src/Godzi/Features/Feature.cpp
+	src/Godzi/Features/Placemark.cpp
 )   
 source_group( Core FILES ${CORE_INCLUDE} ${CORE_SOURCE} )
 
 # ----- UI namespace ---------------------------------------------------
 
 set(UI_INCLUDE
-    include/Godzi/UI/ViewerWidgets
+	include/Godzi/UI/ViewerWidgets
 )
 set(UI_SOURCE
-    src/Godzi/UI/ViewerWidgets.cpp
+	src/Godzi/UI/ViewerWidgets.cpp
 )
 source_group( UI FILES ${UI_INCLUDE} ${UI_SOURCE} )
 

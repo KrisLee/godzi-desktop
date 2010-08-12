@@ -19,6 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 #include <Godzi/UI/ViewerWidgets>
+#include <Godzi/Earth>
+#include <Godzi/KML>
+#include <Godzi/Features/ApplyFeature>
 #include <osgViewer/View>
 
 #include <QtGui/QApplication>
@@ -26,6 +29,7 @@
 #include <QtGui/QGridLayout>
 
 #define EARTH_FILE "http://demo.pelicanmapping.com/rmweb/maps/bluemarble.earth"
+#define KML_FILE "../../data/example.kml"
 
 int
 main( int argc, char** argv )
@@ -39,7 +43,12 @@ main( int argc, char** argv )
     Godzi::UI::ViewerWidget* osg = new Godzi::UI::ViewerWidget( top, 0, 0, true );
     layout->addWidget( osg );
 
-    osg::Node* map = osgDB::readNodeFile( EARTH_FILE );
+    osg::Node* map = Godzi::readEarthFile( EARTH_FILE );
+    Godzi::Features::FeatureList featureList = Godzi::readFeaturesFromKML( KML_FILE );
+    Godzi::Features::ApplyFeature featuresMaker;
+    featuresMaker.setFeatures(featureList);
+    map->accept(featuresMaker);
+
     map->getOrCreateStateSet()->setMode( GL_LIGHTING, 0 );
     osg->getView()->setSceneData( map );
     

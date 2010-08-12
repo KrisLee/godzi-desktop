@@ -1,5 +1,6 @@
 project( GODZI_DESKTOP_VIEWER )
 
+
 set(PROJECT_FILES
     main.cpp
 )
@@ -11,8 +12,8 @@ create_executable(
         ${PROJECT_FILES}
     PROJECTLABEL
         "Application - Godzi Desktop"
-    LIBDEPENDENCIES
-        GODZI_SDK
+    LIBDEPENDENCIES ${GODZI_SDK_LIB_LIBDEPENDENCIES} GODZI_SDK
+    INCLUDE_PATH ${GODZI_SDK_LIB_INCLUDE_PATH}
     INSTALLATION_COMPONENT
         "Applications"
 )

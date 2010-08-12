@@ -1,0 +1,50 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+#ifndef GODZI_FEATURES_PLACEMARK
+#define GODZI_FEATURES_PLACEMARK 1
+
+#include <Godzi/Common>
+#include <Godzi/Features/Feature>
+#include <osg/Vec3d>
+
+namespace Godzi { namespace Features {
+
+    class GODZI_EXPORT Placemark : public Feature
+    {
+    public:
+        
+        META_Object(Godzi, Placemark);
+        Placemark(const Placemark& pm, const osg::CopyOp& cp = osg::CopyOp::SHALLOW_COPY);
+        Placemark();
+
+        void setCoordinates(double lat, double lon, double alt = 0.0);
+        double getLat() const;
+        double getLong() const;
+        double getAlt() const;
+
+    protected:
+        osg::Vec3d _coordinate; //long, lat, alt ( 0 means on ground)
+
+    };
+
+}}
+
+#endif

@@ -88,10 +88,14 @@ include( CMakeModules/ImportSQLITE3.cmake )
 # --- Qt -----------------------------
 include( CMakeModules/ImportQT.cmake )
 
+# --- KML -----------------------------
+set(KML_DIR "" CACHE STRING "KML root directory")
+include( CMakeModules/ImportKML.cmake )
+
 
 
 # subprojects =================================================
 
-add_subdirectory(Applications)
 add_subdirectory(SDK)
+add_subdirectory(Applications)
 

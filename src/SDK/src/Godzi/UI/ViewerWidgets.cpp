@@ -21,6 +21,7 @@
 #include <Godzi/UI/ViewerWidgets>
 #include <QtGui/QDesktopServices>
 
+#define USE_QT4
 
 using namespace Godzi;
 using namespace Godzi::UI;

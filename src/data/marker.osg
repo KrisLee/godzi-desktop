@@ -1,0 +1,191 @@
+MatrixTransform {
+  UniqueID MatrixTransform_0
+  DataVariance STATIC
+  nodeMask 0xffffffff
+  cullingActive TRUE
+  referenceFrame RELATIVE
+  Matrix {
+    1 0 0 0
+    0 -1 -8.74228e-08 0
+    0 8.74228e-08 -1 0
+    0 5.21525e-07 4.48965 1
+  }
+  num_children 1
+  MatrixTransform {
+    DataVariance STATIC
+    name "quad.osg"
+    nodeMask 0xffffffff
+    cullingActive TRUE
+    referenceFrame RELATIVE
+    Matrix {
+      1 0 0 0
+      0 -4.37114e-08 1 0
+      0 -1 -4.37114e-08 0
+      0 2.24482 2.24482 1
+    }
+    num_children 1
+    MatrixTransform {
+      DataVariance STATIC
+      name "new.osg"
+      nodeMask 0xffffffff
+      cullingActive TRUE
+      referenceFrame RELATIVE
+      Matrix {
+        1 0 0 0
+        0 -4.37114e-08 -1 0
+        0 1 -4.37114e-08 0
+        0 -2.24482 2.24482 1
+      }
+      num_children 1
+      Group {
+        name "Root"
+        nodeMask 0xffffffff
+        cullingActive TRUE
+        StateSet {
+          DataVariance STATIC
+          rendering_hint DEFAULT_BIN
+          renderBinMode INHERIT
+          GL_LIGHT0 ON
+          LightModel {
+            ambientIntensity 0 0 0 1
+            colorControl SEPARATE_SPECULAR_COLOR
+            localViewer FALSE
+            twoSided FALSE
+          }
+        }
+        num_children 2
+        MatrixTransform {
+          name "Plane"
+          nodeMask 0xffffffff
+          cullingActive TRUE
+          referenceFrame RELATIVE
+          Matrix {
+            1 0 0 0
+            0 1 0 0
+            0 0 1 0
+            0 0 0 1
+          }
+          num_children 1
+          Geode {
+            name "GeodePlane"
+            nodeMask 0xffffffff
+            cullingActive TRUE
+            num_drawables 1
+            Geometry {
+              DataVariance STATIC
+              name "Plane"
+              StateSet {
+                DataVariance STATIC
+                name "Material"
+                rendering_hint TRANSPARENT_BIN
+                binName DepthSortedBin
+                GL_LIGHTING OFF
+                GL_BLEND ON
+                Material {
+                  name "Material"
+                  ColorMode OFF
+                  ambientColor 1.0 1.0 1.0 1
+                  diffuseColor 1.0 1.0 1.0 1
+                  specularColor 0.5 0.5 0.5 1
+                  emissionColor 0 0 0 1
+                  shininess 12.5
+                }
+                textureUnit 0 {
+                  GL_TEXTURE_2D ON
+                  Texture2D {
+                    name "Tex.002"
+                    file "./mark.png"
+                    wrap_s CLAMP_TO_EDGE
+                    wrap_t CLAMP_TO_EDGE
+                    wrap_r REPEAT
+                    min_filter LINEAR_MIPMAP_LINEAR
+                    mag_filter LINEAR
+                    maxAnisotropy 1
+                    borderColor 0 0 0 0
+                    borderWidth 0
+                    useHardwareMipMapGeneration TRUE
+                    unRefImageDataAfterApply TRUE
+                    internalFormatMode USE_IMAGE_DATA_FORMAT
+                    resizeNonPowerOfTwo TRUE
+                    shadowComparison FALSE
+                    shadowCompareFunc GL_LEQUAL
+                    shadowTextureMode GL_LUMINANCE
+                  }
+                }
+              }
+              useDisplayList TRUE
+              useVertexBufferObjects FALSE
+              PrimitiveSets 1
+              {
+                DrawElementsUByte QUADS 4
+                {
+                  0 1 2 3 
+                }
+              }
+              VertexArray Vec3Array 4
+              {
+                40 0 0
+                0 0 0
+                0 -40 0
+                40 -40 0
+              }
+              NormalBinding PER_VERTEX
+              NormalArray Vec3Array 4
+              {
+                0 -0 1
+                0 -0 1
+                0 -0 1
+                0 -0 1
+              }
+              TexCoordArray 0 Vec2Array 4
+              {
+                1 0
+                0 0
+                0 1
+                1 1
+              }
+            }
+          }
+        }
+        MatrixTransform {
+          name "Lamp"
+          nodeMask 0xffffffff
+          cullingActive TRUE
+          referenceFrame RELATIVE
+          Matrix {
+            -0.29086 0.95517 -0.05519 0
+            -0.7711 -0.19988 0.60452 0
+            0.56639 0.21839 0.79467 0
+            4.07625 1.00545 5.90386 1
+          }
+          num_children 1
+          LightSource {
+            name "Lamp"
+            nodeMask 0xffffffff
+            cullingActive FALSE
+            StateSet {
+              DataVariance STATIC
+              rendering_hint DEFAULT_BIN
+              renderBinMode INHERIT
+              GL_LIGHT0 ON
+            }
+            referenceFrame RELATIVE
+            Light {
+              light_num 0
+              ambient 0.05 0.05 0.05 1
+              diffuse 1 1 1 1
+              specular 1 1 1 1
+              position 0 0 0 1
+              direction 0 0 -1
+              constant_attenuation 1
+              linear_attenuation 0
+              quadratic_attenuation 0.00111
+              spot_exponent 0
+              spot_cutoff 180
+            }
+          }
+        }
+      }
+    }
+  }
+}
