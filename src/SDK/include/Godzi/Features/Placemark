@@ -22,6 +22,7 @@
 #define GODZI_FEATURES_PLACEMARK 1
 
 #include <Godzi/Common>
+#include <Godzi/Features/Geometry>
 #include <Godzi/Features/Feature>
 #include <osg/Vec3d>
 
@@ -30,18 +31,16 @@ namespace Godzi { namespace Features {
     class GODZI_EXPORT Placemark : public Feature
     {
     public:
-        
         META_Object(Godzi, Placemark);
         Placemark(const Placemark& pm, const osg::CopyOp& cp = osg::CopyOp::SHALLOW_COPY);
         Placemark();
 
-        void setCoordinates(double lat, double lon, double alt = 0.0);
-        double getLat() const;
-        double getLong() const;
-        double getAlt() const;
+        void setGeometry(Geometry* geometry);
+        const Geometry* getGeometry() const;
+        Geometry* getGeometry();
 
     protected:
-        osg::Vec3d _coordinate; //long, lat, alt ( 0 means on ground)
+        osg::ref_ptr<Geometry> _geometry;
 
     };
 
