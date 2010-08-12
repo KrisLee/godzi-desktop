@@ -27,17 +27,10 @@ Placemark::Placemark() {}
 
 Placemark::Placemark(const Placemark& pm, const osg::CopyOp& cp):
     Feature(pm, cp),
-    _coordinate(pm._coordinate)
+    _geometry(pm._geometry)
 {
 }
 
-double Placemark::getLat() const { return _coordinate[0]; }
-double Placemark::getLong() const { return _coordinate[1]; }
-double Placemark::getAlt() const { return _coordinate[2]; }
-
-void Placemark::setCoordinates(double lat, double lon, double alt)
-{
-    _coordinate[0] = lat;
-    _coordinate[1] = lon;
-    _coordinate[2] = alt;
-}
+void Placemark::setGeometry(Geometry* geometry) { _geometry = geometry; }
+const Geometry* Placemark::getGeometry() const { return _geometry.get(); }
+Geometry* Placemark::getGeometry() { return _geometry.get(); }

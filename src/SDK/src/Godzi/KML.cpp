@@ -30,6 +30,23 @@
 using namespace Godzi;
 using namespace Godzi::Features;
 
+static osg::Vec3dArray* CoordinatesToVec3dArray(kmldom::CoordinatesPtr coords)
+{
+    if (!coords || !coords->get_coordinates_array_size())
+        return 0;
+
+    osg::Vec3dArray* array = new osg::Vec3dArray(coords->get_coordinates_array_size());
+    for (size_t i = 0; i < coords->get_coordinates_array_size(); ++i)
+    {
+        kmlbase::Vec3 in = coords->get_coordinates_array_at(i);
+
+        (*array)[i] = osg::Vec3d(osg::DegreesToRadians(in.get_longitude()),
+                                 osg::DegreesToRadians(in.get_latitude()),
+                                 in.has_altitude()? in.get_altitude() : 0);
+    }
+    return array;
+}
+
 static void printIndented(std::string item, int depth) {
   while (depth--) {
       std::cout << "  ";
@@ -72,14 +89,33 @@ void collectFeature(FeatureList& fl, const kmldom::FeaturePtr& feature, int dept
             Placemark* p = new Placemark;
             p->setName(placemark->get_name());
             if (placemark->has_geometry()) {
-                double lat, lon;
-                if (kmlengine::GetPlacemarkLatLon(placemark, &lat, &lon) ) {
-                    p->setCoordinates(osg::DegreesToRadians(lat),osg::DegreesToRadians(lon));
-                }
-            }
-            printIndented("Placemark", depth);
 
-            fl.push_back(p);
+                switch (placemark->get_geometry()->Type()) {
+                case kmldom::Type_Point:
+                {
+                    const kmldom::CoordinatesPtr coord = kmldom::AsPoint(placemark->get_geometry())->get_coordinates();
+                    osg::Vec3dArray* array = CoordinatesToVec3dArray(coord);
+                    if (array) {
+                        Point* point = new Point(array);
+                        p->setGeometry(point);
+                    }
+                }
+                break;
+
+                case kmldom::Type_LineString:
+                {
+                    const kmldom::CoordinatesPtr coord = kmldom::AsLineString(placemark->get_geometry())->get_coordinates();
+                    osg::Vec3dArray* array = CoordinatesToVec3dArray(coord);
+                    if (array) {
+                        LineString* line = new LineString(array);
+                        p->setGeometry(line);
+                    }
+                }
+                break;
+                }
+                printIndented("Placemark", depth);
+                fl.push_back(p);
+            }
         }
     }
     break;

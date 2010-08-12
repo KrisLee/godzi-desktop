@@ -29,6 +29,8 @@
 #include <osgEarthSymbology/MarkerSymbol>
 #include <osgEarthSymbology/MarkerSymbolizer>
 
+#include <osgEarthSymbology/GeometrySymbolizer>
+
 using namespace Godzi;
 using namespace Godzi::Features;
 
@@ -46,11 +48,11 @@ void ApplyFeature::apply(osg::CoordinateSystemNode& node)
 }
 
 
-static osg::Group* createPlacemarkSymbology()
+static osg::Group* createPlacemarkPointSymbology()
 {
     osg::ref_ptr<osgEarth::Symbology::GeometryContent> content = new osgEarth::Symbology::GeometryContent;
     osg::Vec3dArray* array = new osg::Vec3dArray;
-    array->push_back(osg::Vec3d(0, 0, 0));
+    array->push_back(osg::Vec3d(0,0,0));
     content->getGeometryList().push_back(osgEarth::Symbology::Geometry::create(osgEarth::Symbology::Geometry::TYPE_POINTSET, array));
 
     osg::ref_ptr<osgEarth::Symbology::Style> style = new osgEarth::Symbology::Style;
@@ -75,29 +77,94 @@ static osg::Group* createPlacemarkSymbology()
 }
 
 
+static osg::Group* createPlacemarkLineStringSymbology(osg::Vec3dArray* array)
+{
+    osg::ref_ptr<osgEarth::Symbology::GeometryContent> content = new osgEarth::Symbology::GeometryContent;
+    content->getGeometryList().push_back(osgEarth::Symbology::Geometry::create(osgEarth::Symbology::Geometry::TYPE_LINESTRING, array));
+
+    osg::ref_ptr<osgEarth::Symbology::Style> style = new osgEarth::Symbology::Style;
+    style->setName("Lines");
+    osg::ref_ptr<osgEarth::Symbology::LineSymbol> symbol = new osgEarth::Symbology::LineSymbol;
+    symbol->stroke()->color() = osg::Vec4(1,0,1,1);
+    symbol->stroke()->width() = 3.0;
+    style->addSymbol(symbol.get());
+
+    GeometrySymbolicNode* node = new GeometrySymbolicNode();
+    node->setSymbolizer( new osgEarth::Symbology::GeometrySymbolizer() );
+    node->getState()->setStyle(style.get());
+    node->getState()->setContent(content.get());
+
+    return node;
+}
+
+static osg::Vec3dArray* ConvertFromLongitudeLatitudeAltitudeTo3D(osg::EllipsoidModel* elipse, osg::Vec3dArray* longLatAlt)
+{
+    if (!longLatAlt || longLatAlt->empty() || !elipse)
+        return 0;
+
+    osg::Vec3dArray* a3d = new osg::Vec3dArray(longLatAlt->size());
+    for (int i = 0; i < longLatAlt->size(); ++i) {
+        double x,y,z;
+        const osg::Vec3d& l = (*longLatAlt)[i];
+        elipse->convertLatLongHeightToXYZ( l[1], l[0], l[2],
+                                           x, y, z);
+        (*a3d)[i] = osg::Vec3d(x,y,z);
+    }
+    return a3d;
+}
+
+
 // we have map node put our feature here
 void ApplyFeature::apply(osgEarth::MapNode& node)
 {
 
     for (FeatureList::iterator it = _features.begin(); it != _features.end(); ++it) {
         Godzi::Features::Placemark* p = dynamic_cast<Godzi::Features::Placemark*>(it->get());
-        if (p) {
-            osg::Matrixd matrix;
-            node.getEllipsoidModel()->computeLocalToWorldTransformFromLatLongHeight(p->getLat(), p->getLong(), p->getAlt(), matrix);
-            osg::notify(osg::NOTICE) << p->getName() << " Lat " << osg::RadiansToDegrees( p->getLat()) << " long " << osg::RadiansToDegrees(p->getLong()) << " alt " << p->getAlt() << std::endl;
-            osg::MatrixTransform* transform = new osg::MatrixTransform;
-            transform->setMatrix(matrix);
+        if (p->getGeometry()) {
 
-            transform->addChild(createPlacemarkSymbology());
-#if 0
+            switch(p->getGeometry()->getType()) {
+            case Geometry::TYPE_POINT:
             {
-                osg::Vec3dArray* array = new osg::Vec3dArray;
-                array->push_back(osg::Vec3d(0,0,0));
-                osg::ref_ptr<osgEarth::Symbology::Geometry> geom = osgEarth::Symbology::Geometry::create(Geometry::TYPE_POINTSET, array);
-                
+                if (p->getGeometry()->getCoordinates()->size() > 0) {
+                    double lon, lat, alt;
+                    lon = (*p->getGeometry()->getCoordinates())[0][0];
+                    lat = (*p->getGeometry()->getCoordinates())[0][1];
+                    alt = (*p->getGeometry()->getCoordinates())[0][2];
+                    osg::Matrixd matrix;
+                    node.getEllipsoidModel()->computeLocalToWorldTransformFromLatLongHeight(lat, lon, alt, matrix);
+
+                    osg::notify(osg::NOTICE) << p->getName() << " Lat " << osg::RadiansToDegrees( lat) << " long " << osg::RadiansToDegrees(lon) << " alt " << alt << std::endl;
+                    osg::MatrixTransform* transform = new osg::MatrixTransform;
+                    transform->setMatrix(matrix);
+                    transform->addChild(createPlacemarkPointSymbology());
+                    node.addChild(transform);
+                } else {
+                    osg::notify(osg::WARN) << "no point in placemark " << p->getName() << std::endl;
+                }
             }
-#endif
-            node.addChild(transform);
+            break;
+            case Geometry::TYPE_LINESTRING:
+            {
+                if (p->getGeometry()->getCoordinates()->size() > 0) {
+                    osg::Vec3dArray* array = ConvertFromLongitudeLatitudeAltitudeTo3D(node.getEllipsoidModel(), p->getGeometry()->getCoordinates());
+                    if (array) {
+                        node.addChild(createPlacemarkLineStringSymbology(array));
+                    } else {
+                        osg::notify(osg::WARN) << "can't convert LineString from placemark " << p->getName() << " original number of coordinates: " << p->getGeometry()->getCoordinates()->size() << std::endl;
+                    }
+                        
+                } else {
+                    osg::notify(osg::WARN) << "no lines in placemark " << p->getName() << std::endl;
+                }
+            }
+            break;
+            case Geometry::TYPE_UNKNOWN:
+            {
+                osg::Vec3dArray* position3d = ConvertFromLongitudeLatitudeAltitudeTo3D(node.getEllipsoidModel(), p->getGeometry()->getCoordinates());
+            }
+            break;
+
+            }
         }
     }
 }
