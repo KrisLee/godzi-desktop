@@ -24,7 +24,7 @@
 using namespace Godzi::Features;
 
 Point::Point() { _geom = new osgEarth::Symbology::PointSet; }
-Point::Point(const Point& pm, const osg::CopyOp& cp) : Geometry(), _geom(pm._geom) {}
+Point::Point(const Point& pm, const osg::CopyOp& cp) : Geometry(), _geom(osg::clone(pm._geom.get(), cp)) {}
 Point::Point(const osg::Vec3dArray* toCopy) : Geometry(), _geom(new osgEarth::Symbology::PointSet(toCopy)) {}
 
 osg::Vec3Array* Point::toVec3Array() const { return _geom->toVec3Array(); }
@@ -36,9 +36,44 @@ const osg::Vec3dArray* Point::getCoordinates() const { return dynamic_cast<const
 
 
 LineString::LineString() { _geom = new osgEarth::Symbology::LineString; }
-LineString::LineString(const LineString& pm, const osg::CopyOp& cp) : Geometry(), _geom(pm._geom) {}
+LineString::LineString(const LineString& pm, const osg::CopyOp& cp) : Geometry(), _geom(osg::clone(pm._geom.get(), cp)) {}
 LineString::LineString(const osg::Vec3dArray* toCopy) : Geometry(), _geom(new osgEarth::Symbology::LineString(toCopy)) {}
 
 osg::Vec3Array* LineString::toVec3Array() const { return _geom->toVec3Array(); }
 osg::Vec3dArray* LineString::getCoordinates() { return dynamic_cast<osg::Vec3dArray*>(_geom.get()); }
 const osg::Vec3dArray* LineString::getCoordinates() const { return dynamic_cast<const osg::Vec3dArray*>(_geom.get()); }
+
+
+LinearRing::LinearRing() { _geom = new osgEarth::Symbology::Ring; }
+LinearRing::LinearRing(const LinearRing& pm, const osg::CopyOp& cp) : Geometry(), _geom(osg::clone(pm._geom.get(), cp)) {}
+LinearRing::LinearRing(const osg::Vec3dArray* toCopy) : Geometry(), _geom(new osgEarth::Symbology::Ring(toCopy)) {}
+
+osg::Vec3Array* LinearRing::toVec3Array() const { return _geom->toVec3Array(); }
+osg::Vec3dArray* LinearRing::getCoordinates() { return dynamic_cast<osg::Vec3dArray*>(_geom.get()); }
+const osg::Vec3dArray* LinearRing::getCoordinates() const { return dynamic_cast<const osg::Vec3dArray*>(_geom.get()); }
+
+
+
+Polygon::Polygon() { _geom = new osgEarth::Symbology::Polygon; }
+Polygon::Polygon(const Polygon& pm, const osg::CopyOp& cp) : Geometry(), _geom(osg::clone(pm._geom.get(), cp))
+{
+}
+
+Polygon::Polygon(const osg::Vec3dArray* toCopy) : Geometry(), _geom(new osgEarth::Symbology::Polygon(toCopy)) {}
+
+osg::Vec3Array* Polygon::toVec3Array() const { return _geom->toVec3Array(); }
+osg::Vec3dArray* Polygon::getCoordinates() { return dynamic_cast<osg::Vec3dArray*>(_geom.get()); }
+const osg::Vec3dArray* Polygon::getCoordinates() const { return dynamic_cast<const osg::Vec3dArray*>(_geom.get()); }
+
+
+MultiGeometry::MultiGeometry() {}
+MultiGeometry::MultiGeometry(const MultiGeometry& pm, const osg::CopyOp& cp) : Geometry()
+{
+    _geometryList.clear();
+    _geometryList.reserve(pm.getGeometryList().size());
+    for (int i = 0; i < pm.getGeometryList().size(); ++i) {
+        _geometryList.push_back(osg::clone(pm.getGeometryList()[i].get(), cp));
+    }
+}
+const GeometryList& MultiGeometry::getGeometryList() const { return _geometryList; }
+GeometryList& MultiGeometry::getGeometryList() { return _geometryList; }

@@ -97,6 +97,51 @@ static osg::Group* createPlacemarkLineStringSymbology(osg::Vec3dArray* array)
     return node;
 }
 
+
+
+static osg::Group* createPlacemarkLinearRingSymbology(osg::Vec3dArray* array)
+{
+    osg::ref_ptr<osgEarth::Symbology::GeometryContent> content = new osgEarth::Symbology::GeometryContent;
+    content->getGeometryList().push_back(osgEarth::Symbology::Geometry::create(osgEarth::Symbology::Geometry::TYPE_RING, array));
+
+    osg::ref_ptr<osgEarth::Symbology::Style> style = new osgEarth::Symbology::Style;
+    style->setName("Lines");
+    osg::ref_ptr<osgEarth::Symbology::LineSymbol> symbol = new osgEarth::Symbology::LineSymbol;
+    symbol->stroke()->color() = osg::Vec4(1,0,0,1);
+    symbol->stroke()->width() = 3.0;
+    style->addSymbol(symbol.get());
+
+    GeometrySymbolicNode* node = new GeometrySymbolicNode();
+    node->setSymbolizer( new osgEarth::Symbology::GeometrySymbolizer() );
+    node->getState()->setStyle(style.get());
+    node->getState()->setContent(content.get());
+
+    return node;
+}
+
+
+
+static osg::Group* createPlacemarkPolygonStringSymbology(osg::Vec3dArray* array, const std::vector<osg::ref_ptr<osg::Vec3dArray> >& holes)
+{
+    osg::ref_ptr<osgEarth::Symbology::GeometryContent> content = new osgEarth::Symbology::GeometryContent;
+    content->getGeometryList().push_back(osgEarth::Symbology::Geometry::create(osgEarth::Symbology::Geometry::TYPE_LINESTRING, array));
+
+    osg::ref_ptr<osgEarth::Symbology::Style> style = new osgEarth::Symbology::Style;
+    style->setName("Lines");
+    osg::ref_ptr<osgEarth::Symbology::LineSymbol> symbol = new osgEarth::Symbology::LineSymbol;
+    symbol->stroke()->color() = osg::Vec4(1,0,1,1);
+    symbol->stroke()->width() = 3.0;
+    style->addSymbol(symbol.get());
+
+    GeometrySymbolicNode* node = new GeometrySymbolicNode();
+    node->setSymbolizer( new osgEarth::Symbology::GeometrySymbolizer() );
+    node->getState()->setStyle(style.get());
+    node->getState()->setContent(content.get());
+
+    return node;
+}
+
+
 static osg::Vec3dArray* ConvertFromLongitudeLatitudeAltitudeTo3D(osg::EllipsoidModel* elipse, osg::Vec3dArray* longLatAlt)
 {
     if (!longLatAlt || longLatAlt->empty() || !elipse)
@@ -156,6 +201,41 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
                 } else {
                     osg::notify(osg::WARN) << "no lines in placemark " << p->getName() << std::endl;
                 }
+            }
+            break;
+            case Geometry::TYPE_LINEARRING:
+            {
+                if (p->getGeometry()->getCoordinates()->size() > 0) {
+                    osg::Vec3dArray* array = ConvertFromLongitudeLatitudeAltitudeTo3D(node.getEllipsoidModel(), p->getGeometry()->getCoordinates());
+                    if (array) {
+                        node.addChild(createPlacemarkLinearRingSymbology(array));
+                    } else {
+                        osg::notify(osg::WARN) << "can't convert LinearRing from placemark " << p->getName() << " original number of coordinates: " << p->getGeometry()->getCoordinates()->size() << std::endl;
+                    }
+                } else {
+                    osg::notify(osg::WARN) << "no lines in placemark " << p->getName() << std::endl;
+                }
+            }
+            break;
+            case Geometry::TYPE_POLYGON:
+            {
+#if 0
+                if (p->getGeometry()->getCoordinates()->size() > 0) {
+                    osg::Vec3dArray* array = ConvertFromLongitudeLatitudeAltitudeTo3D(node.getEllipsoidModel(), p->getGeometry()->getCoordinates());
+                    if (array) {
+                        std::vector<osg::ref_ptr<osg::Vec3dArray> > holes;
+                        for (int i = 0; i < p->getGeometry()->getHoles().size(); ++i) {
+                            osg::Vec3dArray* hole = ConvertFromLongitudeLatitudeAltitudeTo3D(node.getEllipsoidModel(), p->getGeometry()->getHoles()[i]);                            
+                        }
+                        node.addChild(createPlacemarkPolygonSymbology(array));
+                    } else {
+                        osg::notify(osg::WARN) << "can't convert LineString from placemark " << p->getName() << " original number of coordinates: " << p->getGeometry()->getCoordinates()->size() << std::endl;
+                    }
+                        
+                } else {
+                    osg::notify(osg::WARN) << "no lines in placemark " << p->getName() << std::endl;
+                }
+#endif
             }
             break;
             case Geometry::TYPE_UNKNOWN:

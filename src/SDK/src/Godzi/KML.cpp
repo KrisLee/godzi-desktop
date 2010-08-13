@@ -64,6 +64,89 @@ static const kmldom::FeaturePtr getRootFeature(const kmldom::ElementPtr& root)
     return kmldom::AsFeature(root);
 }
 
+
+static
+Geometry* createGeometryFromElement(const kmldom::GeometryPtr kmlGeom)
+{
+    switch (kmlGeom->Type()) 
+    {
+    case kmldom::Type_Point:
+    {
+        const kmldom::CoordinatesPtr coord = kmldom::AsPoint(kmlGeom)->get_coordinates();
+        osg::Vec3dArray* array = CoordinatesToVec3dArray(coord);
+        if (array) {
+            Point* geom = new Point(array);
+            return (geom);
+        }
+    }
+    break;
+
+    case kmldom::Type_LineString:
+    {
+        const kmldom::CoordinatesPtr coord = kmldom::AsLineString(kmlGeom)->get_coordinates();
+        osg::Vec3dArray* array = CoordinatesToVec3dArray(coord);
+        if (array) {
+            LineString* geom = new LineString(array);
+            return (geom);
+        }
+    }
+    break;
+
+    case kmldom::Type_LinearRing:
+    {
+        const kmldom::CoordinatesPtr coord = kmldom::AsLinearRing(kmlGeom)->get_coordinates();
+        osg::Vec3dArray* array = CoordinatesToVec3dArray(coord);
+        if (array) {
+            LinearRing* geom = new LinearRing(array);
+            return (geom);
+        }
+    }
+    break;
+
+    case kmldom::Type_Polygon:
+    {
+        const kmldom::PolygonPtr poly = kmldom::AsPolygon(kmlGeom);
+        if (poly->has_outerboundaryis()) {
+            const kmldom::CoordinatesPtr coord = poly->get_outerboundaryis()->get_linearring()->get_coordinates();
+
+            osg::Vec3dArray* array = CoordinatesToVec3dArray(coord);
+            if (array) {
+                Polygon* geom = new Polygon(array);
+
+                for (size_t i = 0; i < poly->get_innerboundaryis_array_size(); ++i) {
+                    const kmldom::CoordinatesPtr inner = poly->get_innerboundaryis_array_at(i)->get_linearring()->get_coordinates();
+                    if (inner)
+                        geom->getHoles().push_back(new osgEarth::Symbology::Ring(CoordinatesToVec3dArray(inner)));
+                }
+
+                return (geom);
+            }
+        }
+    }
+    break;
+
+    case kmldom::Type_MultiGeometry:
+    {
+        const kmldom::MultiGeometryPtr mgeom = kmldom::AsMultiGeometry(kmlGeom);
+        if (mgeom && mgeom->get_geometry_array_size() > 0)
+        {
+            MultiGeometry* geom = new MultiGeometry;
+        
+            for (size_t i = 0; i < mgeom->get_geometry_array_size(); ++i) {
+                const kmldom::GeometryPtr g = mgeom->get_geometry_array_at(i);
+                Geometry* newgeom = createGeometryFromElement(g);
+                if (newgeom)
+                    geom->getGeometryList().push_back(newgeom);
+            }
+            return geom;
+        }
+    }
+    break;
+    }
+
+    return 0;
+}
+
 void collectFeature(FeatureList& fl, const kmldom::FeaturePtr& feature, int depth)
 {
     switch (feature->Type()) {
@@ -89,29 +172,11 @@ void collectFeature(FeatureList& fl, const kmldom::FeaturePtr& feature, int dept
             Placemark* p = new Placemark;
             p->setName(placemark->get_name());
             if (placemark->has_geometry()) {
-
-                switch (placemark->get_geometry()->Type()) {
-                case kmldom::Type_Point:
-                {
-                    const kmldom::CoordinatesPtr coord = kmldom::AsPoint(placemark->get_geometry())->get_coordinates();
-                    osg::Vec3dArray* array = CoordinatesToVec3dArray(coord);
-                    if (array) {
-                        Point* point = new Point(array);
-                        p->setGeometry(point);
-                    }
-                }
-                break;
-
-                case kmldom::Type_LineString:
-                {
-                    const kmldom::CoordinatesPtr coord = kmldom::AsLineString(placemark->get_geometry())->get_coordinates();
-                    osg::Vec3dArray* array = CoordinatesToVec3dArray(coord);
-                    if (array) {
-                        LineString* line = new LineString(array);
-                        p->setGeometry(line);
-                    }
-                }
-                break;
+                Geometry* geom = createGeometryFromElement(placemark->get_geometry());
+                if (geom)
+                    p->setGeometry(geom);
+                else {
+                    osg::notify(osg::WARN) << "cant retrieve geometry for placemark " << p->getName() << std::endl;
                 }
                 printIndented("Placemark", depth);
                 fl.push_back(p);
