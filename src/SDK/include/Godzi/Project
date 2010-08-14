@@ -54,6 +54,7 @@ namespace Godzi
     {
     public:
         Project();
+        Project( osgEarth::Map* map );
         Project( const Config& conf );
 
         /** serializes the project to a Config object */
@@ -79,7 +80,7 @@ namespace Godzi
     public:
         NewProjectAction() { }
 
-        bool doAction( const ActionContext& context, Application* app );
+        bool doAction( void* sender, Application* app );
         bool isCheckPoint() { return true; }
     };
 
@@ -92,7 +93,7 @@ namespace Godzi
     public:
         OpenProjectAction( const std::string& location ) : _location(location) { }
 
-        bool doAction( const ActionContext& context, Application* app );
+        bool doAction( void* sender, Application* app );
         bool isCheckpoint() { return true; }
 
     protected:
@@ -107,7 +108,7 @@ namespace Godzi
     public:
         SaveProjectAction( const std::string& location ="" ) : _location(location) { }
 
-        bool doAction( const ActionContext& context, Application* app );
+        bool doAction( void* sender, Application* app );
 
     protected:
         std::string _location;

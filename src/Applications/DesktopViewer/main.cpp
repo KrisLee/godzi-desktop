@@ -18,13 +18,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#include <Godzi/UI/ViewerWidgets>
-#include <Godzi/Earth>
-#include <osgViewer/View>
-
 #include <QtGui/QApplication>
-#include <QtGui/QWidget>
-#include <QtGui/QGridLayout>
+#include <Godzi/Application>
+#include <Godzi/Project>
 
 #include "DesktopMainWindow"
 
@@ -33,13 +29,16 @@
 int
 main( int argc, char** argv )
 {
-    QApplication app( argc, argv );
+    QApplication qtApp( argc, argv );
 
-		DesktopMainWindow* top = new DesktopMainWindow( EARTH_FILE );
-    
+		osg::ref_ptr<Godzi::Application> app = new Godzi::Application(EARTH_FILE);
+
+		DesktopMainWindow* top = new DesktopMainWindow(app);
     top->resize( 800, 600 );
     top->show();
 
-    app.connect( &app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()) );
-    return app.exec();
+		app->actionManager()->doAction(NULL, new Godzi::NewProjectAction());
+
+    qtApp.connect( &qtApp, SIGNAL(lastWindowClosed()), &qtApp, SLOT(quit()) );
+    return qtApp.exec();
 }

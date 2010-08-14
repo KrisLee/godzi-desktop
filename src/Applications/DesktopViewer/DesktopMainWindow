@@ -23,32 +23,49 @@
 #define DESKTOP_MAINWINDOW 1
 
 #include <QMainWindow>
+#include <osg/Node>
+#include <Godzi/Application>
+#include <Godzi/Actions>
 #include <Godzi/UI/ViewerWidgets>
 #include "ServerManagementWidget"
 
-class DesktopMainWindow : public QMainWindow
+class DesktopMainWindow : public QMainWindow, public Godzi::ActionCallback
 {
 	Q_OBJECT
 	
 	public:
-		DesktopMainWindow(const std::string& filename);
+		DesktopMainWindow(Godzi::Application* app);
+		
+		void operator()( void* sender, Godzi::Action* action );
 		
 	private slots:
-		void open();
-		void saveProject();
+		void newProject();
+		void openProject();
+		bool saveProject();
+		void loadMap();
 		void showAbout();
 		
+	protected:
+     void closeEvent(QCloseEvent *event);
+		
 	private:
-		void CreateActions();
-		void CreateMenus();
-		void CreateToolbars();
-		void CreateDockWindows();
-		void UpdateStatusBar(const QString &message);
-		void LoadScene(const std::string& filename);
+		void initUi();
+		void createActions();
+		void createMenus();
+		void createToolbars();
+		void createDockWindows();
+		void updateStatusBar(const QString &message);
+		void loadScene(const std::string& filename);
+		void loadScene(osg::Node* n);
+		bool checkSave();
 	
 		Godzi::UI::ViewerWidget* _osgViewer;
-		QAction *_openAction;
+		osg::ref_ptr<Godzi::Application> _app;
+		QAction *_newProjectAction;
+		QAction *_openProjectAction;
 		QAction *_saveProjectAction;
+		QAction *_loadMapAction;
+		QAction *_exitAction;
 		QAction *_aboutAction;
 		QMenu *_fileMenu;
 		QMenu *_viewMenu;

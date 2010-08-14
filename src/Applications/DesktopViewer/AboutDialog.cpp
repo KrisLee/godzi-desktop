@@ -19,33 +19,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef SERVER_MANAGEMENT_WIDGET
-#define SERVER_MANAGEMENT_WIDGET 1
+#include <QFileDialog>
+#include "AboutDialog"
 
-#include <QWidget>
-#include <QToolBar>
-#include <QListWidget>
-
-class ServerManagementWidget : public QWidget
+AboutDialog::AboutDialog()
 {
-	Q_OBJECT
-
-	public:
-		ServerManagementWidget();
-		
-	private slots:
-		void addServer();
-		void removeServer();
-
-	private:
-		QAction *_addServerAction;
-		QAction *_removeServerAction;
-		QToolBar *_toolbar;
-		QListWidget *_serverList;
-		
-		void createActions();
-		void initUi();
-};
-
-
-#endif // SERVER_MANAGEMENT_WIDGET
+	ui.setupUi(this);
+}

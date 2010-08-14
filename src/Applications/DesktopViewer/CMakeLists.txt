@@ -5,6 +5,7 @@ set(PROJECT_FILES
     main.cpp
     DesktopMainWindow.cpp
     OpenFileDialog.cpp
+    AboutDialog.cpp
     ServerManagementWidget.cpp
 )
 
@@ -16,12 +17,14 @@ set(GODZI_DESKTOP_RCS
 # Qt .ui files
 set(GODZI_DESKTOP_UIS
     ui/OpenFileDialog.ui
+    ui/AboutDialog.ui
 )
 
 # Header files that need to be moc'd
 set (GODZI_DESKTOP_MOC_HDRS
     DesktopMainWindow
     OpenFileDialog
+    AboutDialog
     ServerManagementWidget
 )
 
@@ -33,13 +36,14 @@ QT4_ADD_RESOURCES( GODZI_DESKTOP_RC_SRCS ${GODZI_DESKTOP_RCS} )
 
 # run uic on Qt .ui files
 QT4_WRAP_UI( GODZI_DESKTOP_UI_HDRS ${GODZI_DESKTOP_UIS} )
+
 # moc the files generated above
 QT4_WRAP_CPP( GODZI_DESKTOP_UI_SRCS ${GODZI_DESKTOP_UI_HDRS} )
 
 # moc necessary header files
 QT4_WRAP_CPP( GODZI_DESKTOP_MOC_SRCS ${GODZI_DESKTOP_MOC_HDRS} )
 
-INCLUDE_DIRECTORIES( ${CMAKE_BINARY_DIR} )
+INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR} )
 
 create_executable(
     godzi                          # executable name

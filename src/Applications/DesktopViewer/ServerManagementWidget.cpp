@@ -28,17 +28,20 @@
 
 ServerManagementWidget::ServerManagementWidget()
 {
-	CreateActions();
-	InitUi();
+	createActions();
+	initUi();
 }
 
-void ServerManagementWidget::CreateActions()
+void ServerManagementWidget::createActions()
 {
 	_addServerAction = new QAction(QIcon(":/resources/images/add.png"), tr("&Add"), this);
+	connect(_addServerAction, SIGNAL(triggered()), this, SLOT(addServer()));
+
 	_removeServerAction = new QAction(QIcon(":/resources/images/remove.png"), tr("&Remove"), this);
+	connect(_removeServerAction, SIGNAL(triggered()), this, SLOT(removeServer()));
 }
 
-void ServerManagementWidget::InitUi()
+void ServerManagementWidget::initUi()
 {
 	_toolbar = new QToolBar();
 	_toolbar->setIconSize(QSize(16, 16));
@@ -58,5 +61,9 @@ void ServerManagementWidget::InitUi()
 }
 
 void ServerManagementWidget::addServer()
+{
+}
+
+void ServerManagementWidget::removeServer()
 {
 }

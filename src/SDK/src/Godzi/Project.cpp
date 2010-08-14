@@ -20,7 +20,10 @@
  */
 #include <Godzi/Project>
 #include <Godzi/Application>
+#include <Godzi/KML>
+#include <Godzi/Features/ApplyFeature>
 #include <osgEarth/XmlUtils>
+#include <osgEarth/MapNode>
 #include <fstream>
 
 using namespace Godzi;
@@ -53,8 +56,14 @@ Project::Project()
     _map = new osgEarth::Map();
 }
 
+Project::Project( osgEarth::Map* map )
+{
+	  _map = map;
+}
+
 Project::Project( const Config& conf )
 {
+		_map = new osgEarth::Map();
     _props = ProjectProperties( conf.child( "properties" ) );
 }
 
@@ -74,16 +83,26 @@ Project::toConfig() const
 //---------------------------------------------------------------------------
 
 bool
-NewProjectAction::doAction( const ActionContext& ac, Application* app )
+NewProjectAction::doAction( void* sender, Application* app )
 {
-    app->setProject( new Project() );
+		osg::Node* map = osgDB::readNodeFile( app->getDefaultMap() );
+		osgEarth::MapNode* mapNode = osgEarth::MapNode::findMapNode(map);
+    app->setProject( new Godzi::Project(mapNode->getMap()) );
+
+		//TEST
+		//Godzi::Features::FeatureList featureList = Godzi::readFeaturesFromKML("./data/example.kml");
+		//Godzi::Features::ApplyFeature featuresMaker;
+		//featuresMaker.setFeatures(featureList);
+		//map->accept(featuresMaker);
+		//TEST
+
     return true;
 }
 
 //---------------------------------------------------------------------------
 
 bool
-OpenProjectAction::doAction( const ActionContext& ac, Application* app )
+OpenProjectAction::doAction( void* sender, Application* app )
 {    
     std::ifstream input( _location.c_str() );
     osg::ref_ptr<osgEarth::XmlDocument> doc = osgEarth::XmlDocument::load( input );
@@ -103,7 +122,7 @@ OpenProjectAction::doAction( const ActionContext& ac, Application* app )
 //---------------------------------------------------------------------------
 
 bool
-SaveProjectAction::doAction( const ActionContext& ac, Application* app )
+SaveProjectAction::doAction( void* sender, Application* app )
 {
     std::string location = !_location.empty() ? _location : app->getProjectLocation();
 

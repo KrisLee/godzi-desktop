@@ -22,9 +22,10 @@
 
 using namespace Godzi;
 
-Application::Application()
+Application::Application( const std::string& defaultMap )
 {
-    //nop
+    _defaultMap = defaultMap;
+		_actionMgr = ActionManager::create(this);
 }
 
 void
