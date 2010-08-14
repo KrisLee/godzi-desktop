@@ -1,0 +1,169 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef GODZI_FEATURES_GEOMETRY
+#define GODZI_FEATURES_GEOMETRY 1
+
+#include <Godzi/Common>
+#include <osg/Object>
+#include <osgEarthSymbology/Geometry>
+
+namespace Godzi { namespace Features {
+
+        class GODZI_EXPORT Geometry : public osg::Object
+        {
+        public:
+            enum Type {
+                TYPE_UNKNOWN,
+                TYPE_POINT,
+                TYPE_LINESTRING,
+                TYPE_LINEARRING,
+                TYPE_POLYGON,
+                TYPE_MULTIGEOMETRY,
+                TYPE_MODEL
+            };
+
+            static std::string toString( Type t ) {
+                return 
+                    t == TYPE_POINT ? "point" :
+                    t == TYPE_LINESTRING ? "linestring" :
+                    t == TYPE_LINEARRING ? "linearring" :
+                    t == TYPE_POLYGON ? "polygon" :
+                    t == TYPE_MULTIGEOMETRY ? "multigeometry" :
+                    t == TYPE_MODEL ? "model" :
+                    "unknown";
+            }
+
+            static Geometry* create( Type type, const osg::Vec3dArray* toCopy );
+
+            /**
+             * Creates a new Vec3Array (single-precision), copies the part into it, and
+             * returns the new object. 
+             */
+            virtual osg::Vec3Array* toVec3Array() const = 0;
+            virtual Type getType() const = 0;
+            virtual osg::Vec3dArray* getCoordinates() = 0;
+            virtual const osg::Vec3dArray* getCoordinates() const = 0;
+        };
+        typedef std::vector<osg::ref_ptr<Geometry> > GeometryList;
+
+
+        class Point : public Geometry
+        {
+        public:
+            META_Object(Godzi, Point);
+            Point(const Point& pm, const osg::CopyOp& cp = osg::CopyOp::DEEP_COPY_ALL);
+            Point();
+            Point( const osg::Vec3dArray* point );
+
+            virtual Type getType() const { return TYPE_POINT;}
+            osg::Vec3Array* toVec3Array() const;
+            osg::Vec3dArray* getCoordinates();
+            const osg::Vec3dArray* getCoordinates() const;
+
+        protected:
+            osg::ref_ptr<osgEarth::Symbology::PointSet> _geom;
+
+        };
+
+
+        class LineString : public Geometry
+        {
+        public:
+            META_Object(Godzi, LineString);
+            LineString(const LineString& pm, const osg::CopyOp& cp = osg::CopyOp::DEEP_COPY_ALL);
+            LineString();
+            LineString( const osg::Vec3dArray* point );
+
+            virtual Type getType() const { return TYPE_LINESTRING;}
+            osg::Vec3Array* toVec3Array() const;
+            osg::Vec3dArray* getCoordinates();
+            const osg::Vec3dArray* getCoordinates() const;
+
+        protected:
+            osg::ref_ptr<osgEarth::Symbology::LineString> _geom;
+
+        };
+
+        class LinearRing : public Geometry
+        {
+        public:
+            META_Object(Godzi, LinearRing);
+            LinearRing(const LinearRing& pm, const osg::CopyOp& cp = osg::CopyOp::DEEP_COPY_ALL);
+            LinearRing();
+            LinearRing( const osg::Vec3dArray* point );
+
+            virtual Type getType() const { return TYPE_LINEARRING;}
+            osg::Vec3Array* toVec3Array() const;
+            osg::Vec3dArray* getCoordinates();
+            const osg::Vec3dArray* getCoordinates() const;
+
+        protected:
+            osg::ref_ptr<osgEarth::Symbology::Ring> _geom;
+
+        };
+
+
+        class Polygon : public Geometry
+        {
+        public:
+            META_Object(Godzi, Polygon);
+            Polygon(const Polygon& pm, const osg::CopyOp& cp = osg::CopyOp::DEEP_COPY_ALL);
+            Polygon();
+            Polygon( const osg::Vec3dArray* point );
+
+            virtual Type getType() const { return TYPE_POLYGON;}
+            osg::Vec3Array* toVec3Array() const;
+            osg::Vec3dArray* getCoordinates();
+            const osg::Vec3dArray* getCoordinates() const;
+            osgEarth::Symbology::RingCollection& getHoles() { return _geom->getHoles(); }
+            const osgEarth::Symbology::RingCollection& getHoles() const { return _geom->getHoles(); }
+
+        protected:
+            osg::ref_ptr<osgEarth::Symbology::Polygon> _geom;
+
+        };
+
+
+        class MultiGeometry : public Geometry
+        {
+        public:
+            META_Object(Godzi, MultiGeometry);
+            MultiGeometry(const MultiGeometry& pm, const osg::CopyOp& cp = osg::CopyOp::DEEP_COPY_ALL);
+            MultiGeometry();
+            virtual Type getType() const { return TYPE_MULTIGEOMETRY;}
+
+            const GeometryList& getGeometryList() const;
+            GeometryList& getGeometryList();
+
+            osg::Vec3Array* toVec3Array() const { return 0; }
+            osg::Vec3dArray* getCoordinates() { return 0; }
+            const osg::Vec3dArray* getCoordinates() const { return 0; }
+
+        protected:
+            GeometryList _geometryList;
+
+        };
+
+
+}}
+
+#endif
