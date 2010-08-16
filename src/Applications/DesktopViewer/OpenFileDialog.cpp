@@ -18,27 +18,43 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#include <QtGui/QApplication>
-#include <Godzi/Application>
-#include <Godzi/Project>
 
-#include "DesktopMainWindow"
+#include <QFileDialog>
+#include "OpenFileDialog"
 
-#define EARTH_FILE "http://demo.pelicanmapping.com/rmweb/maps/bluemarble.earth"
-
-int
-main( int argc, char** argv )
+OpenFileDialog::OpenFileDialog()
 {
-    QApplication qtApp( argc, argv );
+	this->caption = tr("Select file...");
+	this->dir = tr("");
+	this->filter = tr("All files (*.*)");
 
-		osg::ref_ptr<Godzi::Application> app = new Godzi::Application(EARTH_FILE);
+	InitUi();
+}
 
-		DesktopMainWindow* top = new DesktopMainWindow(app);
-    top->resize( 800, 600 );
-    top->show();
+OpenFileDialog::OpenFileDialog(const QString &caption, const QString &dir, const QString &filter)
+{
+	this->caption = caption;
+	this->dir = dir;
+	this->filter = filter;
 
-		app->actionManager()->doAction(NULL, new Godzi::NewProjectAction());
+	InitUi();
+}
 
-    qtApp.connect( &qtApp, SIGNAL(lastWindowClosed()), &qtApp, SLOT(quit()) );
-    return qtApp.exec();
+void OpenFileDialog::InitUi()
+{
+	ui.setupUi(this);
+	QObject::connect(ui.browseButton, SIGNAL(clicked()), this, SLOT(showBrowse()));
+}
+
+QString OpenFileDialog::getUrl()
+{
+	return ui.urlText->text();
+}
+
+void OpenFileDialog::showBrowse()
+{
+	QString filename = QFileDialog::getOpenFileName(this, caption, dir, filter);
+
+	if (!filename.isNull())
+		ui.urlText->setText(filename);
 }

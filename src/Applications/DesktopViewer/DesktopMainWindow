@@ -1,0 +1,78 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef DESKTOP_MAINWINDOW
+#define DESKTOP_MAINWINDOW 1
+
+#include <QMainWindow>
+#include <osg/Node>
+#include <Godzi/Application>
+#include <Godzi/Actions>
+#include <Godzi/UI/ViewerWidgets>
+#include "ServerManagementWidget"
+
+class DesktopMainWindow : public QMainWindow, public Godzi::ActionCallback
+{
+	Q_OBJECT
+	
+	public:
+		DesktopMainWindow(Godzi::Application* app);
+		
+		void operator()( void* sender, Godzi::Action* action );
+		
+	private slots:
+		void newProject();
+		void openProject();
+		bool saveProject();
+		void loadMap();
+		void showAbout();
+		
+	protected:
+     void closeEvent(QCloseEvent *event);
+		
+	private:
+		void initUi();
+		void createActions();
+		void createMenus();
+		void createToolbars();
+		void createDockWindows();
+		void updateStatusBar(const QString &message);
+		void loadScene(const std::string& filename);
+		void loadScene(osg::Node* n);
+		bool checkSave();
+	
+		Godzi::UI::ViewerWidget* _osgViewer;
+		osg::ref_ptr<Godzi::Application> _app;
+		QAction *_newProjectAction;
+		QAction *_openProjectAction;
+		QAction *_saveProjectAction;
+		QAction *_loadMapAction;
+		QAction *_exitAction;
+		QAction *_aboutAction;
+		QMenu *_fileMenu;
+		QMenu *_viewMenu;
+		QMenu *_helpMenu;
+		QToolBar *_fileToolbar;
+		ServerManagementWidget *_serverManager;
+		
+};
+
+#endif // DESKTOP_MAINWINDOW

@@ -31,10 +31,10 @@ namespace Godzi
     class GODZI_EXPORT Application : public osg::Referenced
     {
     public:
-        Application();
+        Application( const std::string& defaultMap ="" );
 
         /** The global action manager */
-        ActionManager* actionManager();
+        ActionManager* actionManager() { return _actionMgr; }
         
     public:
         /** The current active project */
@@ -57,11 +57,15 @@ namespace Godzi
 
         /** Sets the project to "clean" (no unsaved changes) */
         void setProjectClean();
+        
+        const std::string& getDefaultMap() const {
+						return _defaultMap; }
 
     protected:
         osg::ref_ptr<Project> _project;
         osgEarth::Revision    _projectCheckpoint;
         std::string           _projectLocation;
+        std::string						_defaultMap;
 
         ActionManager*        _actionMgr;
     };
