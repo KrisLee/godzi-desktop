@@ -215,8 +215,6 @@ FeatureList Godzi::readFeaturesFromKML(const std::string& file)
         return features;
     }
 
-		std::cerr << file << " read:\n\n" << kml;
-
     // Parse it.
     std::string errors;
     kmldom::ElementPtr root = kmldom::Parse(kml, &errors);

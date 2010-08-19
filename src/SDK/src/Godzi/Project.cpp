@@ -39,6 +39,7 @@ _name( "Untitled" )
 ProjectProperties::ProjectProperties( const Config& conf )
 {
     conf.getIfSet( "name", _name );
+		conf.getIfSet( "map", _map);
 }
 
 Config
@@ -46,6 +47,7 @@ ProjectProperties::toConfig() const
 {
     Config conf;
     conf.addIfSet( "name", _name );
+		conf.addIfSet( "map", _map );
     return conf;
 }
 
@@ -56,15 +58,19 @@ Project::Project()
     _map = new osgEarth::Map();
 }
 
-Project::Project( osgEarth::Map* map )
+Project::Project( const std::string& defaultMap )
 {
-	  _map = map;
+	  loadMap(defaultMap);
 }
 
-Project::Project( const Config& conf )
+Project::Project( const std::string& defaultMap, const Config& conf )
 {
-		_map = new osgEarth::Map();
-    _props = ProjectProperties( conf.child( "properties" ) );
+		_props = ProjectProperties( conf.child( "properties" ) );
+
+		if (_props.map().isSet())
+			loadMap(_props.map().get());
+		else
+			loadMap(defaultMap);
 }
 
 Config
@@ -80,14 +86,16 @@ Project::toConfig() const
     return conf;
 }
 
-//---------------------------------------------------------------------------
-
-bool
-NewProjectAction::doAction( void* sender, Application* app )
+void
+Project::loadMap( const std::string& map )
 {
-		osg::Node* map = osgDB::readNodeFile( app->getDefaultMap() );
-		osgEarth::MapNode* mapNode = osgEarth::MapNode::findMapNode(map);
-    app->setProject( new Godzi::Project(mapNode->getMap()) );
+		if (map.empty())
+		{
+				_map = new osgEarth::Map();
+				return;
+		}
+
+		osg::Node* node = osgDB::readNodeFile( map );
 
 		//TEST
 		//Godzi::Features::FeatureList featureList = Godzi::readFeaturesFromKML("./data/example.kml");
@@ -96,6 +104,16 @@ NewProjectAction::doAction( void* sender, Application* app )
 		//map->accept(featuresMaker);
 		//TEST
 
+		osgEarth::MapNode* mapNode = osgEarth::MapNode::findMapNode(node);
+		_map = mapNode->getMap();
+}
+
+//---------------------------------------------------------------------------
+
+bool
+NewProjectAction::doAction( void* sender, Application* app )
+{
+		app->setProject( new Godzi::Project(app->getDefaultMap()) );
     return true;
 }
 
@@ -109,7 +127,7 @@ OpenProjectAction::doAction( void* sender, Application* app )
     if ( doc.valid() )
     {
         Config conf = doc->toConfig().child( "godzi_project" );
-        Project* project = new Project( conf );
+				Project* project = new Project( app->getDefaultMap(), conf );
         app->setProject( project, _location );
         return true;
     }
