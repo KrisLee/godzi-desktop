@@ -54,16 +54,22 @@ const osg::Vec3dArray* LinearRing::getCoordinates() const { return dynamic_cast<
 
 
 
-Polygon::Polygon() { _geom = new osgEarth::Symbology::Polygon; }
-Polygon::Polygon(const Polygon& pm, const osg::CopyOp& cp) : Geometry(), _geom(osg::clone(pm._geom.get(), cp))
+Polygon::Polygon() { _outer = new LinearRing; }
+Polygon::Polygon(const Polygon& pm, const osg::CopyOp& cp) : Geometry(), _outer(osg::clone(pm._outer.get(), cp))
 {
+    _holes.clear();
+    _holes.reserve(pm._holes.size());
+    for (int i = 0; i < pm._holes.size(); ++i) {
+        _holes.push_back(osg::clone(pm._holes[i].get(), cp));
+    }
 }
 
-Polygon::Polygon(const osg::Vec3dArray* toCopy) : Geometry(), _geom(new osgEarth::Symbology::Polygon(toCopy)) {}
+Polygon::Polygon(const osg::Vec3dArray* toCopy) : Geometry(), _outer(new LinearRing(toCopy)) {}
 
-osg::Vec3Array* Polygon::toVec3Array() const { return _geom->toVec3Array(); }
-osg::Vec3dArray* Polygon::getCoordinates() { return dynamic_cast<osg::Vec3dArray*>(_geom.get()); }
-const osg::Vec3dArray* Polygon::getCoordinates() const { return dynamic_cast<const osg::Vec3dArray*>(_geom.get()); }
+osg::Vec3Array* Polygon::toVec3Array() const { return _outer->toVec3Array(); }
+osg::Vec3dArray* Polygon::getCoordinates() { return dynamic_cast<osg::Vec3dArray*>(_outer->getCoordinates()); }
+const osg::Vec3dArray* Polygon::getCoordinates() const { return dynamic_cast<const osg::Vec3dArray*>(_outer->getCoordinates()); }
+
 
 
 MultiGeometry::MultiGeometry() {}

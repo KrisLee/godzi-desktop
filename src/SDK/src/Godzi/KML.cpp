@@ -116,7 +116,7 @@ Geometry* createGeometryFromElement(const kmldom::GeometryPtr kmlGeom)
                 for (size_t i = 0; i < poly->get_innerboundaryis_array_size(); ++i) {
                     const kmldom::CoordinatesPtr inner = poly->get_innerboundaryis_array_at(i)->get_linearring()->get_coordinates();
                     if (inner)
-                        geom->getHoles().push_back(new osgEarth::Symbology::Ring(CoordinatesToVec3dArray(inner)));
+                        geom->getHoles().push_back(new LinearRing(CoordinatesToVec3dArray(inner)));
                 }
 
                 return (geom);
