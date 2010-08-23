@@ -1,0 +1,120 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+#ifndef GODZI_DATA_SOURCE
+#define GODZI_DATA_SOURCE 1
+
+#include <QObject>
+#include <Godzi/Common>
+#include <Godzi/Actions>
+#include <osgEarth/Config>
+#include <osgEarth/Revisioning>
+#include <osgEarth/TileSource>
+#include <osgEarthDrivers/wms/WMSOptions>
+#include <osgEarthDrivers/tms/TMSOptions>
+
+namespace Godzi
+{
+	class Application;
+	class Project;
+
+	class GODZI_EXPORT DataSource : public osgEarth::Revisioned<osg::Referenced>
+  {
+  public:
+		enum Type
+		{
+			TYPE_WMS,
+			TYPE_TMS,
+			TYPE_KML
+		};
+
+    virtual Config toConfig() const =0;
+		virtual const std::string& getLocation() =0;
+		virtual osgEarth::DriverOptions* getOptions() =0;
+		
+		Type& type() { return _type; }
+		const Type& type() const { return _type; }
+		
+		osgEarth::optional<std::string>& name() { return _name; }
+    const osgEarth::optional<std::string>& name() const { return _name; }
+
+	protected:
+		//DataSource();
+		Type _type;
+		osgEarth::optional<std::string> _name;
+	};
+
+	class GODZI_EXPORT WMSSource : public DataSource
+	{
+	public:
+		WMSSource(Type type, osgEarth::Drivers::WMSOptions* opt);
+
+		Config toConfig() const;
+		const std::string& getLocation();
+		osgEarth::DriverOptions* getOptions();
+
+	private:
+		osgEarth::Drivers::WMSOptions* _opt;
+	};
+
+	class GODZI_EXPORT TMSSource : public DataSource
+	{
+	public:
+		TMSSource(Type type, osgEarth::Drivers::TMSOptions* opt);
+
+		Config toConfig() const;
+		const std::string& getLocation();
+		osgEarth::DriverOptions* getOptions();
+
+	private:
+		osgEarth::Drivers::TMSOptions* _opt;
+	};
+
+	class GODZI_EXPORT AddDataSourceAction : public ReversibleAction
+	{
+	public:
+		AddDataSourceAction(DataSource* source) : _source(source) { }
+
+		bool doAction( void* sender, Application* app );
+		bool isCheckPoint() { return false; };
+		bool undoAction( void* sender, Application* app );
+
+	protected:
+		DataSource* _source;
+	};
+	
+	class GODZI_EXPORT DataSourceManager : public QObject
+	{
+	
+	Q_OBJECT
+	
+	public:
+		DataSourceManager(Godzi::Application* app);
+		
+	private slots:
+		void onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
+		void onDataSourceAdded(Godzi::DataSource* source);
+		
+	//private:
+		//osg::ref_ptr<Application> _app;
+	};
+}
+
+#endif // GODZI_DATA_SOURCE

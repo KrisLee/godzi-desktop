@@ -24,24 +24,32 @@
 
 #include <QWidget>
 #include <QToolBar>
-#include <QListWidget>
+#include <QComboBox>
+#include <QTreeWidget>
+#include <Godzi/Application>
+#include <Godzi/Project>
+#include <Godzi/DataSources>
 
 class ServerManagementWidget : public QWidget
 {
 	Q_OBJECT
 
 	public:
-		ServerManagementWidget();
+		ServerManagementWidget(Godzi::Application* app);
 		
 	private slots:
-		void addServer();
-		void removeServer();
+		void addSource();
+		void removeSource();
+		void onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
+		void onDataSourceAdded(Godzi::DataSource* source);
 
 	private:
-		QAction *_addServerAction;
-		QAction *_removeServerAction;
+	  osg::ref_ptr<Godzi::Application> _app;
+		QAction *_addSourceAction;
+		QAction *_removeSourceAction;
 		QToolBar *_toolbar;
-		QListWidget *_serverList;
+		QComboBox *_typeBox;
+		QTreeWidget *_sourceTree;
 		
 		void createActions();
 		void initUi();

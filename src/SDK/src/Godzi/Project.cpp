@@ -36,16 +36,16 @@ _name( "Untitled" )
     //nop
 }
 
-ProjectProperties::ProjectProperties( const Config& conf )
+ProjectProperties::ProjectProperties( const Godzi::Config& conf )
 {
     conf.getIfSet( "name", _name );
 		conf.getIfSet( "map", _map);
 }
 
-Config
+Godzi::Config
 ProjectProperties::toConfig() const
 {
-    Config conf;
+	Godzi::Config conf;
     conf.addIfSet( "name", _name );
 		conf.addIfSet( "map", _map );
     return conf;
@@ -63,7 +63,7 @@ Project::Project( const std::string& defaultMap )
 	  loadMap(defaultMap);
 }
 
-Project::Project( const std::string& defaultMap, const Config& conf )
+Project::Project( const std::string& defaultMap, const Godzi::Config& conf )
 {
 		_props = ProjectProperties( conf.child( "properties" ) );
 
@@ -73,10 +73,10 @@ Project::Project( const std::string& defaultMap, const Config& conf )
 			loadMap(defaultMap);
 }
 
-Config
+Godzi::Config
 Project::toConfig() const
 {
-    Config conf( "godzi_project" );
+	  Godzi::Config conf( "godzi_project" );
 
     conf.add( "properties", _props.toConfig() );
 
@@ -84,6 +84,12 @@ Project::toConfig() const
     //    conf.add( "map", _map->toConfig() );
 
     return conf;
+}
+
+void Project::addDataSource(Godzi::DataSource* source)
+{
+	_sources.push_back(source);
+	emit dataSourceAdded(source);
 }
 
 void

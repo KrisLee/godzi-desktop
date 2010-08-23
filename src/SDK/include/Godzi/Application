@@ -31,8 +31,8 @@ namespace Godzi
 
     class GODZI_EXPORT Application : public QObject, public osg::Referenced
     {
-		
-		Q_OBJECT
+
+    Q_OBJECT
 			
     public:
         Application( const std::string& defaultMap ="" );

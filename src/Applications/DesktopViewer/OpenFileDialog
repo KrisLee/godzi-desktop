@@ -29,8 +29,8 @@ class OpenFileDialog : public QDialog
 	Q_OBJECT
 
 	public:
-		OpenFileDialog();
-		OpenFileDialog(const QString &caption, const QString &dir, const QString &filter);
+		OpenFileDialog(bool canBrowse=true);
+		OpenFileDialog(const QString &caption, const QString &dir, const QString &filter, bool canBrowse=true);
 		QString getUrl();
 		
 	private slots:
@@ -40,7 +40,7 @@ class OpenFileDialog : public QDialog
 		Ui::OpenFileDialog ui;
 		QString caption, dir, filter;
 		
-		void InitUi();
+		void InitUi(bool canBrowse);
 };
 
 

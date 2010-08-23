@@ -22,28 +22,36 @@
 #include <QFileDialog>
 #include "OpenFileDialog"
 
-OpenFileDialog::OpenFileDialog()
+OpenFileDialog::OpenFileDialog(bool canBrowse)
 {
-	this->caption = tr("Select file...");
+	this->caption = tr("Location...");
 	this->dir = tr("");
 	this->filter = tr("All files (*.*)");
 
-	InitUi();
+	InitUi(canBrowse);
 }
 
-OpenFileDialog::OpenFileDialog(const QString &caption, const QString &dir, const QString &filter)
+OpenFileDialog::OpenFileDialog(const QString &caption, const QString &dir, const QString &filter, bool canBrowse)
 {
 	this->caption = caption;
 	this->dir = dir;
 	this->filter = filter;
 
-	InitUi();
+	InitUi(canBrowse);
 }
 
-void OpenFileDialog::InitUi()
+void OpenFileDialog::InitUi(bool canBrowse)
 {
 	ui.setupUi(this);
-	QObject::connect(ui.browseButton, SIGNAL(clicked()), this, SLOT(showBrowse()));
+
+	if (canBrowse)
+	{
+	  QObject::connect(ui.browseButton, SIGNAL(clicked()), this, SLOT(showBrowse()));
+	}
+	else
+	{
+		ui.browseButton->setVisible(false);
+	}
 }
 
 QString OpenFileDialog::getUrl()

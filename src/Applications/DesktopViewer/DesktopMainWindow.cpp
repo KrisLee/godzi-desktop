@@ -115,7 +115,7 @@ void DesktopMainWindow::createDockWindows()
 {
 	QDockWidget *dock = new QDockWidget(tr("Servers"), this);
   dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-	_serverManager = new ServerManagementWidget();
+	_serverManager = new ServerManagementWidget(_app);
 	dock->setWidget(_serverManager);
 	addDockWidget(Qt::LeftDockWidgetArea, dock);
 	_viewMenu->addAction(dock->toggleViewAction());

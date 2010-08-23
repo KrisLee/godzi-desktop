@@ -18,6 +18,7 @@ set(CORE_INCLUDE
 	include/Godzi/Actions
 	include/Godzi/Application
 	include/Godzi/Project
+	include/Godzi/DataSources
 	include/Godzi/Earth
 	include/Godzi/KML
 	include/Godzi/Features/ApplyFeature
@@ -29,6 +30,7 @@ set(CORE_SOURCE
 	src/Godzi/Actions.cpp
 	src/Godzi/Application.cpp
 	src/Godzi/Project.cpp
+	src/Godzi/DataSources.cpp
 	src/Godzi/Earth.cpp
 	src/Godzi/KML.cpp
 	src/Godzi/Features/ApplyFeature
@@ -55,6 +57,8 @@ INCLUDE( ${QT_USE_FILE} )
 
 set(GODZI_SDK_MOC_HDRS
 	include/Godzi/Application
+	include/Godzi/Project
+	include/Godzi/DataSources
 )
 
 QT4_WRAP_CPP( GODZI_SDK_MOC_SRCS ${GODZI_SDK_MOC_HDRS} )
