@@ -21,6 +21,7 @@
 
 #include <osg/MatrixTransform>
 #include <osg/AutoTransform>
+#include <Godzi/Features/SymbolicNode>
 #include <Godzi/Features/ApplyFeature>
 #include <Godzi/Features/Placemark>
 #include <osgEarthSymbology/Content>
@@ -28,7 +29,6 @@
 #include <osgEarthSymbology/SymbolicNode>
 #include <osgEarthSymbology/MarkerSymbol>
 #include <osgEarthSymbology/MarkerSymbolizer>
-
 #include <osgEarthSymbology/GeometrySymbolizer>
 
 using namespace Godzi;
@@ -46,6 +46,7 @@ void ApplyFeature::apply(osg::CoordinateSystemNode& node)
     if (mapNode)
         apply(*mapNode);
 }
+
 
 
 static osg::Group* createPlacemarkPointSymbology()
@@ -173,6 +174,7 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
             switch(p->getGeometry()->getType()) {
             case Geometry::TYPE_POINT:
             {
+#if 0
                 if (p->getGeometry()->getCoordinates()->size() > 0) {
                     double lon, lat, alt;
                     lon = (*p->getGeometry()->getCoordinates())[0][0];
@@ -189,6 +191,23 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
                 } else {
                     osg::notify(osg::WARN) << "no point in placemark " << p->getName() << std::endl;
                 }
+#else
+                PlacemarkSymbolicNode* psn = new PlacemarkSymbolicNode;
+                PlacemarkContent* pc = new PlacemarkContent(p);
+                psn->setSymbolizer(new PlacemarkSymbolizer);
+                psn->getState()->setContent(pc);
+                psn->getState()->setContext(new PlacemarkContext(&node));
+
+                osg::ref_ptr<osgEarth::Symbology::Style> style = new osgEarth::Symbology::Style;
+                {
+                    style->setName("Marker");
+                    osg::ref_ptr<osgEarth::Symbology::MarkerSymbol> pointSymbol = new osgEarth::Symbology::MarkerSymbol;
+                    pointSymbol->marker() = "../../data/marker.osg";
+                    style->addSymbol(pointSymbol.get());
+                }
+                psn->getState()->setStyle(style.get());
+                node.addChild(psn);
+#endif
             }
             break;
             case Geometry::TYPE_LINESTRING:

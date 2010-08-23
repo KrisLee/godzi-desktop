@@ -125,8 +125,10 @@ void DesktopMainWindow::updateStatusBar(const QString &message)
 
 void DesktopMainWindow::loadScene(const std::string& filename)
 {
-	if (filename.length() > 0)
-		loadScene(osgDB::readNodeFile(filename));
+    if (filename.length() > 0) {
+        osg::Node* node = osgDB::readNodeFile(filename);
+        loadScene(node);
+    }
 }
 
 void DesktopMainWindow::loadScene(osg::Node* n)
@@ -167,7 +169,15 @@ void DesktopMainWindow::closeEvent(QCloseEvent *event)
 void DesktopMainWindow::operator()( void* sender, Godzi::Action* action )
 {
 	setWindowModified(_app->isProjectDirty());
-	loadScene(new osgEarth::MapNode(_app->getProject()->map()));
+  osgEarth::MapNode* map = new osgEarth::MapNode(_app->getProject()->map());
+	loadScene(map);
+
+  //TEST
+  Godzi::Features::FeatureList featureList = Godzi::readFeaturesFromKML("../../data/example.kml");
+  Godzi::Features::ApplyFeature featuresMaker;
+  featuresMaker.setFeatures(featureList);
+  map->accept(featuresMaker);
+  //TEST
 }
 
 void DesktopMainWindow::newProject()
@@ -207,13 +217,13 @@ bool DesktopMainWindow::saveProject()
 
 void DesktopMainWindow::loadMap()
 {
-	OpenFileDialog ofd(tr("Select globe file..."), tr(""), tr("osgEarth files (*.earth);;All files (*.*)"));
-	if (ofd.exec() == QDialog::Accepted)
-	{
-		QString url = ofd.getUrl();
-		if (!url.isNull() && !url.isEmpty())
-			loadScene(url.toStdString());
-	}
+    OpenFileDialog ofd(tr("Select globe file..."), tr(""), tr("osgEarth files (*.earth);;All files (*.*)"));
+    if (ofd.exec() == QDialog::Accepted)
+    {
+        QString url = ofd.getUrl();
+        if (!url.isNull() && !url.isEmpty())
+            loadScene(url.toStdString());
+    }
 }
 
 void DesktopMainWindow::showAbout()
