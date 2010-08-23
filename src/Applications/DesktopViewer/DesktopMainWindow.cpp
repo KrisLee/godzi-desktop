@@ -37,6 +37,8 @@ DesktopMainWindow::DesktopMainWindow(Godzi::Application* app)
 {
 	initUi();
 	_app->actionManager()->addAfterActionCallback(this);
+
+	connect(_app, SIGNAL(projectChanged(osg::ref_ptr<Godzi::Project>, osg::ref_ptr<Godzi::Project>)), this, SLOT(onProjectChanged(osg::ref_ptr<Godzi::Project>, osg::ref_ptr<Godzi::Project>)));
 }
 
 void DesktopMainWindow::initUi()
@@ -102,10 +104,11 @@ void DesktopMainWindow::createMenus()
 
 void DesktopMainWindow::createToolbars()
 {
-	_fileToolbar = addToolBar(tr("File"));
+	_fileToolbar = addToolBar(tr("File Toolbar"));
 	_fileToolbar->setIconSize(QSize(24, 24));
 	_fileToolbar->addAction(_openProjectAction);
 	_fileToolbar->addAction(_saveProjectAction);
+	_viewMenu->addAction(_fileToolbar->toggleViewAction());
 }
 
 void DesktopMainWindow::createDockWindows()
@@ -169,15 +172,6 @@ void DesktopMainWindow::closeEvent(QCloseEvent *event)
 void DesktopMainWindow::operator()( void* sender, Godzi::Action* action )
 {
 	setWindowModified(_app->isProjectDirty());
-  osgEarth::MapNode* map = new osgEarth::MapNode(_app->getProject()->map());
-	loadScene(map);
-
-  //TEST
-  Godzi::Features::FeatureList featureList = Godzi::readFeaturesFromKML("../../data/example.kml");
-  Godzi::Features::ApplyFeature featuresMaker;
-  featuresMaker.setFeatures(featureList);
-  map->accept(featuresMaker);
-  //TEST
 }
 
 void DesktopMainWindow::newProject()
@@ -230,4 +224,20 @@ void DesktopMainWindow::showAbout()
 {
 	AboutDialog ad;
 	ad.exec();
+}
+
+void DesktopMainWindow::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject)
+{
+    osgEarth::MapNode* mapNode = new osgEarth::MapNode(_app->getProject()->map());
+    loadScene(mapNode);
+
+		//TEST
+#if 1
+		Godzi::Features::FeatureList featureList = Godzi::readFeaturesFromKML("../../data/example.kml");
+		Godzi::Features::ApplyFeature featuresMaker;
+		featuresMaker.setFeatures(featureList);
+		mapNode->accept(featuresMaker);
+#endif
+		//TEST
+
 }

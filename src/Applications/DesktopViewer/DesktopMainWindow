@@ -25,6 +25,7 @@
 #include <QMainWindow>
 #include <osg/Node>
 #include <Godzi/Application>
+#include <Godzi/Project>
 #include <Godzi/Actions>
 #include <Godzi/UI/ViewerWidgets>
 #include "ServerManagementWidget"
@@ -44,6 +45,7 @@ class DesktopMainWindow : public QMainWindow, public Godzi::ActionCallback
 		bool saveProject();
 		void loadMap();
 		void showAbout();
+		void onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
 		
 	protected:
      void closeEvent(QCloseEvent *event);

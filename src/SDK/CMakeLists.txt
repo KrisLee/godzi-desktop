@@ -50,11 +50,25 @@ set(UI_SOURCE
 )
 source_group( UI FILES ${UI_INCLUDE} ${UI_SOURCE} )
 
+# ----- Qt moc headers -------------------------------------------------
+
+FIND_PACKAGE( Qt4 REQUIRED )
+INCLUDE( ${QT_USE_FILE} )
+
+set(GODZI_SDK_MOC_HDRS
+	include/Godzi/Application
+)
+
+QT4_WRAP_CPP( GODZI_SDK_MOC_SRCS ${GODZI_SDK_MOC_HDRS} )
+
+#INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_BINARY_DIR} )
+
 # ----------------------------------------------------------------------
 
 set(PROJECT_FILES
     ${CORE_INCLUDE} ${CORE_SOURCE}
     ${UI_INCLUDE} ${UI_SOURCE}
+    ${GODZI_SDK_MOC_SRCS}
 )
 
 create_library(

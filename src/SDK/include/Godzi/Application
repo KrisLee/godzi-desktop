@@ -21,6 +21,7 @@
 #ifndef GODZI_APPLICATION
 #define GODZI_APPLICATION 1
 
+#include <QObject>
 #include <Godzi/Common>
 #include <Godzi/Project>
 
@@ -28,8 +29,11 @@ namespace Godzi
 {
     class ActionManager;
 
-    class GODZI_EXPORT Application : public osg::Referenced
+    class GODZI_EXPORT Application : public QObject, public osg::Referenced
     {
+		
+		Q_OBJECT
+			
     public:
         Application( const std::string& defaultMap ="" );
 
@@ -60,7 +64,10 @@ namespace Godzi
         
         const std::string& getDefaultMap() const {
 						return _defaultMap; }
-
+						
+		signals:
+			void projectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
+		
     protected:
         osg::ref_ptr<Project> _project;
         osgEarth::Revision    _projectCheckpoint;

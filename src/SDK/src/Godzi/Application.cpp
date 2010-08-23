@@ -31,11 +31,14 @@ Application::Application( const std::string& defaultMap )
 void
 Application::setProject( Project* project, const std::string& projectLocation )
 {
-    if ( project )
+    if ( project && project != _project )
     {
+				osg::ref_ptr<Project> oldProject = _project;
         _project = project;
         _projectLocation = projectLocation;
         _project->sync( _projectCheckpoint );
+
+				emit projectChanged(oldProject, _project);
     }
 }
 
