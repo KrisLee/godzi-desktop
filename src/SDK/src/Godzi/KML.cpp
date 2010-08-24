@@ -76,6 +76,22 @@ Geometry* createGeometryFromElement(const kmldom::GeometryPtr kmlGeom)
         osg::Vec3dArray* array = CoordinatesToVec3dArray(coord);
         if (array) {
             Point* geom = new Point(array);
+            geom->setExtrude(kmldom::AsPoint(kmlGeom)->get_extrude());
+
+            switch (kmldom::AsPoint(kmlGeom)->get_altitudemode()) {
+            case kmldom::ALTITUDEMODE_CLAMPTOGROUND:
+                geom->setAltitudeMode(Point::ClampToGround);
+                break;
+            case kmldom::ALTITUDEMODE_RELATIVETOGROUND:
+                geom->setAltitudeMode(Point::RelativeToGround);
+                break;
+            case kmldom::ALTITUDEMODE_ABSOLUTE:
+                geom->setAltitudeMode(Point::Absolute);
+                break;
+            default:
+                geom->setAltitudeMode(Point::ClampToGround);
+                break;
+            }
             return (geom);
         }
     }

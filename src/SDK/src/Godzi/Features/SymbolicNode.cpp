@@ -20,6 +20,8 @@
  */
 
 #include <Godzi/Features/SymbolicNode>
+#include <osg/Material>
+#include <osg/LineWidth>
 #include <osg/MatrixTransform>
 #include <osg/AutoTransform>
 
@@ -64,8 +66,8 @@ osg::Group* PlacemarkSymbolizer::PlacemarkSymbolizerOperator::createMarker(const
 {
     if (symbol)
     {
-        const Geometry* geom = placemark->getGeometry();
-        if (symbol && geom->getCoordinates()->size() && !symbol->marker().value().empty())
+        const Point* geom = dynamic_cast<const Point*>(placemark->getGeometry());
+        if (geom && symbol && geom->getCoordinates()->size() && !symbol->marker().value().empty())
         {
             osg::Node* node = getNode(symbol->marker().value());
             if (!node) {
@@ -81,6 +83,21 @@ osg::Group* PlacemarkSymbolizer::PlacemarkSymbolizerOperator::createMarker(const
                 double lon = (*it)[0];
                 double lat = (*it)[1];
                 double alt = (*it)[2];
+                switch (geom->getAltitudeMode()) {
+                case Point::ClampToGround:
+                    alt = 0;
+                    break;
+                case Point::RelativeToGround:
+                    break;
+                case Point::Absolute:
+                {
+                    osg::Vec3d dir = context->getMapNode()->getEllipsoidModel()->computeLocalUpVector(lat, lon, alt);
+                    osg::Vec3d posOnGlobe;
+                    context->getMapNode()->getEllipsoidModel()->convertLatLongHeightToXYZ(lat, lon, 0, posOnGlobe[0], posOnGlobe[1], posOnGlobe[2]);
+                    alt = alt - posOnGlobe.length();
+                }
+                break;
+                }
                 osg::notify(osg::NOTICE) << placemark->getName() << " Lat " << osg::RadiansToDegrees( lat) << " long " << osg::RadiansToDegrees(lon) << " alt " << alt << std::endl;
                 osg::Matrixd matrix;
                 context->getMapNode()->getEllipsoidModel()->computeLocalToWorldTransformFromLatLongHeight(lat, lon, alt, matrix);
@@ -93,6 +110,24 @@ osg::Group* PlacemarkSymbolizer::PlacemarkSymbolizerOperator::createMarker(const
                 tr->setMatrix(matrix);
                 tr->addChild(autoTransform);
                 group->addChild(tr);
+
+                if (geom->getExtrude()) {
+                    osg::Vec3d start;
+                    osg::Vec3d end;
+                    context->getMapNode()->getEllipsoidModel()->convertLatLongHeightToXYZ(lat, lon, 0, start[0], start[1], start[2]);
+                    context->getMapNode()->getEllipsoidModel()->convertLatLongHeightToXYZ(lat, lon, alt, end[0], end[1], end[2]);
+                    osg::Geometry* line = new osg::Geometry;
+                    osg::Vec3dArray* a = new osg::Vec3dArray;
+                    a->push_back(start);
+                    a->push_back(end);
+                    line->setVertexArray(a);
+                    line->getOrCreateStateSet()->setAttributeAndModes(new osg::Material);
+                    line->getOrCreateStateSet()->setAttributeAndModes(new osg::LineWidth(2.0));
+                    line->getPrimitiveSetList().push_back(new osg::DrawArrays(GL_LINES, 0, 2));
+                    osg::Geode* geode = new osg::Geode;
+                    geode->addDrawable(line);
+                    group->addChild(geode);
+                }
             }
             return group;
         }
