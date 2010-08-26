@@ -24,6 +24,7 @@
 #include <osg/LineWidth>
 #include <osg/MatrixTransform>
 #include <osg/AutoTransform>
+#include <osg/Math>
 
 using namespace Godzi;
 using namespace Godzi::Features;
@@ -45,17 +46,16 @@ static osg::Node* getNode(const std::string& str)
 }
 
 
-static osg::Vec3dArray* ConvertFromLongitudeLatitudeAltitudeTo3D(osg::EllipsoidModel* elipse, osg::Vec3dArray* longLatAlt)
+static osg::Vec3dArray* ConvertFromLatitudeLongitudeAltitudeTo3D(osg::EllipsoidModel* elipse, osg::Vec3dArray* latLongAlt)
 {
-    if (!longLatAlt || longLatAlt->empty() || !elipse)
+    if (!latLongAlt || latLongAlt->empty() || !elipse)
         return 0;
 
-    osg::Vec3dArray* a3d = new osg::Vec3dArray(longLatAlt->size());
-    for (int i = 0; i < longLatAlt->size(); ++i) {
+    osg::Vec3dArray* a3d = new osg::Vec3dArray(latLongAlt->size());
+    for (int i = 0; i < latLongAlt->size(); ++i) {
         double x,y,z;
-        const osg::Vec3d& l = (*longLatAlt)[i];
-        elipse->convertLatLongHeightToXYZ( l[1], l[0], l[2],
-                                           x, y, z);
+        const osg::Vec3d& l = (*latLongAlt)[i];
+        elipse->convertLatLongHeightToXYZ( osg::DegreesToRadians(l[0]), osg::DegreesToRadians(l[1]), l[2], x, y, z);
         (*a3d)[i] = osg::Vec3d(x,y,z);
     }
     return a3d;
@@ -80,8 +80,8 @@ osg::Group* PlacemarkSymbolizer::PlacemarkSymbolizerOperator::createMarker(const
                 osg::Vec3d pos = *it;
                 osg::MatrixTransform* tr = new osg::MatrixTransform;
 
-                double lon = (*it)[0];
-                double lat = (*it)[1];
+                double lat = osg::DegreesToRadians((*it)[0]);
+                double lon = osg::DegreesToRadians((*it)[1]);
                 double alt = (*it)[2];
                 switch (geom->getAltitudeMode()) {
                 case Point::ClampToGround:
@@ -98,7 +98,7 @@ osg::Group* PlacemarkSymbolizer::PlacemarkSymbolizerOperator::createMarker(const
                 }
                 break;
                 }
-                osg::notify(osg::NOTICE) << placemark->getName() << " Lat " << osg::RadiansToDegrees( lat) << " long " << osg::RadiansToDegrees(lon) << " alt " << alt << std::endl;
+                osg::notify(osg::NOTICE) << placemark->getName() << " Lat " << lat << " long " << lon << " alt " << alt << std::endl;
                 osg::Matrixd matrix;
                 context->getMapNode()->getEllipsoidModel()->computeLocalToWorldTransformFromLatLongHeight(lat, lon, alt, matrix);
 
@@ -165,8 +165,6 @@ osg::Node* PlacemarkSymbolizer::PlacemarkSymbolizerOperator::operator()(const Pl
 }
 
 
-
-
 PlacemarkSymbolizer::PlacemarkSymbolizer()
 {
     //nop
@@ -197,3 +195,9 @@ PlacemarkSymbolizer::compile(PlacemarkState* state,
 
     return false;
 }
+
+
+
+
+
+

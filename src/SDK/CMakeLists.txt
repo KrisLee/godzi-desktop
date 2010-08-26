@@ -25,6 +25,7 @@ set(CORE_INCLUDE
 	include/Godzi/Features/Geometry
 	include/Godzi/Features/Placemark
 	include/Godzi/Features/SymbolicNode
+	include/Godzi/Features/AGGLiteRasterizerTileSource
         )
 set(CORE_SOURCE
 	src/Godzi/Actions.cpp
@@ -37,6 +38,7 @@ set(CORE_SOURCE
 	src/Godzi/Features/Geometry.cpp
 	src/Godzi/Features/Placemark.cpp
 	src/Godzi/Features/SymbolicNode.cpp
+	src/Godzi/Features/AGGLiteRasterizerTileSource.cpp
 )   
 source_group( Core FILES ${CORE_INCLUDE} ${CORE_SOURCE} )
 

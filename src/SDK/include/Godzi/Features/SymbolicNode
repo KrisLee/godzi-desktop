@@ -41,6 +41,7 @@ namespace Godzi { namespace Features {
             void setPlacemark(Placemark* placemark) { _placemark = placemark; }
         protected:
             osg::ref_ptr<Placemark> _placemark;
+            osg::ref_ptr<osgEarth::MapLayer> _layer;
         };
 
         class PlacemarkContext : public osgEarth::Symbology::SymbolizerContext

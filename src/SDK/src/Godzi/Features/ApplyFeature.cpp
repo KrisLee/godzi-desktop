@@ -24,6 +24,8 @@
 #include <Godzi/Features/SymbolicNode>
 #include <Godzi/Features/ApplyFeature>
 #include <Godzi/Features/Placemark>
+#include <Godzi/Features/AGGLiteRasterizerTileSource>
+
 #include <osgEarthSymbology/Content>
 #include <osgEarthSymbology/Style>
 #include <osgEarthSymbology/SymbolicNode>
@@ -33,6 +35,8 @@
 
 using namespace Godzi;
 using namespace Godzi::Features;
+
+
 
 typedef osgEarth::Symbology::SymbolicNode< osgEarth::Symbology::State<osgEarth::Symbology::GeometryContent> > GeometrySymbolicNode;
 
@@ -155,7 +159,7 @@ static osg::Vec3dArray* ConvertFromLongitudeLatitudeAltitudeTo3D(osg::EllipsoidM
     for (int i = 0; i < longLatAlt->size(); ++i) {
         double x,y,z;
         const osg::Vec3d& l = (*longLatAlt)[i];
-        elipse->convertLatLongHeightToXYZ( l[1], l[0], l[2],
+        elipse->convertLatLongHeightToXYZ( osg::DegreesToRadians(l[0]), osg::DegreesToRadians(l[1]), l[2],
                                            x, y, z);
         (*a3d)[i] = osg::Vec3d(x,y,z);
     }
@@ -163,9 +167,25 @@ static osg::Vec3dArray* ConvertFromLongitudeLatitudeAltitudeTo3D(osg::EllipsoidM
 }
 
 
+static osg::Vec3dArray* ConvertFromDegreeToRadian(osg::Vec3dArray* array)
+{
+    if (!array || array->empty())
+        return 0;
+
+    osg::Vec3dArray* a3d = new osg::Vec3dArray(array->size());
+    for (int i = 0; i < array->size(); ++i) {
+        double x,y,z;
+        const osg::Vec3d& l = (*array)[i];
+        (*a3d)[i] = osg::Vec3d(osg::DegreesToRadians(x),osg::DegreesToRadians(y),z);
+    }
+    return a3d;
+}
+
 // we have map node put our feature here
 void ApplyFeature::apply(osgEarth::MapNode& node)
 {
+
+    GeometryList list;
 
     for (FeatureList::iterator it = _features.begin(); it != _features.end(); ++it) {
         Godzi::Features::Placemark* p = dynamic_cast<Godzi::Features::Placemark*>(it->get());
@@ -177,8 +197,8 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
 #if 0
                 if (p->getGeometry()->getCoordinates()->size() > 0) {
                     double lon, lat, alt;
-                    lon = (*p->getGeometry()->getCoordinates())[0][0];
-                    lat = (*p->getGeometry()->getCoordinates())[0][1];
+                    lat = (*p->getGeometry()->getCoordinates())[0][0];
+                    lon = (*p->getGeometry()->getCoordinates())[0][1];
                     alt = (*p->getGeometry()->getCoordinates())[0][2];
                     osg::Matrixd matrix;
                     node.getEllipsoidModel()->computeLocalToWorldTransformFromLatLongHeight(lat, lon, alt, matrix);
@@ -212,6 +232,7 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
             break;
             case Geometry::TYPE_LINESTRING:
             {
+#if 1
                 if (p->getGeometry()->getCoordinates()->size() > 0) {
                     osg::Vec3dArray* array = ConvertFromLongitudeLatitudeAltitudeTo3D(node.getEllipsoidModel(), p->getGeometry()->getCoordinates());
                     if (array) {
@@ -223,6 +244,13 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
                 } else {
                     osg::notify(osg::WARN) << "no lines in placemark " << p->getName() << std::endl;
                 }
+
+                // here I tried to transform data in different way to fit in agglite driver
+                // I cant find what is going on
+                osg::Vec3dArray* array = ConvertFromLongitudeLatitudeAltitudeTo3D(node.getEllipsoidModel(), p->getGeometry()->getCoordinates());
+                list.push_back(new LineString( array));
+#endif
+
             }
             break;
             case Geometry::TYPE_LINEARRING:
@@ -268,4 +296,12 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
             }
         }
     }
+
+    if (!list.empty()) {
+        osg::ref_ptr<AGGLiteRasterizerTileSource> ts = new AGGLiteRasterizerTileSource(list);
+        ts->initialize("", node.getMap()->getProfile());
+        osg::ref_ptr<osgEarth::ImageMapLayer> ml = new osgEarth::ImageMapLayer("lines", ts.get());
+        node.getMap()->addMapLayer(ml.get());
+    }
+
 }

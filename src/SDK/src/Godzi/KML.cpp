@@ -40,8 +40,8 @@ static osg::Vec3dArray* CoordinatesToVec3dArray(kmldom::CoordinatesPtr coords)
     {
         kmlbase::Vec3 in = coords->get_coordinates_array_at(i);
 
-        (*array)[i] = osg::Vec3d(osg::DegreesToRadians(in.get_longitude()),
-                                 osg::DegreesToRadians(in.get_latitude()),
+        (*array)[i] = osg::Vec3d(in.get_latitude(),
+                                 in.get_longitude(),
                                  in.has_altitude()? in.get_altitude() : 0);
     }
     return array;
