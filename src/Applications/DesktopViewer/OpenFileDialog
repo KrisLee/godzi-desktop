@@ -18,27 +18,30 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#include <QtGui/QApplication>
-#include <Godzi/Application>
-#include <Godzi/Project>
 
-#include "DesktopMainWindow"
+#ifndef OPEN_FILE_DIALOG
+#define OPEN_FILE_DIALOG 1
 
-#define EARTH_FILE "http://demo.pelicanmapping.com/rmweb/maps/bluemarble.earth"
+#include "ui_OpenFileDialog.h"
 
-int
-main( int argc, char** argv )
+class OpenFileDialog : public QDialog
 {
-    QApplication qtApp( argc, argv );
+	Q_OBJECT
 
-		osg::ref_ptr<Godzi::Application> app = new Godzi::Application(EARTH_FILE);
+	public:
+		OpenFileDialog();
+		OpenFileDialog(const QString &caption, const QString &dir, const QString &filter);
+		QString getUrl();
+		
+	private slots:
+		void showBrowse();
 
-		DesktopMainWindow* top = new DesktopMainWindow(app);
-    top->resize( 800, 600 );
-    top->show();
+	private:		
+		Ui::OpenFileDialog ui;
+		QString caption, dir, filter;
+		
+		void InitUi();
+};
 
-		app->actionManager()->doAction(NULL, new Godzi::NewProjectAction());
 
-    qtApp.connect( &qtApp, SIGNAL(lastWindowClosed()), &qtApp, SLOT(quit()) );
-    return qtApp.exec();
-}
+#endif // OPEN_FILE_DIALOG

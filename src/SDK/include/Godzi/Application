@@ -21,21 +21,24 @@
 #ifndef GODZI_APPLICATION
 #define GODZI_APPLICATION 1
 
+#include <QObject>
 #include <Godzi/Common>
 #include <Godzi/Project>
-#include <Godzi/SearchEngine>
 
 namespace Godzi
 {
     class ActionManager;
 
-    class GODZI_EXPORT Application : public osg::Referenced
+    class GODZI_EXPORT Application : public QObject, public osg::Referenced
     {
+		
+		Q_OBJECT
+			
     public:
-        Application();
+        Application( const std::string& defaultMap ="" );
 
         /** The global action manager */
-        ActionManager* actionManager();
+        ActionManager* actionManager() { return _actionMgr; }
         
     public:
         /** The current active project */
@@ -58,22 +61,20 @@ namespace Godzi
 
         /** Sets the project to "clean" (no unsaved changes) */
         void setProjectClean();
-
-        /** Gets the active search engine. */
-        SearchEngine* getSearchEngine() {
-            return _searchEngine.get(); }
-
-        /** Sets the active search engine. */
-        void setSearchEngine( SearchEngine* value ) {
-            _searchEngine = value; }
-
+        
+        const std::string& getDefaultMap() const {
+						return _defaultMap; }
+						
+		signals:
+			void projectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
+		
     protected:
         osg::ref_ptr<Project> _project;
         osgEarth::Revision    _projectCheckpoint;
         std::string           _projectLocation;
+        std::string						_defaultMap;
 
-        ActionManager*             _actionMgr;
-        osg::ref_ptr<SearchEngine> _searchEngine;
+        ActionManager*        _actionMgr;
     };
 
 } // namespace Godzi

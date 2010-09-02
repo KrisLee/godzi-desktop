@@ -121,16 +121,19 @@ static osg::Group* createPlacemarkLinearRingSymbology(osg::Vec3dArray* array)
 
 
 
-static osg::Group* createPlacemarkPolygonStringSymbology(osg::Vec3dArray* array, const std::vector<osg::ref_ptr<osg::Vec3dArray> >& holes)
+static osg::Group* createPlacemarkPolygonSymbology(osg::Vec3dArray* array, const std::vector<osg::ref_ptr<osg::Vec3dArray> >& holes)
 {
     osg::ref_ptr<osgEarth::Symbology::GeometryContent> content = new osgEarth::Symbology::GeometryContent;
-    content->getGeometryList().push_back(osgEarth::Symbology::Geometry::create(osgEarth::Symbology::Geometry::TYPE_LINESTRING, array));
+    osgEarth::Symbology::Polygon* poly = dynamic_cast<osgEarth::Symbology::Polygon*>(osgEarth::Symbology::Geometry::create(osgEarth::Symbology::Geometry::TYPE_POLYGON, array));
+    for (int i = 0; i < holes.size(); ++i) {
+        poly->getHoles().push_back(new osgEarth::Symbology::Ring(holes[i].get()));
+    }
+    content->getGeometryList().push_back(poly);
 
     osg::ref_ptr<osgEarth::Symbology::Style> style = new osgEarth::Symbology::Style;
     style->setName("Lines");
-    osg::ref_ptr<osgEarth::Symbology::LineSymbol> symbol = new osgEarth::Symbology::LineSymbol;
-    symbol->stroke()->color() = osg::Vec4(1,0,1,1);
-    symbol->stroke()->width() = 3.0;
+    osg::ref_ptr<osgEarth::Symbology::PolygonSymbol> symbol = new osgEarth::Symbology::PolygonSymbol;
+    symbol->fill()->color() = osg::Vec4(0,1,0,1);
     style->addSymbol(symbol.get());
 
     GeometrySymbolicNode* node = new GeometrySymbolicNode();
@@ -219,23 +222,22 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
             break;
             case Geometry::TYPE_POLYGON:
             {
-#if 0
-                if (p->getGeometry()->getCoordinates()->size() > 0) {
-                    osg::Vec3dArray* array = ConvertFromLongitudeLatitudeAltitudeTo3D(node.getEllipsoidModel(), p->getGeometry()->getCoordinates());
+
+                Polygon* poly = dynamic_cast<Polygon*>(p->getGeometry());
+                if (poly && poly->getCoordinates()->size() > 0) {
+                    osg::Vec3dArray* array = ConvertFromLongitudeLatitudeAltitudeTo3D(node.getEllipsoidModel(), poly->getCoordinates());
                     if (array) {
                         std::vector<osg::ref_ptr<osg::Vec3dArray> > holes;
-                        for (int i = 0; i < p->getGeometry()->getHoles().size(); ++i) {
-                            osg::Vec3dArray* hole = ConvertFromLongitudeLatitudeAltitudeTo3D(node.getEllipsoidModel(), p->getGeometry()->getHoles()[i]);                            
+                        for (int i = 0; i < poly->getHoles().size(); ++i) {
+                            osg::Vec3dArray* hole = ConvertFromLongitudeLatitudeAltitudeTo3D(node.getEllipsoidModel(), poly->getHoles()[i]->getCoordinates());                            
                         }
-                        node.addChild(createPlacemarkPolygonSymbology(array));
+                        node.addChild(createPlacemarkPolygonSymbology(array, holes));
                     } else {
-                        osg::notify(osg::WARN) << "can't convert LineString from placemark " << p->getName() << " original number of coordinates: " << p->getGeometry()->getCoordinates()->size() << std::endl;
+                        osg::notify(osg::WARN) << "can't convert Polygon from placemark " << p->getName() << " original number of coordinates: " << p->getGeometry()->getCoordinates()->size() << std::endl;
                     }
-                        
                 } else {
-                    osg::notify(osg::WARN) << "no lines in placemark " << p->getName() << std::endl;
+                    osg::notify(osg::WARN) << "no polyon in placemark " << p->getName() << std::endl;
                 }
-#endif
             }
             break;
             case Geometry::TYPE_UNKNOWN:

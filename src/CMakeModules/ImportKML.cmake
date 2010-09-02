@@ -2,43 +2,43 @@
 
 create_imported_library(
     KML_DOM
-    kml/dom.h kmldom SHARED
-    INCLUDE_SEARCH_PATH ${KML_DIR}/include ENV{KML_DIR}/include ${KML_DIR}/src
+    kml/dom.h libkmldom SHARED
+    INCLUDE_SEARCH_PATH ${KML_DIR}/include ENV{KML_DIR}/include
     LIBRARY_SEARCH_PATH ${KML_DIR}/lib ENV{KML_DIR}/lib
 )
 
 create_imported_library(
     KML_BASE
-    kml/base/zip_file.h kmlbase SHARED
-    INCLUDE_SEARCH_PATH ${KML_DIR}/include ENV{KML_DIR}/include ${KML_DIR}/src
+    kml/base/zip_file.h libkmlbase SHARED
+    INCLUDE_SEARCH_PATH ${KML_DIR}/include ENV{KML_DIR}/include
     LIBRARY_SEARCH_PATH ${KML_DIR}/lib ENV{KML_DIR}/lib
 )
 
 create_imported_library(
     KML_ENGINE
-    kml/engine.h kmlengine SHARED
-    INCLUDE_SEARCH_PATH ${KML_DIR}/include ENV{KML_DIR}/include ${KML_DIR}/src
+    kml/engine.h libkmlengine SHARED
+    INCLUDE_SEARCH_PATH ${KML_DIR}/include ENV{KML_DIR}/include
     LIBRARY_SEARCH_PATH ${KML_DIR}/lib ENV{KML_DIR}/lib
 )
 
 create_imported_library(
     KML_XSD
-    kml/xsd/xst_parser.h kmlxsd SHARED
-    INCLUDE_SEARCH_PATH ${KML_DIR}/include ENV{KML_DIR}/include ${KML_DIR}/src
+    kml/xsd/xst_parser.h libkmlxsd SHARED
+    INCLUDE_SEARCH_PATH ${KML_DIR}/include ENV{KML_DIR}/include
     LIBRARY_SEARCH_PATH ${KML_DIR}/lib ENV{KML_DIR}/lib
 )
 
 create_imported_library(
     KML_CONVENIENCE
-    kml/convenience/convenience.h kmlconvenience SHARED
-    INCLUDE_SEARCH_PATH ${KML_DIR}/include ENV{KML_DIR}/include ${KML_DIR}/src
+    kml/convenience/convenience.h libkmlconvenience SHARED
+    INCLUDE_SEARCH_PATH ${KML_DIR}/include ENV{KML_DIR}/include
     LIBRARY_SEARCH_PATH ${KML_DIR}/lib ENV{KML_DIR}/lib
 )
 
 create_imported_library(
     KML_REGIONATOR
-    kml/regionator/regionator.h kmlregionator SHARED
-    INCLUDE_SEARCH_PATH ${KML_DIR}/include ENV{KML_DIR}/include ${KML_DIR}/src
+    kml/regionator/regionator.h libkmlregionator SHARED
+    INCLUDE_SEARCH_PATH ${KML_DIR}/include ENV{KML_DIR}/include
     LIBRARY_SEARCH_PATH ${KML_DIR}/lib ENV{KML_DIR}/lib
 )
 

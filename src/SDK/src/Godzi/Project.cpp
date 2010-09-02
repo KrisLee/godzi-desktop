@@ -20,7 +20,10 @@
  */
 #include <Godzi/Project>
 #include <Godzi/Application>
+#include <Godzi/KML>
+#include <Godzi/Features/ApplyFeature>
 #include <osgEarth/XmlUtils>
+#include <osgEarth/MapNode>
 #include <fstream>
 
 using namespace Godzi;
@@ -36,6 +39,7 @@ _name( "Untitled" )
 ProjectProperties::ProjectProperties( const Config& conf )
 {
     conf.getIfSet( "name", _name );
+		conf.getIfSet( "map", _map);
 }
 
 Config
@@ -43,6 +47,7 @@ ProjectProperties::toConfig() const
 {
     Config conf;
     conf.addIfSet( "name", _name );
+		conf.addIfSet( "map", _map );
     return conf;
 }
 
@@ -53,9 +58,19 @@ Project::Project()
     _map = new osgEarth::Map();
 }
 
-Project::Project( const Config& conf )
+Project::Project( const std::string& defaultMap )
 {
-    _props = ProjectProperties( conf.child( "properties" ) );
+	  loadMap(defaultMap);
+}
+
+Project::Project( const std::string& defaultMap, const Config& conf )
+{
+		_props = ProjectProperties( conf.child( "properties" ) );
+
+		if (_props.map().isSet())
+			loadMap(_props.map().get());
+		else
+			loadMap(defaultMap);
 }
 
 Config
@@ -71,26 +86,48 @@ Project::toConfig() const
     return conf;
 }
 
+void
+Project::loadMap( const std::string& map )
+{
+		if (map.empty())
+		{
+				_map = new osgEarth::Map();
+				return;
+		}
+
+		osg::Node* node = osgDB::readNodeFile( map );
+
+		//TEST
+		//Godzi::Features::FeatureList featureList = Godzi::readFeaturesFromKML("./data/example.kml");
+		//Godzi::Features::ApplyFeature featuresMaker;
+		//featuresMaker.setFeatures(featureList);
+		//map->accept(featuresMaker);
+		//TEST
+
+		osgEarth::MapNode* mapNode = osgEarth::MapNode::findMapNode(node);
+		_map = mapNode->getMap();
+}
+
 //---------------------------------------------------------------------------
 
 bool
-NewProjectAction::doAction( const ActionContext& ac, Application* app )
+NewProjectAction::doAction( void* sender, Application* app )
 {
-    app->setProject( new Project() );
+		app->setProject( new Godzi::Project(app->getDefaultMap()) );
     return true;
 }
 
 //---------------------------------------------------------------------------
 
 bool
-OpenProjectAction::doAction( const ActionContext& ac, Application* app )
+OpenProjectAction::doAction( void* sender, Application* app )
 {    
     std::ifstream input( _location.c_str() );
     osg::ref_ptr<osgEarth::XmlDocument> doc = osgEarth::XmlDocument::load( input );
     if ( doc.valid() )
     {
         Config conf = doc->toConfig().child( "godzi_project" );
-        Project* project = new Project( conf );
+				Project* project = new Project( app->getDefaultMap(), conf );
         app->setProject( project, _location );
         return true;
     }
@@ -103,7 +140,7 @@ OpenProjectAction::doAction( const ActionContext& ac, Application* app )
 //---------------------------------------------------------------------------
 
 bool
-SaveProjectAction::doAction( const ActionContext& ac, Application* app )
+SaveProjectAction::doAction( void* sender, Application* app )
 {
     std::string location = !_location.empty() ? _location : app->getProjectLocation();
 

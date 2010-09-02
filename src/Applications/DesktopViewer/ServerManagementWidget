@@ -18,27 +18,34 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#include <QtGui/QApplication>
-#include <Godzi/Application>
-#include <Godzi/Project>
 
-#include "DesktopMainWindow"
+#ifndef SERVER_MANAGEMENT_WIDGET
+#define SERVER_MANAGEMENT_WIDGET 1
 
-#define EARTH_FILE "http://demo.pelicanmapping.com/rmweb/maps/bluemarble.earth"
+#include <QWidget>
+#include <QToolBar>
+#include <QListWidget>
 
-int
-main( int argc, char** argv )
+class ServerManagementWidget : public QWidget
 {
-    QApplication qtApp( argc, argv );
+	Q_OBJECT
 
-		osg::ref_ptr<Godzi::Application> app = new Godzi::Application(EARTH_FILE);
+	public:
+		ServerManagementWidget();
+		
+	private slots:
+		void addServer();
+		void removeServer();
 
-		DesktopMainWindow* top = new DesktopMainWindow(app);
-    top->resize( 800, 600 );
-    top->show();
+	private:
+		QAction *_addServerAction;
+		QAction *_removeServerAction;
+		QToolBar *_toolbar;
+		QListWidget *_serverList;
+		
+		void createActions();
+		void initUi();
+};
 
-		app->actionManager()->doAction(NULL, new Godzi::NewProjectAction());
 
-    qtApp.connect( &qtApp, SIGNAL(lastWindowClosed()), &qtApp, SLOT(quit()) );
-    return qtApp.exec();
-}
+#endif // SERVER_MANAGEMENT_WIDGET

@@ -18,27 +18,11 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#include <QtGui/QApplication>
-#include <Godzi/Application>
-#include <Godzi/Project>
 
-#include "DesktopMainWindow"
+#include <QFileDialog>
+#include "AboutDialog"
 
-#define EARTH_FILE "http://demo.pelicanmapping.com/rmweb/maps/bluemarble.earth"
-
-int
-main( int argc, char** argv )
+AboutDialog::AboutDialog()
 {
-    QApplication qtApp( argc, argv );
-
-		osg::ref_ptr<Godzi::Application> app = new Godzi::Application(EARTH_FILE);
-
-		DesktopMainWindow* top = new DesktopMainWindow(app);
-    top->resize( 800, 600 );
-    top->show();
-
-		app->actionManager()->doAction(NULL, new Godzi::NewProjectAction());
-
-    qtApp.connect( &qtApp, SIGNAL(lastWindowClosed()), &qtApp, SLOT(quit()) );
-    return qtApp.exec();
+	ui.setupUi(this);
 }

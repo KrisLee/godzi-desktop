@@ -42,9 +42,14 @@ namespace Godzi
         /** Name of the project */
         osgEarth::optional<std::string>& name() { return _name; }
         const osgEarth::optional<std::string>& name() const { return _name; }
+        
+        /** Base map file (if not default) */
+        osgEarth::optional<std::string>& map() { return _map; }
+        const osgEarth::optional<std::string>& map() const {return _map; }
 
     protected:
         osgEarth::optional<std::string> _name;
+        osgEarth::optional<std::string> _map;
     };
 
     /**
@@ -54,7 +59,8 @@ namespace Godzi
     {
     public:
         Project();
-        Project( const Config& conf );
+        Project( const std::string& defaultMap );
+        Project( const std::string& defaultMap, const Config& conf );
 
         /** serializes the project to a Config object */
         Config toConfig() const;
@@ -69,6 +75,8 @@ namespace Godzi
     protected:
         osg::ref_ptr<osgEarth::Map> _map;
         ProjectProperties _props;
+        
+        void loadMap( const std::string& map );
     };
 
     /**
@@ -79,7 +87,7 @@ namespace Godzi
     public:
         NewProjectAction() { }
 
-        bool doAction( const ActionContext& context, Application* app );
+        bool doAction( void* sender, Application* app );
         bool isCheckPoint() { return true; }
     };
 
@@ -92,7 +100,7 @@ namespace Godzi
     public:
         OpenProjectAction( const std::string& location ) : _location(location) { }
 
-        bool doAction( const ActionContext& context, Application* app );
+        bool doAction( void* sender, Application* app );
         bool isCheckpoint() { return true; }
 
     protected:
@@ -107,7 +115,7 @@ namespace Godzi
     public:
         SaveProjectAction( const std::string& location ="" ) : _location(location) { }
 
-        bool doAction( const ActionContext& context, Application* app );
+        bool doAction( void* sender, Application* app );
 
     protected:
         std::string _location;

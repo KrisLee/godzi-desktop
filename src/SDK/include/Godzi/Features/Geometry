@@ -125,6 +125,7 @@ namespace Godzi { namespace Features {
         class Polygon : public Geometry
         {
         public:
+            typedef std::vector<osg::ref_ptr<LinearRing> > LinearRingList;
             META_Object(Godzi, Polygon);
             Polygon(const Polygon& pm, const osg::CopyOp& cp = osg::CopyOp::DEEP_COPY_ALL);
             Polygon();
@@ -134,11 +135,12 @@ namespace Godzi { namespace Features {
             osg::Vec3Array* toVec3Array() const;
             osg::Vec3dArray* getCoordinates();
             const osg::Vec3dArray* getCoordinates() const;
-            osgEarth::Symbology::RingCollection& getHoles() { return _geom->getHoles(); }
-            const osgEarth::Symbology::RingCollection& getHoles() const { return _geom->getHoles(); }
+            LinearRingList& getHoles() { return _holes; }
+            const LinearRingList& getHoles() const { return _holes; }
 
         protected:
-            osg::ref_ptr<osgEarth::Symbology::Polygon> _geom;
+            osg::ref_ptr<LinearRing> _outer;
+            LinearRingList _holes;
 
         };
 
