@@ -128,8 +128,10 @@ void DesktopMainWindow::updateStatusBar(const QString &message)
 
 void DesktopMainWindow::loadScene(const std::string& filename)
 {
-	if (filename.length() > 0)
-		loadScene(osgDB::readNodeFile(filename));
+    if (filename.length() > 0) {
+        osg::Node* node = osgDB::readNodeFile(filename);
+        loadScene(node);
+    }
 }
 
 void DesktopMainWindow::loadScene(osg::Node* n)
@@ -209,13 +211,13 @@ bool DesktopMainWindow::saveProject()
 
 void DesktopMainWindow::loadMap()
 {
-	OpenFileDialog ofd(tr("Select globe file..."), tr(""), tr("osgEarth files (*.earth);;All files (*.*)"));
-	if (ofd.exec() == QDialog::Accepted)
-	{
-		QString url = ofd.getUrl();
-		if (!url.isNull() && !url.isEmpty())
-			loadScene(url.toStdString());
-	}
+    OpenFileDialog ofd(tr("Select globe file..."), tr(""), tr("osgEarth files (*.earth);;All files (*.*)"));
+    if (ofd.exec() == QDialog::Accepted)
+    {
+        QString url = ofd.getUrl();
+        if (!url.isNull() && !url.isEmpty())
+            loadScene(url.toStdString());
+    }
 }
 
 void DesktopMainWindow::showAbout()
@@ -226,5 +228,16 @@ void DesktopMainWindow::showAbout()
 
 void DesktopMainWindow::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject)
 {
-	loadScene(new osgEarth::MapNode(_app->getProject()->map()));
+    osgEarth::MapNode* mapNode = new osgEarth::MapNode(_app->getProject()->map());
+    loadScene(mapNode);
+
+		//TEST
+#if 1
+		Godzi::Features::FeatureList featureList = Godzi::readFeaturesFromKML("../../data/example.kml");
+		Godzi::Features::ApplyFeature featuresMaker;
+		featuresMaker.setFeatures(featureList);
+		mapNode->accept(featuresMaker);
+#endif
+		//TEST
+
 }

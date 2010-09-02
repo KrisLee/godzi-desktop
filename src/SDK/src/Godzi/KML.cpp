@@ -40,8 +40,8 @@ static osg::Vec3dArray* CoordinatesToVec3dArray(kmldom::CoordinatesPtr coords)
     {
         kmlbase::Vec3 in = coords->get_coordinates_array_at(i);
 
-        (*array)[i] = osg::Vec3d(osg::DegreesToRadians(in.get_longitude()),
-                                 osg::DegreesToRadians(in.get_latitude()),
+        (*array)[i] = osg::Vec3d(in.get_latitude(),
+                                 in.get_longitude(),
                                  in.has_altitude()? in.get_altitude() : 0);
     }
     return array;
@@ -76,6 +76,22 @@ Geometry* createGeometryFromElement(const kmldom::GeometryPtr kmlGeom)
         osg::Vec3dArray* array = CoordinatesToVec3dArray(coord);
         if (array) {
             Point* geom = new Point(array);
+            geom->setExtrude(kmldom::AsPoint(kmlGeom)->get_extrude());
+
+            switch (kmldom::AsPoint(kmlGeom)->get_altitudemode()) {
+            case kmldom::ALTITUDEMODE_CLAMPTOGROUND:
+                geom->setAltitudeMode(Point::ClampToGround);
+                break;
+            case kmldom::ALTITUDEMODE_RELATIVETOGROUND:
+                geom->setAltitudeMode(Point::RelativeToGround);
+                break;
+            case kmldom::ALTITUDEMODE_ABSOLUTE:
+                geom->setAltitudeMode(Point::Absolute);
+                break;
+            default:
+                geom->setAltitudeMode(Point::ClampToGround);
+                break;
+            }
             return (geom);
         }
     }

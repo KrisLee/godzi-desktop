@@ -96,14 +96,6 @@ Project::loadMap( const std::string& map )
 		}
 
 		osg::Node* node = osgDB::readNodeFile( map );
-
-		//TEST
-		//Godzi::Features::FeatureList featureList = Godzi::readFeaturesFromKML("./data/example.kml");
-		//Godzi::Features::ApplyFeature featuresMaker;
-		//featuresMaker.setFeatures(featureList);
-		//map->accept(featuresMaker);
-		//TEST
-
 		osgEarth::MapNode* mapNode = osgEarth::MapNode::findMapNode(node);
 		_map = mapNode->getMap();
 }
