@@ -74,6 +74,11 @@ namespace Godzi { namespace Features {
                 osg::Group* createMarker(const Placemark* placemark,
                                          const osgEarth::Symbology::MarkerSymbol* style,
                                          PlacemarkContext* context);
+#if 0
+                osg::Group* createPolygon(const Placemark* placemark, 
+                                          const osgEarth::Symbology::PolygonSymbol* symbol, 
+                                          PlacemarkContext* context);
+#endif
             };
         };
 

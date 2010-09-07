@@ -27,7 +27,10 @@
 #include <Godzi/Project>
 #include <Godzi/Actions>
 #include <Godzi/KML>
-#include <Godzi/Features/ApplyFeature>
+//#include <Godzi/Features/ApplyFeature>
+#include <Godzi/Features/FeatureSource>
+#include <osgEarthDrivers/agglite/AGGLiteOptions>
+#include <osgEarthDrivers/model_feature_geom/FeatureGeomModelOptions>
 #include "OpenFileDialog"
 #include "AboutDialog"
 #include "DesktopMainWindow"
@@ -232,11 +235,33 @@ void DesktopMainWindow::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject
     loadScene(mapNode);
 
 		//TEST
-#if 1
+#if 0
 		Godzi::Features::FeatureList featureList = Godzi::readFeaturesFromKML("../../data/example.kml");
-		Godzi::Features::ApplyFeature featuresMaker;
-		featuresMaker.setFeatures(featureList);
-		mapNode->accept(featuresMaker);
+		//Godzi::Features::ApplyFeature featuresMaker;
+		//featuresMaker.setFeatures(featureList);
+		//mapNode->accept(featuresMaker);
+#else
+    Godzi::Features::KMLFeatureSourceOptions* opt = new Godzi::Features::KMLFeatureSourceOptions;
+    opt->url() = "/home/trigrou/dev/godzi/src/data/example.kml";
+    Godzi::Features::KMLFeatureSource* fs = new Godzi::Features::KMLFeatureSource(opt);
+    {
+    osgEarth::Drivers::AGGLiteOptions* worldOpt = new osgEarth::Drivers::AGGLiteOptions();
+    worldOpt->featureSource() = fs;
+    //worldOpt->geometryTypeOverride() = osgEarth::Symbology::Geometry::TYPE_LINESTRING;
+    ImageMapLayer* iml = new ImageMapLayer("world", worldOpt);
+    iml->setReferenceURI("/home/trigrou/dev/godzi/src/data/example.kml");
+    //worldOpt->styles()->addStyle( style );
+    mapNode->getMap()->addMapLayer( iml );
+    }
+
+    {
+    osgEarth::Drivers::FeatureGeomModelOptions* worldOpt = new osgEarth::Drivers::FeatureGeomModelOptions();
+    worldOpt->featureSource() = fs;
+    //worldOpt->geometryTypeOverride() = osgEarth::Symbology::Geometry::TYPE_LINESTRING;
+    ModelLayer* iml = new ModelLayer("world", worldOpt);
+    //iml->setReferenceURI("/home/trigrou/dev/godzi/src/data/example.kml");
+    mapNode->getMap()->addModelLayer( iml );
+    }
 #endif
 		//TEST
 

@@ -143,11 +143,11 @@ namespace Godzi { namespace Features {
 
         };
 
+        typedef std::vector<osg::ref_ptr<LinearRing> > LinearRingList;
 
         class Polygon : public Geometry
         {
         public:
-            typedef std::vector<osg::ref_ptr<LinearRing> > LinearRingList;
             META_Object(Godzi, Polygon);
             Polygon(const Polygon& pm, const osg::CopyOp& cp = osg::CopyOp::DEEP_COPY_ALL);
             Polygon();

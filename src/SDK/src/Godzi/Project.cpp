@@ -36,13 +36,13 @@ _name( "Untitled" )
     //nop
 }
 
-ProjectProperties::ProjectProperties( const Config& conf )
+ProjectProperties::ProjectProperties( const Godzi::Config& conf )
 {
     conf.getIfSet( "name", _name );
 		conf.getIfSet( "map", _map);
 }
 
-Config
+Godzi::Config
 ProjectProperties::toConfig() const
 {
     Config conf;
@@ -73,7 +73,7 @@ Project::Project( const std::string& defaultMap, const Config& conf )
 			loadMap(defaultMap);
 }
 
-Config
+Godzi::Config
 Project::toConfig() const
 {
     Config conf( "godzi_project" );

@@ -137,6 +137,57 @@ osg::Group* PlacemarkSymbolizer::PlacemarkSymbolizerOperator::createMarker(const
 
 
 
+#if 0
+osg::Group* PlacemarkSymbolizer::PlacemarkSymbolizerOperator::createPolygon(const Placemark* placemark, const osgEarth::Symbology::PolygonSymbol* symbol, PlacemarkContext* context)
+{
+    if (symbol)
+    {
+        const Polygon* geom = dynamic_cast<const Polygon*>(placemark->getGeometry());
+        if (geom && symbol && geom->getCoordinates()->size())
+        {
+            osg::Vec4 color = symbol->fill()->color();
+            osg::PrimitiveSet::Mode primMode = osg::PrimitiveSet::LINE_LOOP; // loop will tessellate into polys
+            osg::Group* group = new osg::Group;
+            osg::Geometry* osgGeom = new osg::Geometry;
+
+            if ( geom->getHoles().size() > 0 )
+            {
+                int offset = 0;
+                osg::Vec3Array* array = new osg::Vec3Array;
+                for( LinearRingList::const_iterator h = geom->getHoles().begin(); h != geom->getHoles().end(); ++h )
+                {
+                    LinearRing* hole = h->get();
+                    osg::ref_ptr<osg::Vec3dArray> a = ConvertFromLatitudeLongitudeAltitudeTo3D(context->getMapNode()->getEllipsoidModel(), hole->getCoordinates());
+                    std::copy( a->begin(), a->end(), array->begin() + offset );
+                    osgGeom->addPrimitiveSet( new osg::DrawArrays( primMode, offset, hole->getCoordinates()->size() ) );
+                    offset += hole->getCoordinates()->size();
+                }
+                osgGeom->setVertexArray( array );
+            } else {
+                osg::Vec3dArray* array = ConvertFromLatitudeLongitudeAltitudeTo3D(geom->getCoordinates());
+                osgGeom->addPrimitiveSet( new osg::DrawArrays( primMode, 0, array->size() ) );
+                osgGeom->setVertexArray(array);
+            }
+
+            osgUtil::Tessellator tess;
+            tess.setTessellationType( osgUtil::Tessellator::TESS_TYPE_GEOMETRY );
+            tess.setWindingType( osgUtil::Tessellator::TESS_WINDING_POSITIVE );
+            tess.retessellatePolygons( *osgGeom );
+
+            osg::Geode* geode = new osg::Geode;
+            geode->addDrawable(osgGeom);
+            group->addChild(geode);
+            osg::Material* material = new osg::Material;
+            material->setDiffuse(osg::Material::FRONT_AND_BACK, color);
+            group->setAttributeAndModes(material);
+            
+            return group;
+        }
+    }
+    return 0;
+}
+#endif
+
 osg::Node* PlacemarkSymbolizer::PlacemarkSymbolizerOperator::operator()(const Placemark* placemark,const osgEarth::Symbology::Style* style,PlacemarkContext* context)
 {
     switch(placemark->getGeometry()->getType()) {
@@ -149,16 +200,16 @@ osg::Node* PlacemarkSymbolizer::PlacemarkSymbolizerOperator::operator()(const Pl
     }
     break;
 
-#if 0
-    case Geometry::TYPE_LINESTRING:
+    case Geometry::TYPE_POLYGON:
     {
-        const osgEarth::Symbology::MarkerSymbol* symbol = style->getSymbol<const osgEarth::Symbology::MarkerSymbol*>();
+#if 0
+        const osgEarth::Symbology::PolygonSymbol* symbol = style->getSymbol<const osgEarth::Symbology::PolygonSymbol*>();
         PlacemarkContext* ctx = dynamic_cast<PlacemarkContext*>(context);
         if (ctx && symbol)
-            return createMarker(placemark, symbol, ctx);
+            return createPolygon(placemark, symbol, ctx);
+#endif
     }
     break;
-#endif
 
     }
     return 0;

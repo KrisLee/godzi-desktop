@@ -22,10 +22,11 @@ set(CORE_INCLUDE
 	include/Godzi/KML
 	include/Godzi/Features/ApplyFeature
 	include/Godzi/Features/Feature
+	include/Godzi/Features/FeatureSource
 	include/Godzi/Features/Geometry
 	include/Godzi/Features/Placemark
 	include/Godzi/Features/SymbolicNode
-	include/Godzi/Features/AGGLiteRasterizerTileSource
+#	include/Godzi/Features/AGGLiteRasterizerTileSource
         )
 set(CORE_SOURCE
 	src/Godzi/Actions.cpp
@@ -33,12 +34,13 @@ set(CORE_SOURCE
 	src/Godzi/Project.cpp
 	src/Godzi/Earth.cpp
 	src/Godzi/KML.cpp
-	src/Godzi/Features/ApplyFeature
+#	src/Godzi/Features/ApplyFeature
 	src/Godzi/Features/Feature.cpp
+	src/Godzi/Features/FeatureSource.cpp
 	src/Godzi/Features/Geometry.cpp
 	src/Godzi/Features/Placemark.cpp
 	src/Godzi/Features/SymbolicNode.cpp
-	src/Godzi/Features/AGGLiteRasterizerTileSource.cpp
+#	src/Godzi/Features/AGGLiteRasterizerTileSource.cpp
 )   
 source_group( Core FILES ${CORE_INCLUDE} ${CORE_SOURCE} )
 

@@ -18,25 +18,17 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#ifndef GODZI_FEATURES_PLACEMARK
-#define GODZI_FEATURES_PLACEMARK 1
 
-#include <Godzi/Common>
-#include <Godzi/Features/Geometry>
-#include <Godzi/Features/Feature>
-#include <osg/Vec3d>
+#include <Godzi/Features/DispatchFeature>
 
-namespace Godzi { namespace Features {
+using namespace Godzi::Features;
 
-    class GODZI_EXPORT Placemark : public Feature
-    {
-    public:
-        META_Object(Godzi, Placemark);
-        Placemark(const Placemark& pm, const osg::CopyOp& cp = osg::CopyOp::SHALLOW_COPY);
-        Placemark();
+void applyFeatureToMap(osgEarth::Map* map, const osgEarth::FeatureList& list)
+{
+    
 
-    };
 
-}}
 
-#endif
+
+
+}

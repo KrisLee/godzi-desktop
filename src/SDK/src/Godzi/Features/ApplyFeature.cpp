@@ -269,7 +269,7 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
             break;
             case Geometry::TYPE_POLYGON:
             {
-
+#if 0
                 Polygon* poly = dynamic_cast<Polygon*>(p->getGeometry());
                 if (poly && poly->getCoordinates()->size() > 0) {
                     osg::Vec3dArray* array = ConvertFromLongitudeLatitudeAltitudeTo3D(node.getEllipsoidModel(), poly->getCoordinates());
@@ -285,6 +285,24 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
                 } else {
                     osg::notify(osg::WARN) << "no polyon in placemark " << p->getName() << std::endl;
                 }
+
+#else
+                PlacemarkSymbolicNode* psn = new PlacemarkSymbolicNode;
+                PlacemarkContent* pc = new PlacemarkContent(p);
+                psn->setSymbolizer(new PlacemarkSymbolizer);
+                psn->getState()->setContent(pc);
+                psn->getState()->setContext(new PlacemarkContext(&node));
+
+                osg::ref_ptr<osgEarth::Symbology::Style> style = new osgEarth::Symbology::Style;
+                {
+                    style->setName("Polygon");
+                    osg::ref_ptr<osgEarth::Symbology::PolygonSymbol> symbol = new osgEarth::Symbology::PolygonSymbol;
+                    symbol->fill()->color()= osg::Vec4(1.0,0,0,0.5);
+                    style->addSymbol(symbol.get());
+                }
+                psn->getState()->setStyle(style.get());
+                node.addChild(psn);
+#endif
             }
             break;
             case Geometry::TYPE_UNKNOWN:
