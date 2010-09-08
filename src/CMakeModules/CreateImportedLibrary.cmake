@@ -93,10 +93,29 @@ function(create_imported_library LIBRARYNAME HEADERFILE LIBRARYFILE)
 
     # Add the library target
     add_library(${LIBRARYNAME} ${type} IMPORTED)
-
-    # Look for debug and optimized libraries
+    
+    # First, Look for debug and optimized libraries in the default locations
     find_library(${LIBRARYNAME}_LIBRARY_RELEASE_NAME NAMES ${LIBRARYFILE} PATHS ${ARG_LIBRARY_SEARCH_PATH} NO_DEFAULT_PATH)
     find_library(${LIBRARYNAME}_LIBRARY_DEBUG_NAME NAMES ${LIBRARYFILE}${CMAKE_DEBUG_POSTFIX} PATHS ${ARG_LIBRARY_SEARCH_PATH} NO_DEFAULT_PATH)
+
+
+    if( WIN32 )
+        foreach( ENTRY ${ARG_LIBRARY_SEARCH_PATH} )
+            list(APPEND DEBUG_LIBRARY_SEARCH_PATH ${ENTRY} ${ENTRY}/Debug)
+            list(APPEND RELEASE_LIBRARY_SEARCH_PATH ${ENTRY} ${ENTRY}/Release)            
+        endforeach( ENTRY )
+    
+        if( NOT ${LIBRARYNAME}_LIBRARY_RELEASE_NAME )
+            find_library(${LIBRARYNAME}_LIBRARY_RELEASE_NAME NAMES ${LIBRARYFILE} PATHS ${RELEASE_LIBRARY_SEARCH_PATH} NO_DEFAULT_PATH)
+        endif( NOT ${LIBRARYNAME}_LIBRARY_RELEASE_NAME )
+    
+        if( NOT ${LIBRARYNAME}_LIBRARY_DEBUG_NAME )
+            find_library(${LIBRARYNAME}_LIBRARY_DEBUG_NAME NAMES ${LIBRARYFILE} PATHS ${DEBUG_LIBRARY_SEARCH_PATH} NO_DEFAULT_PATH)
+        endif( NOT ${LIBRARYNAME}_LIBRARY_DEBUG_NAME )        
+    endif( WIN32 )
+    
+    #find_library(${LIBRARYNAME}_LIBRARY_RELEASE_NAME NAMES ${LIBRARYFILE} PATHS ${RELEASE_LIBRARY_SEARCH_PATH} NO_DEFAULT_PATH)
+    #find_library(${LIBRARYNAME}_LIBRARY_DEBUG_NAME NAMES ${LIBRARYFILE}${CMAKE_DEBUG_POSTFIX} PATHS ${DEBUG_LIBRARY_SEARCH_PATH} NO_DEFAULT_PATH)
 
     # Add the libraries to the global library list    
     list(APPEND LIBRARY_LIST "${LIBRARYNAME}_LIBRARY_RELEASE_NAME")

@@ -4,11 +4,14 @@ create_project(
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${QT_INCLUDES}
         ${KML_INCLUDES}
+        ${EXPAT_INCLUDES}
+        ${BOOST_INCLUDE_DIR}
     LIBDEPENDENCIES
         ${OSG_ALL_LIBDEPENDENCIES}
         ${OSGEARTH_ALL_LIBDEPENDENCIES}
         ${QT_ALL_LIBRARIES}
         ${KML_ALL_LIBDEPENDENCIES}
+        EXPAT
 )
 
 # ----- CORE namespace -------------------------------------------------
@@ -26,7 +29,7 @@ set(CORE_INCLUDE
 	include/Godzi/Features/Placemark
 	include/Godzi/Features/SymbolicNode
 	include/Godzi/Features/AGGLiteRasterizerTileSource
-        )
+)
 set(CORE_SOURCE
 	src/Godzi/Actions.cpp
 	src/Godzi/Application.cpp
