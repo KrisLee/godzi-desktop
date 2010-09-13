@@ -32,6 +32,12 @@
 
 using namespace Godzi::Features;
 
+#if 0
+KMLFeatureSource::KMLFeatureSource(const KMLFeatureSource& src) : osgEarth::Features::FeatureSource(src), _options(src._options), _features(src._features), _url(src._url)
+{
+}
+#endif
+
 KMLFeatureSource::KMLFeatureSource( const osgEarth::PluginOptions* options): osgEarth::Features::FeatureSource(options)
 {
     _options = dynamic_cast<const KMLFeatureSourceOptions*>(options);
@@ -180,36 +186,26 @@ osgEarth::Symbology::Geometry* createGeometryFromElement(const kmldom::GeometryP
 }
 
 
-template <class T> T* createSymbol(const kmldom::GeometryPtr kmlGeom)
+
+template <class T,class G> T* createSymbol(const G kmlGeom)
 {
     T* symbol = new T;
-    {
-        const kmldom::AltitudeGeometryCommon* alt = dynamic_cast<const kmldom::AltitudeGeometryCommon*>(kmlGeom.get());
-        if (alt) {
-            switch (alt->get_altitudemode()) {
-            case kmldom::ALTITUDEMODE_CLAMPTOGROUND:
-                symbol->altitude()->setAltitudeMode(KMLAltitude::ClampToGround);
-                break;
-            case kmldom::ALTITUDEMODE_RELATIVETOGROUND:
-                symbol->altitude()->setAltitudeMode(KMLAltitude::RelativeToGround);
-                break;
-            case kmldom::ALTITUDEMODE_ABSOLUTE:
-                symbol->altitude()->setAltitudeMode(KMLAltitude::Absolute);
-                break;
-            default:
-                symbol->altitude()->setAltitudeMode(KMLAltitude::ClampToGround);
-                break;
-            }
-        }
-    }
-    {
-        symbol->extrude()->setExtrude(false);
-        const kmldom::ExtrudeGeometryCommon* ext = dynamic_cast<const kmldom::ExtrudeGeometryCommon*>(kmlGeom.get());
-        if (ext) {
-            symbol->extrude()->setExtrude(ext->get_extrude());
-        }
+    switch (kmlGeom->get_altitudemode()) {
+    case kmldom::ALTITUDEMODE_CLAMPTOGROUND:
+        symbol->altitude()->setAltitudeMode(KMLAltitude::ClampToGround);
+        break;
+    case kmldom::ALTITUDEMODE_RELATIVETOGROUND:
+        symbol->altitude()->setAltitudeMode(KMLAltitude::RelativeToGround);
+        break;
+    case kmldom::ALTITUDEMODE_ABSOLUTE:
+        symbol->altitude()->setAltitudeMode(KMLAltitude::Absolute);
+        break;
+    default:
+        symbol->altitude()->setAltitudeMode(KMLAltitude::ClampToGround);
+        break;
     }
     
+    symbol->extrude()->setExtrude(kmlGeom->get_extrude());
     return symbol;
 }
 
@@ -219,17 +215,30 @@ static osgEarth::Symbology::Style* setupStyle(const kmldom::GeometryPtr kmlGeom)
     switch (kmlGeom->Type()) 
     {
     case kmldom::Type_Point:
-        style->addSymbol(createSymbol<KMLPointSymbol>(kmlGeom));
+    {
+        KMLPointSymbol* s = createSymbol<KMLPointSymbol,kmldom::PointPtr>(kmldom::AsPoint(kmlGeom));
+        style->addSymbol(s);
+    }
     break;
     case kmldom::Type_LineString:
-        style->addSymbol(createSymbol<KMLLineSymbol>(kmlGeom));
+    {
+        KMLLineSymbol* s =  createSymbol<KMLLineSymbol,kmldom::LineStringPtr>(kmldom::AsLineString(kmlGeom));
+        style->addSymbol(s);
+
+    }
     break;
     case kmldom::Type_LinearRing:
-        style->addSymbol(createSymbol<KMLLineSymbol>(kmlGeom));
+    {
+        KMLLineSymbol* s = createSymbol<KMLLineSymbol,kmldom::LinearRingPtr>(kmldom::AsLinearRing(kmlGeom));
+        style->addSymbol(s);
+    }
     break;
     case kmldom::Type_Polygon:
-        style->addSymbol(createSymbol<KMLPolygonSymbol>(kmlGeom));
-    break;
+    {
+        KMLPolygonSymbol* s = createSymbol<KMLPolygonSymbol,kmldom::PolygonPtr>(kmldom::AsPolygon(kmlGeom));
+        style->addSymbol(s);
+    }
+        break;
     default:
         return 0;
         break;
@@ -332,6 +341,9 @@ osgEarth::Features::FeatureCursor* KMLFeatureSource::createFeatureCursor( const 
 //override
 void KMLFeatureSource::initialize( const std::string& referenceURI )
 {
+    if (!_features.empty())
+        return;
+
     if ( _options->url().isSet() )
     {
         _url = osgEarth::getFullPath( referenceURI, _options->url().value() );
@@ -362,6 +374,7 @@ void KMLFeatureSource::initialize( const std::string& referenceURI )
 
     if (feature) {
         collectFeature(features, feature, 0);
+
     } else {
         std::cout << "No root feature" << std::endl;
     }

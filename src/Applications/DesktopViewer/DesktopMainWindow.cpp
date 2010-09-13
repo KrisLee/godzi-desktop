@@ -27,6 +27,7 @@
 #include <Godzi/Project>
 #include <Godzi/Actions>
 #include <Godzi/KML>
+#include <Godzi/Features/DispatchFeature>
 //#include <Godzi/Features/ApplyFeature>
 #include <Godzi/Features/FeatureSource>
 #include <osgEarthDrivers/agglite/AGGLiteOptions>
@@ -241,6 +242,13 @@ void DesktopMainWindow::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject
 		//featuresMaker.setFeatures(featureList);
 		//mapNode->accept(featuresMaker);
 #else
+#if 1
+    Godzi::Features::KMLFeatureSourceOptions* opt = new Godzi::Features::KMLFeatureSourceOptions;
+    opt->url() = "/home/trigrou/dev/godzi/src/data/example.kml";
+    Godzi::Features::KMLFeatureSource* fs = new Godzi::Features::KMLFeatureSource(opt);
+    fs->initialize();
+    applyFeatureToMap(mapNode->getMap(), fs);
+#else
     Godzi::Features::KMLFeatureSourceOptions* opt = new Godzi::Features::KMLFeatureSourceOptions;
     opt->url() = "/home/trigrou/dev/godzi/src/data/example.kml";
     Godzi::Features::KMLFeatureSource* fs = new Godzi::Features::KMLFeatureSource(opt);
@@ -262,6 +270,7 @@ void DesktopMainWindow::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject
     //iml->setReferenceURI("/home/trigrou/dev/godzi/src/data/example.kml");
     mapNode->getMap()->addModelLayer( iml );
     }
+#endif
 #endif
 		//TEST
 

@@ -20,6 +20,7 @@ set(CORE_INCLUDE
 	include/Godzi/Project
 	include/Godzi/Earth
 	include/Godzi/KML
+	include/Godzi/Features/DispatchFeature
 	include/Godzi/Features/ApplyFeature
 	include/Godzi/Features/Feature
 	include/Godzi/Features/FeatureSource
@@ -35,6 +36,7 @@ set(CORE_SOURCE
 	src/Godzi/Earth.cpp
 	src/Godzi/KML.cpp
 #	src/Godzi/Features/ApplyFeature
+	src/Godzi/Features/DispatchFeature.cpp
 	src/Godzi/Features/Feature.cpp
 	src/Godzi/Features/FeatureSource.cpp
 	src/Godzi/Features/Geometry.cpp

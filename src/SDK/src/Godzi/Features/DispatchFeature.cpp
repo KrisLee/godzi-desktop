@@ -20,15 +20,68 @@
  */
 
 #include <Godzi/Features/DispatchFeature>
+#include <Godzi/Features/Symbol>
+#include <Godzi/Features/Feature>
+#include <osgEarthDrivers/agglite/AGGLiteOptions>
+#include <osgEarthDrivers/model_feature_geom/FeatureGeomModelOptions>
 
 using namespace Godzi::Features;
 
-void applyFeatureToMap(osgEarth::Map* map, const osgEarth::FeatureList& list)
+void Godzi::Features::applyFeatureToMap(osgEarth::Map* map, const Godzi::Features::KMLFeatureSource* fs)
 {
+    // do the model with geom driver
+    osgEarth::Features::FeatureList model;
+    osgEarth::Features::FeatureList agglite;
+
+    for (osgEarth::Features::FeatureList::const_iterator it = fs->getFeaturesList().begin(); it != fs->getFeaturesList().end(); ++it) {
+        Godzi::Features::Feature* f = dynamic_cast<Godzi::Features::Feature*>((*it).get());
+        if (f->style().isSet()) {
+            {
+                const KMLLineSymbol* s = dynamic_cast<const KMLLineSymbol*>(f->style()->get());
+                if (s) {
+                    if ( s->extrude()->getExtrude() == true && s->altitude()->getAltitudeMode() == KMLAltitude::ClampToGround)
+                        agglite.push_back(f);
+                    else
+                        model.push_back(f);
+                    continue;
+                }
+            }
+            {
+                const KMLPolygonSymbol* s = dynamic_cast<const KMLPolygonSymbol*>(f->style()->get());
+                if (s) {
+                    if ( s->extrude()->getExtrude() == true && s->altitude()->getAltitudeMode() == KMLAltitude::ClampToGround)
+                        agglite.push_back(f);
+                    else
+                        model.push_back(f);
+                    continue;
+                }
+            }
+
+            model.push_back(f);
+
+        } else {
+            // no style put it in model
+            model.push_back(f);
+        }
+    }
     
+    if (!model.empty() ) {
+        Godzi::Features::KMLFeatureSource* fsm = new Godzi::Features::KMLFeatureSource(0);
+        fsm->setFeaturesList(model);
 
+        osgEarth::Drivers::FeatureGeomModelOptions* worldOpt = new osgEarth::Drivers::FeatureGeomModelOptions();
+        worldOpt->featureSource() = fsm;
+        ModelLayer* iml = new ModelLayer("world", worldOpt);
+        map->addModelLayer( iml );
 
+    }
+    if (!agglite.empty() ) {
+        Godzi::Features::KMLFeatureSource* fsm = new Godzi::Features::KMLFeatureSource(0);
+        fsm->setFeaturesList(agglite);
 
-
-
+        osgEarth::Drivers::AGGLiteOptions* worldOpt = new osgEarth::Drivers::AGGLiteOptions();
+        worldOpt->featureSource() = fsm;
+        ImageMapLayer* iml = new ImageMapLayer("world", worldOpt);
+        map->addMapLayer( iml );
+    }
 }
