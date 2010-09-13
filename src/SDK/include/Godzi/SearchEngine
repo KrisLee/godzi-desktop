@@ -1,0 +1,97 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+#ifndef GODZI_SEARCH_ENGINE
+#define GODZI_SEARCH_ENGINE 1
+
+#include <Godzi/Common>
+#include <Godzi/Actions>
+#include <Godzi/Place>
+#include <map>
+#include <vector>
+
+namespace Godzi
+{
+    class Application;
+
+    typedef std::string SearchQuery;
+
+    /**
+     * A set of search results returned from a query.
+     */
+    class SearchResult //GODZI_EXPORT
+    {
+    public:
+        SearchResult( const PlaceList& places );
+
+        const PlaceList& getPlaces() const { return _places; }
+
+    protected:
+        PlaceList _places;
+    };
+    typedef std::vector<SearchResult> SearchResults;
+
+    /**
+     * A cache of search results for each input query
+     */
+    typedef std::map<SearchQuery,SearchResults> SearchCache;
+
+    /**
+     * Base class for search engine implementations. A search engine takes a search
+     * string and tries to resolve a set of results (places) that correspond to that
+     * query. It also has a results cache.
+     */
+    class GODZI_EXPORT SearchEngine : public osg::Referenced
+    {        
+    public:
+        SearchResults search( const SearchQuery& query );
+
+        virtual const std::string& getName() =0;
+
+    protected:
+        SearchEngine();
+
+        virtual SearchResults doSearch( const SearchQuery& query ) =0;
+
+    private:
+        SearchCache _cache;
+    };
+
+    /**
+     * An action that performs a search and returns the results.
+     */
+    class GODZI_EXPORT SearchAction : public Action
+    {
+    public:
+        SearchAction( const SearchQuery& query );
+
+        const SearchResults getResults() const { return _results; }
+
+    public: // Action interface
+        bool doAction( const ActionContext& cx, Application* app );
+
+    protected:
+        SearchQuery _query;
+        SearchResults _results;
+    };
+
+} // namespace Godzi
+
+#endif // GODZI_SEARCH_ENGINE

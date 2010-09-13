@@ -77,21 +77,27 @@ include( CMakeModules/ImportOSG.cmake )
 # --- osgEarth -----------------------------
 
 # allow the user to set OSGEARTH_DIR in CMAKE GUI and auto-populate all OSGEARTH libraries:
-set(OSGEARTH_DIR "" CACHE STRING "osgEarth root directory")
+set(OSGEARTH_DIR "" CACHE PATH "osgEarth root directory")
 include( CMakeModules/ImportOSGEARTH.cmake )
 
 # --- SQLITE3 -----------------------------
-set(SQLITE3_DIR "" CACHE STRING "Sqlite3 root directory")
+set(SQLITE3_DIR "" CACHE PATH "Sqlite3 root directory")
 include( CMakeModules/ImportSQLITE3.cmake )
-
 
 # --- Qt -----------------------------
 include( CMakeModules/ImportQT.cmake )
 
 # --- KML -----------------------------
-set(KML_DIR "" CACHE STRING "KML root directory")
+set(KML_DIR "" CACHE PATH "KML root directory")
 include( CMakeModules/ImportKML.cmake )
 
+# --- Boost (header only) -------------
+set(BOOST_DIR "" CACHE PATH "Boost root directory")
+include( CMakeModules/ImportBoost.cmake )
+
+# --- Expat ---------------------------
+set(EXPAT_DIR "" CACHE PATH "EXPAT root directory")
+include( CMakeModules/ImportEXPAT.cmake )
 
 
 # subprojects =================================================

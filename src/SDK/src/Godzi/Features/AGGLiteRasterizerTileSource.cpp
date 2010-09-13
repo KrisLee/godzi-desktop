@@ -41,7 +41,7 @@
 using namespace Godzi;
 using namespace Godzi::Features;
 
-AGGLiteRasterizerTileSource::AGGLiteRasterizerTileSource(const GeometryList& geomList) : _geomList(geomList) 
+AGGLiteRasterizerTileSource::AGGLiteRasterizerTileSource(const Godzi::Features::GeometryList& geomList) : _geomList(geomList) 
 {
     osg::ref_ptr<osgEarth::Symbology::Style> style = new osgEarth::Symbology::Style;
     style->setName("Lines");
