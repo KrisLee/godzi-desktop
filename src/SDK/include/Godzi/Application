@@ -24,6 +24,7 @@
 #include <QObject>
 #include <Godzi/Common>
 #include <Godzi/Project>
+#include <Godzi/DataSources>
 
 namespace Godzi
 {

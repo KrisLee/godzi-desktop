@@ -22,6 +22,7 @@
 #define GODZI_DATA_SOURCE 1
 
 #include <QObject>
+#include <QAbstractItemModel>
 #include <Godzi/Common>
 #include <Godzi/Actions>
 #include <osgEarth/Config>
@@ -46,74 +47,118 @@ namespace Godzi
 		};
 
     virtual Config toConfig() const =0;
-		virtual const std::string& getLocation() =0;
-		virtual osgEarth::DriverOptions* getOptions() =0;
+		virtual const std::string& getLocation() const =0;
+		virtual const osgEarth::DriverOptions* getOptions() const =0;
+		virtual DataSource* clone() const =0;
 		
-		Type& type() { return _type; }
-		const Type& type() const { return _type; }
+		Type type() { return _type; }
+		const Type type() const { return _type; }
 		
 		osgEarth::optional<std::string>& name() { return _name; }
     const osgEarth::optional<std::string>& name() const { return _name; }
+    
+    void setVisible( bool value ) { _visible = value; };
+    bool visible() const { return _visible; }
+    
+    virtual const std::vector<std::string> getAvailableLayers() const { return NO_LAYERS; }
+    virtual void setAvailableLayers(const std::vector<std::string>& layers) {};
+    
+    virtual const std::vector<std::string> getActiveLayers() const { return NO_LAYERS; }
+    virtual void setActiveLayers(const std::vector<std::string>& layers) {};
 
 	protected:
-		//DataSource();
+		DataSource(Type type, bool visible) : _type(type), _visible(visible) {};
 		Type _type;
 		osgEarth::optional<std::string> _name;
+		bool _visible;
+		
+		static const std::vector<std::string> NO_LAYERS;
 	};
-
+	
 	class GODZI_EXPORT WMSSource : public DataSource
 	{
 	public:
-		WMSSource(Type type, osgEarth::Drivers::WMSOptions* opt);
+		WMSSource(Type type, osgEarth::Drivers::WMSOptions* opt, bool visible=true) : DataSource(type, visible), _opt(opt) {};
 
 		Config toConfig() const;
-		const std::string& getLocation();
-		osgEarth::DriverOptions* getOptions();
+		const std::string& getLocation() const;
+		const osgEarth::DriverOptions* getOptions() const;
+		DataSource* clone() const;
+		const std::vector<std::string> getAvailableLayers() const;
+		void setAvailableLayers(const std::vector<std::string>& layers);
+    const std::vector<std::string> getActiveLayers() const;
+    void setActiveLayers(const std::vector<std::string>& layers);
 
 	private:
 		osgEarth::Drivers::WMSOptions* _opt;
+		std::vector<std::string> _availableLayers;
 	};
 
 	class GODZI_EXPORT TMSSource : public DataSource
 	{
 	public:
-		TMSSource(Type type, osgEarth::Drivers::TMSOptions* opt);
+		TMSSource(Type type, osgEarth::Drivers::TMSOptions* opt, bool visible=true) : DataSource(type, visible), _opt(opt) {};
 
 		Config toConfig() const;
-		const std::string& getLocation();
-		osgEarth::DriverOptions* getOptions();
+		const std::string& getLocation() const;
+		const osgEarth::DriverOptions* getOptions() const;
+		DataSource* clone() const;
 
 	private:
 		osgEarth::Drivers::TMSOptions* _opt;
 	};
+	
+	//class GODZI_EXPORT ProjectDataSourceListModel : public QAbstractItemModel
+	//{
+	//
+	//Q_OBJECT
+	//
+	//public:
+	//	ProjectDataSourceListModel(Project* project) : QAbstractItemModel(), _project(project) {}
+	//	
+	//	QVariant data(const QModelIndex &index, int role) const;
+	//	QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+	//	
+	//	QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
+	//	QModelIndex parent(const QModelIndex &index) const;
+	//	
+	//	int rowCount(const QModelIndex &parent = QModelIndex()) const;
+	//	int columnCount(const QModelIndex &parent = QModelIndex()) const;
+	//	
+	//private:
+	//	Project* _project;
+	//};
 
-	class GODZI_EXPORT AddDataSourceAction : public ReversibleAction
+	class GODZI_EXPORT AddorUpdateDataSourceAction : public ReversibleAction
 	{
 	public:
-		AddDataSourceAction(DataSource* source) : _source(source) { }
+		AddorUpdateDataSourceAction(osg::ref_ptr<DataSource> source) : _source(source), _wasUpdate(false) { }
 
 		bool doAction( void* sender, Application* app );
 		bool isCheckPoint() { return false; };
 		bool undoAction( void* sender, Application* app );
+		
+		const DataSource* getDataSource() { return _source.get(); };
 
 	protected:
-		DataSource* _source;
+		osg::ref_ptr<DataSource> _source;
+		osg::ref_ptr<DataSource> _oldSource;
+		bool _wasUpdate;
 	};
 	
-	class GODZI_EXPORT DataSourceManager : public QObject
+	class GODZI_EXPORT RemoveDataSourceAction : public ReversibleAction
 	{
-	
-	Q_OBJECT
-	
 	public:
-		DataSourceManager(Godzi::Application* app);
+		RemoveDataSourceAction(osg::ref_ptr<DataSource> source) : _source(source) { }
+
+		bool doAction( void* sender, Application* app );
+		bool isCheckPoint() { return false; };
+		bool undoAction( void* sender, Application* app );
 		
-	private slots:
-		void onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
-		void onDataSourceAdded(Godzi::DataSource* source);
-		
-	//private:
-		//osg::ref_ptr<Application> _app;
+		const DataSource* getDataSource() { return _source.get(); };
+
+	protected:
+		osg::ref_ptr<DataSource> _source;
 	};
 }
 

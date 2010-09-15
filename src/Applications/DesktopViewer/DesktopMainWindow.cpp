@@ -80,6 +80,9 @@ void DesktopMainWindow::createActions()
 	_exitAction = new QAction(tr("&Exit"), this);
 	connect(_exitAction, SIGNAL(triggered()), this, SLOT(close()));
 
+	_undoAction = new QAction(QIcon(":/resources/images/undo.png"), tr("&Undo"), this);
+	connect(_undoAction, SIGNAL(triggered()), this, SLOT(undo()));
+
 	_aboutAction = new QAction(QIcon(":/resources/images/info.png"), tr("&About"), this);
 	_aboutAction->setStatusTip(tr("About Godzi"));
 	connect(_aboutAction, SIGNAL(triggered()), this, SLOT(showAbout()));
@@ -96,6 +99,9 @@ void DesktopMainWindow::createMenus()
 	_fileMenu->addSeparator();
 	_fileMenu->addAction(_exitAction);
 
+	_editMenu = menuBar()->addMenu(tr("&Edit"));
+	_editMenu->addAction(_undoAction);
+
 	_viewMenu = menuBar()->addMenu(tr("&View"));
 
 	_helpMenu = menuBar()->addMenu(tr("&Help"));
@@ -108,6 +114,9 @@ void DesktopMainWindow::createToolbars()
 	_fileToolbar->setIconSize(QSize(24, 24));
 	_fileToolbar->addAction(_openProjectAction);
 	_fileToolbar->addAction(_saveProjectAction);
+	_fileToolbar->addSeparator();
+	_fileToolbar->addAction(_undoAction);
+
 	_viewMenu->addAction(_fileToolbar->toggleViewAction());
 }
 
@@ -216,6 +225,11 @@ void DesktopMainWindow::loadMap()
 		if (!url.isNull() && !url.isEmpty())
 			loadScene(url.toStdString());
 	}
+}
+
+void DesktopMainWindow::undo()
+{
+	_app->actionManager()->undoAction();
 }
 
 void DesktopMainWindow::showAbout()

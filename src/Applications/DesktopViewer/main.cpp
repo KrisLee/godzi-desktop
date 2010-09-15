@@ -21,6 +21,7 @@
 #include <QtGui/QApplication>
 #include <Godzi/Application>
 #include <Godzi/Project>
+#include "DataSourceManager"
 
 #include "DesktopMainWindow"
 
@@ -29,6 +30,47 @@
 int
 main( int argc, char** argv )
 {
+	//std::vector<int> v;
+	//v.push_back(5);
+	//v.push_back(10);
+	//v.push_back(15);
+	//v.insert(v.begin() + v.size(), 20);
+	////v.push_back(20);
+
+	//std::cout << "size: " << v.size() << std::endl;
+	//std::cout << "capacity: " << v.capacity() << std::endl;
+
+	//for(std::vector<int>::iterator it = v.begin(); it != v.end(); ++it)
+	//{
+ //   std::cout << *it;
+	//}
+	//std::cout << std::endl;
+
+	////v.erase(v.begin() + 2);
+	//////std::remove(v.begin(), v.end(), 15);
+	//v.erase(remove(v.begin(), v.end(), 15), v.end());
+
+	//std::cout << "size: " << v.size() << std::endl;
+	//std::cout << "capacity: " << v.capacity() << std::endl;
+
+	//for(std::vector<int>::iterator it = v.begin(); it != v.end(); ++it)
+	//{
+ //   std::cout << *it;
+	//}
+	//std::cout << std::endl;
+	//
+	//v.insert(v.begin() + v.size(), 15);
+
+	//std::cout << "size: " << v.size() << std::endl;
+	//std::cout << "capacity: " << v.capacity() << std::endl;
+
+	//for(std::vector<int>::iterator it = v.begin(); it != v.end(); ++it)
+	//{
+ //   std::cout << *it;
+	//}
+	//std::cout << std::endl;
+	
+
     QApplication qtApp( argc, argv );
 
 		osg::ref_ptr<Godzi::Application> app = new Godzi::Application(EARTH_FILE);
@@ -36,6 +78,8 @@ main( int argc, char** argv )
 		DesktopMainWindow* top = new DesktopMainWindow(app);
     top->resize( 800, 600 );
     top->show();
+
+		DataSourceManager manager(app);
 
 		app->actionManager()->doAction(NULL, new Godzi::NewProjectAction());
 

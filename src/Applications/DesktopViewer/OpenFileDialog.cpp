@@ -22,47 +22,53 @@
 #include <QFileDialog>
 #include "OpenFileDialog"
 
-OpenFileDialog::OpenFileDialog(bool canBrowse)
+OpenFileDialog::OpenFileDialog(bool canBrowse, QWidget* options)
+: _options(options), _caption("Location..."), _dir(""), _filter("All files (*.*)")
 {
-	this->caption = tr("Location...");
-	this->dir = tr("");
-	this->filter = tr("All files (*.*)");
-
 	InitUi(canBrowse);
 }
 
-OpenFileDialog::OpenFileDialog(const QString &caption, const QString &dir, const QString &filter, bool canBrowse)
+OpenFileDialog::OpenFileDialog(const QString &caption, const QString &dir, const QString &filter, bool canBrowse, QWidget* options)
+: _options(options), _caption(caption), _dir(dir), _filter(filter)
 {
-	this->caption = caption;
-	this->dir = dir;
-	this->filter = filter;
-
 	InitUi(canBrowse);
 }
 
 void OpenFileDialog::InitUi(bool canBrowse)
 {
-	ui.setupUi(this);
+	_ui.setupUi(this);
 
 	if (canBrowse)
 	{
-	  QObject::connect(ui.browseButton, SIGNAL(clicked()), this, SLOT(showBrowse()));
+	  QObject::connect(_ui.browseButton, SIGNAL(clicked()), this, SLOT(showBrowse()));
 	}
 	else
 	{
-		ui.browseButton->setVisible(false);
+		_ui.browseButton->setVisible(false);
+	}
+
+	if (_options)
+	{
+		QVBoxLayout *vbox = new QVBoxLayout;
+		vbox->addWidget(_options);
+		_ui.optionsBox->setLayout(vbox);
+		_ui.optionsBox->setMinimumHeight(_options->height());
+	}
+	else
+	{
+		_ui.optionsBox->setVisible(false);
 	}
 }
 
 QString OpenFileDialog::getUrl()
 {
-	return ui.urlText->text();
+	return _ui.urlText->text();
 }
 
 void OpenFileDialog::showBrowse()
 {
-	QString filename = QFileDialog::getOpenFileName(this, caption, dir, filter);
+	QString filename = QFileDialog::getOpenFileName(this, _caption, _dir, _filter);
 
 	if (!filename.isNull())
-		ui.urlText->setText(filename);
+		_ui.urlText->setText(filename);
 }

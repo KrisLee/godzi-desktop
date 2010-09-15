@@ -19,30 +19,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef OPEN_FILE_DIALOG
-#define OPEN_FILE_DIALOG 1
+#include "WMSOptionsWidget"
 
-#include "ui_OpenFileDialog.h"
-
-class OpenFileDialog : public QDialog
+WMSOptionsWidget::WMSOptionsWidget(QWidget* parent)
+: QWidget(parent)
 {
-	Q_OBJECT
-
-	public:
-		OpenFileDialog(bool canBrowse=true, QWidget* options=0);
-		OpenFileDialog(const QString &caption, const QString &dir, const QString &filter, bool canBrowse=true, QWidget* options=0);
-		QString getUrl();
-		
-	private slots:
-		void showBrowse();
-
-	private:		
-		Ui::OpenFileDialog _ui;
-		QString _caption, _dir, _filter;
-		QWidget* _options;
-		
-		void InitUi(bool canBrowse);
-};
-
-
-#endif // OPEN_FILE_DIALOG
+	setupUi(this);
+}

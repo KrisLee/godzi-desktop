@@ -74,18 +74,26 @@ namespace Godzi
         void setProperties( const ProjectProperties& props ) { _props = props; }
         
         void addDataSource(Godzi::DataSource* source);
+        void removeDataSource(Godzi::DataSource* source);
+        bool updateDataSource(Godzi::DataSource* source, Godzi::DataSource** out_old = 0);
+        void moveDataSource(Godzi::DataSource* source, int position);
+        
+        const std::vector<osg::ref_ptr<Godzi::DataSource>>& sources() const { return _sources; }
 
         /** The map model */
         osgEarth::Map* map() { return _map.get(); }
         const osgEarth::Map* map() const { return _map.get(); }
         
     signals:
-			void dataSourceAdded(Godzi::DataSource* source);
+			void dataSourceAdded(osg::ref_ptr<const Godzi::DataSource> source, int position);
+			void dataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source);
+			void dataSourceMoved(osg::ref_ptr<const Godzi::DataSource> source, int position);
+			void dataSourceUpdated(osg::ref_ptr<const Godzi::DataSource> source);
 
     protected:
         osg::ref_ptr<osgEarth::Map> _map;
         ProjectProperties _props;
-        std::vector<Godzi::DataSource*> _sources;
+        std::vector<osg::ref_ptr<Godzi::DataSource>> _sources;
         
         void loadMap( const std::string& map );
     };

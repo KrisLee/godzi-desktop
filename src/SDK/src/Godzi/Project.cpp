@@ -25,6 +25,7 @@
 #include <osgEarth/XmlUtils>
 #include <osgEarth/MapNode>
 #include <fstream>
+#include <iterator>
 
 using namespace Godzi;
 
@@ -86,10 +87,53 @@ Project::toConfig() const
     return conf;
 }
 
-void Project::addDataSource(Godzi::DataSource* source)
+void
+Project::addDataSource(Godzi::DataSource* source)
 {
 	_sources.push_back(source);
-	emit dataSourceAdded(source);
+	emit dataSourceAdded(source, _sources.size() - 1);
+}
+
+void
+Project::removeDataSource(Godzi::DataSource* source)
+{
+	_sources.erase(remove(_sources.begin(), _sources.end(), source), _sources.end());
+	emit dataSourceRemoved(source);
+}
+
+bool
+Project::updateDataSource(Godzi::DataSource* source, Godzi::DataSource** out_old)
+{
+	for (int i=0; i < _sources.size(); i++)
+	if (_sources[i].get()->getLocation().compare(source->getLocation()) == 0)
+	{
+		if (out_old)
+			*out_old = _sources[i].get();
+
+		_sources[i] = source;
+
+		emit dataSourceUpdated(source);
+
+		return true;
+	}
+
+	return false;
+}
+
+void
+Project::moveDataSource(Godzi::DataSource* source, int position)
+{
+	if (position < 0)
+		return;
+
+	_sources.erase(remove(_sources.begin(), _sources.end(), source), _sources.end());
+
+	if (position > _sources.size())
+		_sources.push_back(source);
+	else
+		_sources.insert(_sources.begin() + position, source);
+
+	emit dataSourceMoved(source, position);
 }
 
 void

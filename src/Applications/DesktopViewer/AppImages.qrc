@@ -3,8 +3,9 @@
         <file>images/open.png</file>
         <file>images/save.png</file>
         <file>images/info.png</file>
-	<file>images/globe.png</file>
-	<file>images/add.png</file>
-	<file>images/remove.png</file>
+        <file>images/globe.png</file>
+        <file>images/add.png</file>
+        <file>images/remove.png</file>
+        <file>images/undo.png</file>
     </qresource>
 </RCC>

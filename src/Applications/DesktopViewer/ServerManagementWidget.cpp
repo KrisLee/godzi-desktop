@@ -24,6 +24,7 @@
 #include <QComboBox>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
+#include <QTreeView>
 #include <QAction>
 #include <QIcon>
 #include <osgEarth/TileSource>
@@ -34,6 +35,7 @@
 #include <Godzi/Project>
 #include <Godzi/DataSources>
 #include "OpenFileDialog"
+#include "WMSOptionsWidget"
 #include "ServerManagementWidget"
 
 ServerManagementWidget::ServerManagementWidget(Godzi::Application* app)
@@ -43,6 +45,7 @@ ServerManagementWidget::ServerManagementWidget(Godzi::Application* app)
 	initUi();
 
 	connect(_app, SIGNAL(projectChanged(osg::ref_ptr<Godzi::Project>, osg::ref_ptr<Godzi::Project>)), this, SLOT(onProjectChanged(osg::ref_ptr<Godzi::Project>, osg::ref_ptr<Godzi::Project>)));
+	connect(_sourceTree, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(onTreeItemChanged(QTreeWidgetItem*, int)));
 }
 
 void ServerManagementWidget::createActions()
@@ -51,6 +54,7 @@ void ServerManagementWidget::createActions()
 	connect(_addSourceAction, SIGNAL(triggered()), this, SLOT(addSource()));
 
 	_removeSourceAction = new QAction(QIcon(":/resources/images/remove.png"), tr("&Remove"), this);
+	_removeSourceAction->setEnabled(false);
 	connect(_removeSourceAction, SIGNAL(triggered()), this, SLOT(removeSource()));
 }
 
@@ -72,83 +76,242 @@ void ServerManagementWidget::initUi()
 	_sourceTree = new QTreeWidget();
 	_sourceTree->setColumnCount(1);
 	_sourceTree->setHeaderHidden(true);
+	connect(_sourceTree, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)), this, SLOT(onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)));
+
+	//_sourceView = new QTreeView();
 
 	QVBoxLayout *layout = new QVBoxLayout;
 	layout->setSpacing(2);
 	layout->setContentsMargins(3, 0, 3, 3);
 	layout->addWidget(_toolbar);
 	layout->addWidget(_sourceTree);
+	//layout->addWidget(_sourceView);
 	layout->addStretch();
   setLayout(layout);
 }
 
+void ServerManagementWidget::onCurrentItemChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous)
+{
+	if (_sourceTree->indexOfTopLevelItem(current) != -1)
+		_removeSourceAction->setEnabled(true);
+	else
+		_removeSourceAction->setEnabled(false);
+}
+
+void ServerManagementWidget::onTreeItemChanged(QTreeWidgetItem* item, int col)
+{
+	CustomDataSourceTreeItem* sourceItem = findParentSourceItem(item);
+	if (sourceItem)
+		updateVisibilitiesFromTree(sourceItem);
+}
+
 void ServerManagementWidget::addSource()
 {
-	OpenFileDialog* ofd;
-
 	QString type = _typeBox->currentText();
-	if (!type.compare("KML/KMZ"))
+	if (!type.compare("TMS"))
 	{
-		ofd = new OpenFileDialog(tr("Location..."), tr(""), tr("KML/KMZ files (*.kml *.kmz);;All files (*.*)"));
+		addTMSSource();
 	}
-	else
+	else if (!type.compare("WMS"))
 	{
-		ofd = new OpenFileDialog(false);
+		addWMSSource();
 	}
-
-	if (ofd->exec() == QDialog::Accepted)
+	else if (!type.compare("KML/KMZ"))
 	{
-		QString url = ofd->getUrl();
-		if (!url.isNull() && !url.isEmpty())
-		{
-			Godzi::DataSource* s;
-			if (!type.compare("WMS"))
-			{
-				osgEarth::Drivers::WMSOptions* opt = new osgEarth::Drivers::WMSOptions();
-				opt->url() = url.toStdString();
-				s = new Godzi::WMSSource(Godzi::DataSource::TYPE_WMS, opt);
-			}
-			else if (!type.compare("TMS"))
-			{
-				osgEarth::Drivers::TMSOptions* opt = new osgEarth::Drivers::TMSOptions();
-				opt->url() = url.toStdString();
-				s = new Godzi::TMSSource(Godzi::DataSource::TYPE_TMS, opt);
-			}
-			else if (!type.compare("KML/KMZ"))
-			{
-				//TODO
-			}
-
-			if (s)
-				_app->actionManager()->doAction(this, new Godzi::AddDataSourceAction(s));
-		}
+		addKMLSource();
 	}
 }
 
 void ServerManagementWidget::removeSource()
 {
+	CustomDataSourceTreeItem* item = dynamic_cast<CustomDataSourceTreeItem*>(_sourceTree->currentItem());
+	if (item)
+		_app->actionManager()->doAction(this, new Godzi::RemoveDataSourceAction(item->getSource()));
 }
 
 void ServerManagementWidget::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject)
 {
 	Godzi::Project* p = _app->getProject();
-
 	if (p)
-		connect(p, SIGNAL(dataSourceAdded(Godzi::DataSource*)), this, SLOT(onDataSourceAdded(Godzi::DataSource*)));
+	{
+		connect(p, SIGNAL(dataSourceAdded(osg::ref_ptr<const Godzi::DataSource>, int)), this, SLOT(onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource>, int)));
+		//connect(p, SIGNAL(dataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)), this, SLOT(onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)));
+		//connect(p, SIGNAL(dataSourceMoved(osg::ref_ptr<Godzi::DataSource>, int)), this, SLOT(onDataSourceMoved(osg::ref_ptr<Godzi::DataSource>, int)));
+	}
 
 	//TODO: disconnect from old project signal???
 }
 
-void ServerManagementWidget::onDataSourceAdded(Godzi::DataSource* source)
+void ServerManagementWidget::onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource> source, int position)
 {
-	QString s;
-	if (source->name().isSet())
-		s = QString::fromStdString(source->name().get());
-	else
-		s = QString::fromStdString(source->getLocation());
+	if (!source.valid())
+		return;
 
-	QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(s));
-	item->setCheckState(0, Qt::Checked);
+	QTreeWidgetItem* item = createDataSourceTreeItem(source);
+
+	if (position >= _sourceTree->topLevelItemCount())
+		_sourceTree->addTopLevelItem(item);
+	else
+		_sourceTree->insertTopLevelItem(position, item);
+}
+
+//void ServerManagementWidget::onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source)
+//{
+//	int index = -1;//findDataSourceTreeItem(source);
+//	if (index != -1)
+//		_sourceTree->takeTopLevelItem(index);
+//}
+//
+//void ServerManagementWidget::onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource> source, int position)
+//{
+//	if (!source)
+//		return;
+//
+//	//TODO
+//
+//	//int index = _sourceTree->indexOfTopLevelItem(
+//	//_sourceTree->takeTopLevelItem(
+//}
+
+QTreeWidgetItem* ServerManagementWidget::createDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source)
+{
+	if (!source.valid())
+		return new QTreeWidgetItem();
+
+	CustomDataSourceTreeItem* item = new CustomDataSourceTreeItem(source->clone());
+	updateDataSourceTreeItem(source, item);
 	//item->setFlags(item->flags() & ~(Qt::ItemIsEnabled));
-	_sourceTree->addTopLevelItem(item);
+
+	return item;
+}
+
+void ServerManagementWidget::updateDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source, CustomDataSourceTreeItem* item)
+{
+	if (!source.valid() || !item)
+		return;
+
+	item->setText(0, source->name().isSet() ? QString::fromStdString(source->name().get()) : QString::fromStdString(source->getLocation()));
+	item->setCheckState(0, source->visible() ? Qt::Checked : Qt::Unchecked);
+	
+	std::vector<std::string> layers = source->getAvailableLayers();
+	std::vector<std::string> active = source->getActiveLayers();
+
+	item->takeChildren();
+	for (int i=0; i < layers.size(); i++)
+	{
+		QTreeWidgetItem* child = new QTreeWidgetItem(QStringList(QString::fromStdString(layers[i])));
+		child->setCheckState(0, std::find(active.begin(), active.end(), layers[i]) == active.end() ? Qt::Unchecked : Qt::Checked);
+		item->addChild(child);
+	}
+}
+
+//int ServerManagementWidget::findDataSourceTreeItem(const std::string& sourceLocation, QTreeWidgetItem** out_item)
+//{
+//	int index = -1;
+//	for (int i=0; i < _sourceTree->topLevelItemCount(); i++)
+//	{
+//		CustomDataSourceTreeItem* item = dynamic_cast<CustomDataSourceTreeItem*>(_sourceTree->topLevelItem(i));
+//		if (item && item->getSource()->getLocation() == source->getLocation())
+//		{
+//			index = i;
+//
+//			if (out_item)
+//				*out_item = item;
+//
+//			break;
+//		}
+//	}
+//
+//	return index;
+//}
+
+CustomDataSourceTreeItem* ServerManagementWidget::findParentSourceItem(QTreeWidgetItem* item)
+{
+	if (!item)
+		return 0;
+
+	CustomDataSourceTreeItem* parent = dynamic_cast<CustomDataSourceTreeItem*>(item);
+	if (!parent)
+		parent = findParentSourceItem(item->parent());
+
+	return parent;
+}
+
+void ServerManagementWidget::updateVisibilitiesFromTree(CustomDataSourceTreeItem* item)
+{
+	Godzi::DataSource* source = item->getSource();
+	source->setVisible(item->checkState(0) == Qt::CheckState::Checked);
+
+	std::vector<std::string> activeLayers;
+	for (int i=0; i < item->childCount(); i++)
+	{
+		QTreeWidgetItem* child = item->child(i);
+
+		if (child->checkState(0) == Qt::CheckState::Checked)
+			activeLayers.push_back(child->text(0).toStdString());
+	}
+	source->setActiveLayers(activeLayers);
+
+	_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(source));
+}
+
+void ServerManagementWidget::addTMSSource()
+{
+	OpenFileDialog ofd(false);
+
+	if (ofd.exec() == QDialog::Accepted)
+	{
+		QString url = ofd.getUrl();
+		if (!url.isNull() && !url.isEmpty())
+		{
+			osgEarth::Drivers::TMSOptions* opt = new osgEarth::Drivers::TMSOptions();
+			opt->url() = url.toStdString();
+			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::TMSSource(Godzi::DataSource::TYPE_TMS, opt)));
+		}
+	}
+}
+
+void ServerManagementWidget::addWMSSource()
+{
+	WMSOptionsWidget* options = new WMSOptionsWidget();
+	OpenFileDialog ofd(false, options);
+
+	if (ofd.exec() == QDialog::Accepted)
+	{
+		QString url = ofd.getUrl();
+		if (!url.isNull() && !url.isEmpty())
+		{
+			osgEarth::Drivers::WMSOptions* opt = new osgEarth::Drivers::WMSOptions();
+			opt->url() = url.toStdString();
+
+			if (options->formatCheckBox->isChecked())
+				opt->format() = options->formatComboBox->currentText().toStdString();
+
+			if (options->tileSizeCheckBox->isChecked())
+				opt->tileSize() = options->tileSizeComboBox->currentText().toInt();
+
+			if (options->srsCheckBox->isChecked())
+				opt->srs() = options->srsLineEdit->text().toStdString();
+
+			opt->layers() = "basic";
+
+
+			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::WMSSource(Godzi::DataSource::TYPE_WMS, opt)));
+		}
+	}
+
+	delete options;
+}
+
+void ServerManagementWidget::addKMLSource()
+{
+	OpenFileDialog ofd(tr("Location..."), tr(""), tr("KML/KMZ files (*.kml *.kmz);;All files (*.*)"));
+	if (ofd.exec() == QDialog::Accepted)
+	{
+		QString url = ofd.getUrl();
+		if (!url.isNull() && !url.isEmpty())
+		{
+			//TODO
+		}
+	}
 }
