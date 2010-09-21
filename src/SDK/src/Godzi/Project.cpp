@@ -20,7 +20,6 @@
  */
 #include <Godzi/Project>
 #include <Godzi/Application>
-#include <Godzi/KML>
 #include <Godzi/Features/ApplyFeature>
 #include <osgEarth/XmlUtils>
 #include <osgEarth/MapNode>

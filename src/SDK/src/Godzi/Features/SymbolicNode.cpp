@@ -29,6 +29,22 @@
 using namespace Godzi;
 using namespace Godzi::Features;
 
+#if 0
+
+                // A processing context to use with the filters:
+                FilterContext contextFilter;
+                contextFilter.profile() = featureSource->getFeatureProfile();
+
+                // Transform them into the map's SRS:
+                TransformFilter xform( map->getProfile()->getSRS() );
+                xform.setMakeGeocentric( map->isGeocentric() );
+                xform.setLocalizeCoordinates( true );
+
+                // Apply the height offset if necessary:
+                xform.setHeightOffset( options->heightOffset().value() );
+                contextFilter = xform.push( features, contextFilter );
+
+#endif
 
 static osg::Node* getNode(const std::string& str)
 {

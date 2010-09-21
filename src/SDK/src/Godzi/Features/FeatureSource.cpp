@@ -32,12 +32,6 @@
 
 using namespace Godzi::Features;
 
-#if 0
-KMLFeatureSource::KMLFeatureSource(const KMLFeatureSource& src) : osgEarth::Features::FeatureSource(src), _options(src._options), _features(src._features), _url(src._url)
-{
-}
-#endif
-
 KMLFeatureSource::KMLFeatureSource( const osgEarth::PluginOptions* options): osgEarth::Features::FeatureSource(options)
 {
     _options = dynamic_cast<const KMLFeatureSourceOptions*>(options);

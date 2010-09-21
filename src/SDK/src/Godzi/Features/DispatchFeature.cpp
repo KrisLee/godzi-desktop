@@ -22,6 +22,7 @@
 #include <Godzi/Features/DispatchFeature>
 #include <Godzi/Features/Symbol>
 #include <Godzi/Features/Feature>
+#include <Godzi/Features/Symbolizer>
 #include <osgEarthDrivers/agglite/AGGLiteOptions>
 #include <osgEarthDrivers/model_feature_geom/FeatureGeomModelOptions>
 
@@ -29,6 +30,16 @@ using namespace Godzi::Features;
 
 void Godzi::Features::applyFeatureToMap(osgEarth::Map* map, const Godzi::Features::KMLFeatureSource* fs)
 {
+#if 1
+    Godzi::Features::KMLFeatureSource* fsm = new Godzi::Features::KMLFeatureSource(0);
+    fsm->setFeaturesList(fs->getFeaturesList());
+
+    osgEarth::Features::FeatureModelSourceOptions* option = new osgEarth::Features::FeatureModelSourceOptions;
+    option->featureSource() = fsm;
+    ModelLayer* iml = new ModelLayer("world", new FeatureKMLModelSource(option));
+    map->addModelLayer( iml );
+
+#else
     // do the model with geom driver
     osgEarth::Features::FeatureList model;
     osgEarth::Features::FeatureList agglite;
@@ -73,7 +84,6 @@ void Godzi::Features::applyFeatureToMap(osgEarth::Map* map, const Godzi::Feature
         worldOpt->featureSource() = fsm;
         ModelLayer* iml = new ModelLayer("world", worldOpt);
         map->addModelLayer( iml );
-
     }
     if (!agglite.empty() ) {
         Godzi::Features::KMLFeatureSource* fsm = new Godzi::Features::KMLFeatureSource(0);
@@ -84,4 +94,5 @@ void Godzi::Features::applyFeatureToMap(osgEarth::Map* map, const Godzi::Feature
         ImageMapLayer* iml = new ImageMapLayer("world", worldOpt);
         map->addMapLayer( iml );
     }
+#endif
 }
