@@ -38,7 +38,8 @@ public:
 	CustomDataSourceTreeItem(Godzi::DataSource* source) : _source(source), QTreeWidgetItem() {};
 	CustomDataSourceTreeItem(Godzi::DataSource* source, const QStringList &strings) : _source(source), QTreeWidgetItem(strings) {};
 	
-	Godzi::DataSource* getSource() const { return _source.get(); };
+	Godzi::DataSource* getSource() const { return _source.get(); }
+	void setSource(Godzi::DataSource* source) { _source = source; }
 	
 private:
 	osg::ref_ptr<Godzi::DataSource> _source;	
@@ -58,6 +59,7 @@ class ServerManagementWidget : public QWidget
 		void removeSource();
 		void onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
 		void onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource> source, int position);
+		void onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource> source);
 		//void onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source);
 		//void onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource> source, int position);
 
@@ -74,12 +76,13 @@ class ServerManagementWidget : public QWidget
 		void initUi();
 		QTreeWidgetItem* createDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source);
 		void updateDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source, CustomDataSourceTreeItem* item);
-		//int findDataSourceTreeItem(const Godzi::DataSource* source, QTreeWidgetItem** out_item = 0);
+		int findDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source, CustomDataSourceTreeItem** out_item = 0);
 		CustomDataSourceTreeItem* findParentSourceItem(QTreeWidgetItem* item);
 		void updateVisibilitiesFromTree(CustomDataSourceTreeItem* item);
 		void addTMSSource();
 		void addWMSSource();
 		void addKMLSource();
+		void parseWMSOptions(const std::string& url, osgEarth::Drivers::WMSOptions* opt);
 };
 
 #endif // SERVER_MANAGEMENT_WIDGET

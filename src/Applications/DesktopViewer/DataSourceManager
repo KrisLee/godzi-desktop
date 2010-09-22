@@ -22,6 +22,7 @@
 #include <QObject>
 #include <Godzi/Application>
 #include <Godzi/Project>
+#include <osgEarthUtil/WMS>
 
 class DataSourceManager : public QObject//, public Godzi::ActionCallback
 {
@@ -44,5 +45,7 @@ class DataSourceManager : public QObject//, public Godzi::ActionCallback
 		osg::ref_ptr<Godzi::Application> _app;
 		std::map<std::string, osg::ref_ptr<osgEarth::MapLayer>> _layerMap;
 		
-		void getAvailableLayers
+		osgEarth::MapLayer* createMapLayer(osg::ref_ptr<const Godzi::DataSource> source);
+		void updateWMSCapabilities(osg::ref_ptr<const Godzi::DataSource> source);
+		void getLayerNames(osgEarthUtil::WMSLayer::LayerList& layers, std::vector<std::string>& names, std::map<std::string, std::string>& displayNames);
 };

@@ -22,7 +22,6 @@
 #define GODZI_DATA_SOURCE 1
 
 #include <QObject>
-#include <QAbstractItemModel>
 #include <Godzi/Common>
 #include <Godzi/Actions>
 #include <osgEarth/Config>
@@ -57,7 +56,7 @@ namespace Godzi
 		osgEarth::optional<std::string>& name() { return _name; }
     const osgEarth::optional<std::string>& name() const { return _name; }
     
-    void setVisible( bool value ) { _visible = value; };
+    void setVisible( bool value ) { _visible = value; }
     bool visible() const { return _visible; }
     
     virtual const std::vector<std::string> getAvailableLayers() const { return NO_LAYERS; }
@@ -65,12 +64,22 @@ namespace Godzi
     
     virtual const std::vector<std::string> getActiveLayers() const { return NO_LAYERS; }
     virtual void setActiveLayers(const std::vector<std::string>& layers) {};
+    
+    virtual const std::string& layerDisplayName (const std::string& layerName) const { return layerName; }
+    
+    bool error() const { return _error; }
+    void setError(bool isError) { _error = isError; }
+    
+    const std::string& errorMsg() const { return _errorMsg; }
+    void setErrorMsg(const std::string& msg) { _errorMsg = msg; }
 
 	protected:
-		DataSource(Type type, bool visible) : _type(type), _visible(visible) {};
+		DataSource(Type type, bool visible) : _type(type), _visible(visible), _error(false), _errorMsg("") {};
 		Type _type;
 		osgEarth::optional<std::string> _name;
 		bool _visible;
+		bool _error;
+		std::string _errorMsg;
 		
 		static const std::vector<std::string> NO_LAYERS;
 	};
@@ -78,7 +87,7 @@ namespace Godzi
 	class GODZI_EXPORT WMSSource : public DataSource
 	{
 	public:
-		WMSSource(Type type, osgEarth::Drivers::WMSOptions* opt, bool visible=true) : DataSource(type, visible), _opt(opt) {};
+		WMSSource(Type type, osgEarth::Drivers::WMSOptions* opt, bool visible=true, std::string fullUrl="") : DataSource(type, visible), _opt(opt), _fullUrl(fullUrl) {};
 
 		Config toConfig() const;
 		const std::string& getLocation() const;
@@ -88,10 +97,14 @@ namespace Godzi
 		void setAvailableLayers(const std::vector<std::string>& layers);
     const std::vector<std::string> getActiveLayers() const;
     void setActiveLayers(const std::vector<std::string>& layers);
+    const std::string& layerDisplayName(const std::string& layerName) const;
+    void setLayerDisplayNames(const std::map<std::string, std::string>& nameMap) { _displayNames = nameMap; }
 
 	private:
-		osgEarth::Drivers::WMSOptions* _opt;
+		osg::ref_ptr<osgEarth::Drivers::WMSOptions> _opt;
+		std::string _fullUrl;
 		std::vector<std::string> _availableLayers;
+		std::map<std::string, std::string> _displayNames;
 	};
 
 	class GODZI_EXPORT TMSSource : public DataSource
@@ -105,29 +118,8 @@ namespace Godzi
 		DataSource* clone() const;
 
 	private:
-		osgEarth::Drivers::TMSOptions* _opt;
+		osg::ref_ptr<osgEarth::Drivers::TMSOptions> _opt;
 	};
-	
-	//class GODZI_EXPORT ProjectDataSourceListModel : public QAbstractItemModel
-	//{
-	//
-	//Q_OBJECT
-	//
-	//public:
-	//	ProjectDataSourceListModel(Project* project) : QAbstractItemModel(), _project(project) {}
-	//	
-	//	QVariant data(const QModelIndex &index, int role) const;
-	//	QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
-	//	
-	//	QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
-	//	QModelIndex parent(const QModelIndex &index) const;
-	//	
-	//	int rowCount(const QModelIndex &parent = QModelIndex()) const;
-	//	int columnCount(const QModelIndex &parent = QModelIndex()) const;
-	//	
-	//private:
-	//	Project* _project;
-	//};
 
 	class GODZI_EXPORT AddorUpdateDataSourceAction : public ReversibleAction
 	{

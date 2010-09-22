@@ -105,17 +105,17 @@ bool
 Project::updateDataSource(Godzi::DataSource* source, Godzi::DataSource** out_old)
 {
 	for (int i=0; i < _sources.size(); i++)
-	if (_sources[i].get()->getLocation().compare(source->getLocation()) == 0)
-	{
-		if (out_old)
-			*out_old = _sources[i].get();
+		if (_sources[i].get()->getLocation().compare(source->getLocation()) == 0)
+		{
+			if (out_old)
+				*out_old = _sources[i].get();
 
-		_sources[i] = source;
+			_sources[i] = source;
 
-		emit dataSourceUpdated(source);
+			emit dataSourceUpdated(source);
 
-		return true;
-	}
+			return true;
+		}
 
 	return false;
 }
