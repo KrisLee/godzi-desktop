@@ -4,11 +4,14 @@ create_project(
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${QT_INCLUDES}
         ${KML_INCLUDES}
+        ${EXPAT_INCLUDES}
+        ${BOOST_INCLUDE_DIR}
     LIBDEPENDENCIES
         ${OSG_ALL_LIBDEPENDENCIES}
         ${OSGEARTH_ALL_LIBDEPENDENCIES}
         ${QT_ALL_LIBRARIES}
         ${KML_ALL_LIBDEPENDENCIES}
+        EXPAT
 )
 
 # ----- CORE namespace -------------------------------------------------
@@ -21,11 +24,14 @@ set(CORE_INCLUDE
 	include/Godzi/DataSources
 	include/Godzi/Earth
 	include/Godzi/KML
+	include/Godzi/Features/DispatchFeature
 	include/Godzi/Features/ApplyFeature
 	include/Godzi/Features/Feature
+	include/Godzi/Features/FeatureSource
 	include/Godzi/Features/Geometry
 	include/Godzi/Features/Placemark
-        )
+	include/Godzi/Features/SymbolicNode
+)
 set(CORE_SOURCE
 	src/Godzi/Actions.cpp
 	src/Godzi/Application.cpp
@@ -33,10 +39,14 @@ set(CORE_SOURCE
 	src/Godzi/DataSources.cpp
 	src/Godzi/Earth.cpp
 	src/Godzi/KML.cpp
-	src/Godzi/Features/ApplyFeature
+#	src/Godzi/Features/ApplyFeature
+	src/Godzi/Features/DispatchFeature.cpp
 	src/Godzi/Features/Feature.cpp
+	src/Godzi/Features/FeatureSource.cpp
 	src/Godzi/Features/Geometry.cpp
 	src/Godzi/Features/Placemark.cpp
+	src/Godzi/Features/SymbolicNode.cpp
+#	src/Godzi/Features/AGGLiteRasterizerTileSource.cpp
 )   
 source_group( Core FILES ${CORE_INCLUDE} ${CORE_SOURCE} )
 

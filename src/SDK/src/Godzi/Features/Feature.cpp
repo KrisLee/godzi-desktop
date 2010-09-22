@@ -23,9 +23,9 @@
 
 using namespace Godzi::Features;
 
-Feature::Feature():_visible(true) {}
+Feature::Feature():osgEarth::Features::Feature(), _visible(true) {}
 
 Feature::Feature(const Feature& f, const osg::CopyOp& cp) :
-    osg::Object(f, cp),
+    osgEarth::Features::Feature(f, cp),
     _description(f._description),
     _visible(f._visible) {}

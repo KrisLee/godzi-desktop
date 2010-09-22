@@ -1,0 +1,76 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+#ifndef GODZI_FEATURES_SYMBOL
+#define GODZI_FEATURES_SYMBOL 1
+
+#include <osgEarthSymbology/MarkerSymbol>
+#include <osgEarthSymbology/GeometrySymbol>
+
+namespace Godzi { namespace Features {
+
+
+        class KMLExtrude {
+        public:
+            void setExtrude(bool extrude) { _extrude = extrude;}
+            bool getExtrude() const { return _extrude; }
+        protected:
+            bool _extrude;
+        };
+
+        class KMLAltitude {
+        public:
+
+            enum AltitudeMode {
+                ClampToGround, 
+                RelativeToGround,
+                Absolute,
+                RelativeToSeaFloor,
+                ClampToSeaFloor, 
+            };
+
+            void setAltitudeMode(const AltitudeMode& altitude) { _altitudeMode = altitude; }
+            AltitudeMode getAltitudeMode() const { return _altitudeMode; }
+
+        protected:
+            AltitudeMode _altitudeMode;
+        };
+
+        template <class T>
+        class KMLSymbolType : public T
+        {
+        public:
+            optional<KMLExtrude>& extrude() { return _extrude; }
+            const optional<KMLExtrude>& extrude() const { return _extrude; }
+
+            optional<KMLAltitude>& altitude() { return _altitude; }
+            const optional<KMLAltitude>& altitude() const { return _altitude; }
+
+        protected:
+            optional<KMLExtrude> _extrude;
+            optional<KMLAltitude> _altitude;
+        };
+
+        typedef KMLSymbolType<osgEarth::Symbology::MarkerSymbol>  KMLPointSymbol;
+        typedef KMLSymbolType<osgEarth::Symbology::LineSymbol>  KMLLineSymbol;
+        typedef KMLSymbolType<osgEarth::Symbology::PolygonSymbol>  KMLPolygonSymbol;
+
+}}
+#endif

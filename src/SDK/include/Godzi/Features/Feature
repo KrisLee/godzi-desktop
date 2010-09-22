@@ -21,12 +21,12 @@
 #ifndef GODZI_FEATURES_FEATURE
 #define GODZI_FEATURES_FEATURE 1
 
-#include <osg/Object>
+#include <osgEarthFeatures/Feature>
 #include <Godzi/Common>
 
 namespace Godzi { namespace Features {
 
-    class GODZI_EXPORT Feature : public osg::Object
+    class GODZI_EXPORT Feature : public osgEarth::Features::Feature
     {
     public:
         Feature();
@@ -38,6 +38,7 @@ namespace Godzi { namespace Features {
     protected:
         std::string _description;
         bool _visible;
+
     };
 
     typedef std::vector<osg::ref_ptr<Feature> > FeatureList;

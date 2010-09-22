@@ -26,11 +26,6 @@ using namespace Godzi::Features;
 Placemark::Placemark() {}
 
 Placemark::Placemark(const Placemark& pm, const osg::CopyOp& cp):
-    Feature(pm, cp),
-    _geometry(pm._geometry)
+    Feature(pm, cp)
 {
 }
-
-void Placemark::setGeometry(Geometry* geometry) { _geometry = geometry; }
-const Geometry* Placemark::getGeometry() const { return _geometry.get(); }
-Geometry* Placemark::getGeometry() { return _geometry.get(); }

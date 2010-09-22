@@ -23,9 +23,9 @@
 
 using namespace Godzi::Features;
 
-Point::Point() { _geom = new osgEarth::Symbology::PointSet; }
-Point::Point(const Point& pm, const osg::CopyOp& cp) : Geometry(), _geom(osg::clone(pm._geom.get(), cp)) {}
-Point::Point(const osg::Vec3dArray* toCopy) : Geometry(), _geom(new osgEarth::Symbology::PointSet(toCopy)) {}
+Point::Point() : _extrude(false), _altitudeMode(ClampToGround) { _geom = new osgEarth::Symbology::PointSet; }
+Point::Point(const Point& pm, const osg::CopyOp& cp) : Geometry(), _geom(osg::clone(pm._geom.get(), cp)), _extrude(pm._extrude), _altitudeMode(pm._altitudeMode) {}
+Point::Point(const osg::Vec3dArray* toCopy) : Geometry(), _geom(new osgEarth::Symbology::PointSet(toCopy)), _extrude(false), _altitudeMode(ClampToGround) {}
 
 osg::Vec3Array* Point::toVec3Array() const { return _geom->toVec3Array(); }
 osg::Vec3dArray* Point::getCoordinates() { return dynamic_cast<osg::Vec3dArray*>(_geom.get()); }

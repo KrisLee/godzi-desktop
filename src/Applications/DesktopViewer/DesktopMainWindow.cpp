@@ -27,7 +27,11 @@
 #include <Godzi/Project>
 #include <Godzi/Actions>
 #include <Godzi/KML>
-#include <Godzi/Features/ApplyFeature>
+#include <Godzi/Features/DispatchFeature>
+//#include <Godzi/Features/ApplyFeature>
+#include <Godzi/Features/FeatureSource>
+#include <osgEarthDrivers/agglite/AGGLiteOptions>
+#include <osgEarthDrivers/model_feature_geom/FeatureGeomModelOptions>
 #include "OpenFileDialog"
 #include "AboutDialog"
 #include "DesktopMainWindow"
@@ -137,8 +141,10 @@ void DesktopMainWindow::updateStatusBar(const QString &message)
 
 void DesktopMainWindow::loadScene(const std::string& filename)
 {
-	if (filename.length() > 0)
-		loadScene(osgDB::readNodeFile(filename));
+    if (filename.length() > 0) {
+        osg::Node* node = osgDB::readNodeFile(filename);
+        loadScene(node);
+    }
 }
 
 void DesktopMainWindow::loadScene(osg::Node* n)
@@ -218,13 +224,13 @@ bool DesktopMainWindow::saveProject()
 
 void DesktopMainWindow::loadMap()
 {
-	OpenFileDialog ofd(tr("Select globe file..."), tr(""), tr("osgEarth files (*.earth);;All files (*.*)"));
-	if (ofd.exec() == QDialog::Accepted)
-	{
-		QString url = ofd.getUrl();
-		if (!url.isNull() && !url.isEmpty())
-			loadScene(url.toStdString());
-	}
+    OpenFileDialog ofd(tr("Select globe file..."), tr(""), tr("osgEarth files (*.earth);;All files (*.*)"));
+    if (ofd.exec() == QDialog::Accepted)
+    {
+        QString url = ofd.getUrl();
+        if (!url.isNull() && !url.isEmpty())
+            loadScene(url.toStdString());
+    }
 }
 
 void DesktopMainWindow::undo()
@@ -240,5 +246,46 @@ void DesktopMainWindow::showAbout()
 
 void DesktopMainWindow::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject)
 {
-	loadScene(new osgEarth::MapNode(_app->getProject()->map()));
+    osgEarth::MapNode* mapNode = new osgEarth::MapNode(_app->getProject()->map());
+    loadScene(mapNode);
+
+		//TEST
+#if 0
+		Godzi::Features::FeatureList featureList = Godzi::readFeaturesFromKML("../../data/example.kml");
+		//Godzi::Features::ApplyFeature featuresMaker;
+		//featuresMaker.setFeatures(featureList);
+		//mapNode->accept(featuresMaker);
+#else
+#if 1
+    Godzi::Features::KMLFeatureSourceOptions* opt = new Godzi::Features::KMLFeatureSourceOptions;
+    opt->url() = "/home/trigrou/dev/godzi/src/data/example.kml";
+    Godzi::Features::KMLFeatureSource* fs = new Godzi::Features::KMLFeatureSource(opt);
+    fs->initialize();
+    applyFeatureToMap(mapNode->getMap(), fs);
+#else
+    Godzi::Features::KMLFeatureSourceOptions* opt = new Godzi::Features::KMLFeatureSourceOptions;
+    opt->url() = "/home/trigrou/dev/godzi/src/data/example.kml";
+    Godzi::Features::KMLFeatureSource* fs = new Godzi::Features::KMLFeatureSource(opt);
+    {
+    osgEarth::Drivers::AGGLiteOptions* worldOpt = new osgEarth::Drivers::AGGLiteOptions();
+    worldOpt->featureSource() = fs;
+    //worldOpt->geometryTypeOverride() = osgEarth::Symbology::Geometry::TYPE_LINESTRING;
+    ImageMapLayer* iml = new ImageMapLayer("world", worldOpt);
+    iml->setReferenceURI("/home/trigrou/dev/godzi/src/data/example.kml");
+    //worldOpt->styles()->addStyle( style );
+    mapNode->getMap()->addMapLayer( iml );
+    }
+
+    {
+    osgEarth::Drivers::FeatureGeomModelOptions* worldOpt = new osgEarth::Drivers::FeatureGeomModelOptions();
+    worldOpt->featureSource() = fs;
+    //worldOpt->geometryTypeOverride() = osgEarth::Symbology::Geometry::TYPE_LINESTRING;
+    ModelLayer* iml = new ModelLayer("world", worldOpt);
+    //iml->setReferenceURI("/home/trigrou/dev/godzi/src/data/example.kml");
+    mapNode->getMap()->addModelLayer( iml );
+    }
+#endif
+#endif
+		//TEST
+
 }

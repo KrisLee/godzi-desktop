@@ -21,18 +21,22 @@
 
 #include <osg/MatrixTransform>
 #include <osg/AutoTransform>
+#include <Godzi/Features/SymbolicNode>
 #include <Godzi/Features/ApplyFeature>
 #include <Godzi/Features/Placemark>
+#include <Godzi/Features/AGGLiteRasterizerTileSource>
+
 #include <osgEarthSymbology/Content>
 #include <osgEarthSymbology/Style>
 #include <osgEarthSymbology/SymbolicNode>
 #include <osgEarthSymbology/MarkerSymbol>
 #include <osgEarthSymbology/MarkerSymbolizer>
-
 #include <osgEarthSymbology/GeometrySymbolizer>
 
 using namespace Godzi;
 using namespace Godzi::Features;
+
+
 
 typedef osgEarth::Symbology::SymbolicNode< osgEarth::Symbology::State<osgEarth::Symbology::GeometryContent> > GeometrySymbolicNode;
 
@@ -46,6 +50,7 @@ void ApplyFeature::apply(osg::CoordinateSystemNode& node)
     if (mapNode)
         apply(*mapNode);
 }
+
 
 
 static osg::Group* createPlacemarkPointSymbology()
@@ -154,7 +159,7 @@ static osg::Vec3dArray* ConvertFromLongitudeLatitudeAltitudeTo3D(osg::EllipsoidM
     for (int i = 0; i < longLatAlt->size(); ++i) {
         double x,y,z;
         const osg::Vec3d& l = (*longLatAlt)[i];
-        elipse->convertLatLongHeightToXYZ( l[1], l[0], l[2],
+        elipse->convertLatLongHeightToXYZ( osg::DegreesToRadians(l[0]), osg::DegreesToRadians(l[1]), l[2],
                                            x, y, z);
         (*a3d)[i] = osg::Vec3d(x,y,z);
     }
@@ -162,9 +167,25 @@ static osg::Vec3dArray* ConvertFromLongitudeLatitudeAltitudeTo3D(osg::EllipsoidM
 }
 
 
+static osg::Vec3dArray* ConvertFromDegreeToRadian(osg::Vec3dArray* array)
+{
+    if (!array || array->empty())
+        return 0;
+
+    osg::Vec3dArray* a3d = new osg::Vec3dArray(array->size());
+    for (int i = 0; i < array->size(); ++i) {
+        double x,y,z;
+        const osg::Vec3d& l = (*array)[i];
+        (*a3d)[i] = osg::Vec3d(osg::DegreesToRadians(x),osg::DegreesToRadians(y),z);
+    }
+    return a3d;
+}
+
 // we have map node put our feature here
 void ApplyFeature::apply(osgEarth::MapNode& node)
 {
+
+    GeometryList list;
 
     for (FeatureList::iterator it = _features.begin(); it != _features.end(); ++it) {
         Godzi::Features::Placemark* p = dynamic_cast<Godzi::Features::Placemark*>(it->get());
@@ -173,10 +194,11 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
             switch(p->getGeometry()->getType()) {
             case Geometry::TYPE_POINT:
             {
+#if 0
                 if (p->getGeometry()->getCoordinates()->size() > 0) {
                     double lon, lat, alt;
-                    lon = (*p->getGeometry()->getCoordinates())[0][0];
-                    lat = (*p->getGeometry()->getCoordinates())[0][1];
+                    lat = (*p->getGeometry()->getCoordinates())[0][0];
+                    lon = (*p->getGeometry()->getCoordinates())[0][1];
                     alt = (*p->getGeometry()->getCoordinates())[0][2];
                     osg::Matrixd matrix;
                     node.getEllipsoidModel()->computeLocalToWorldTransformFromLatLongHeight(lat, lon, alt, matrix);
@@ -189,10 +211,28 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
                 } else {
                     osg::notify(osg::WARN) << "no point in placemark " << p->getName() << std::endl;
                 }
+#else
+                PlacemarkSymbolicNode* psn = new PlacemarkSymbolicNode;
+                PlacemarkContent* pc = new PlacemarkContent(p);
+                psn->setSymbolizer(new PlacemarkSymbolizer);
+                psn->getState()->setContent(pc);
+                psn->getState()->setContext(new PlacemarkContext(&node));
+
+                osg::ref_ptr<osgEarth::Symbology::Style> style = new osgEarth::Symbology::Style;
+                {
+                    style->setName("Marker");
+                    osg::ref_ptr<osgEarth::Symbology::MarkerSymbol> pointSymbol = new osgEarth::Symbology::MarkerSymbol;
+                    pointSymbol->marker() = "../../data/marker.osg";
+                    style->addSymbol(pointSymbol.get());
+                }
+                psn->getState()->setStyle(style.get());
+                node.addChild(psn);
+#endif
             }
             break;
             case Geometry::TYPE_LINESTRING:
             {
+#if 1
                 if (p->getGeometry()->getCoordinates()->size() > 0) {
                     osg::Vec3dArray* array = ConvertFromLongitudeLatitudeAltitudeTo3D(node.getEllipsoidModel(), p->getGeometry()->getCoordinates());
                     if (array) {
@@ -204,6 +244,13 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
                 } else {
                     osg::notify(osg::WARN) << "no lines in placemark " << p->getName() << std::endl;
                 }
+
+                // here I tried to transform data in different way to fit in agglite driver
+                // I cant find what is going on
+                osg::Vec3dArray* array = ConvertFromLongitudeLatitudeAltitudeTo3D(node.getEllipsoidModel(), p->getGeometry()->getCoordinates());
+                list.push_back(new LineString( array));
+#endif
+
             }
             break;
             case Geometry::TYPE_LINEARRING:
@@ -222,7 +269,7 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
             break;
             case Geometry::TYPE_POLYGON:
             {
-
+#if 0
                 Polygon* poly = dynamic_cast<Polygon*>(p->getGeometry());
                 if (poly && poly->getCoordinates()->size() > 0) {
                     osg::Vec3dArray* array = ConvertFromLongitudeLatitudeAltitudeTo3D(node.getEllipsoidModel(), poly->getCoordinates());
@@ -238,6 +285,24 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
                 } else {
                     osg::notify(osg::WARN) << "no polyon in placemark " << p->getName() << std::endl;
                 }
+
+#else
+                PlacemarkSymbolicNode* psn = new PlacemarkSymbolicNode;
+                PlacemarkContent* pc = new PlacemarkContent(p);
+                psn->setSymbolizer(new PlacemarkSymbolizer);
+                psn->getState()->setContent(pc);
+                psn->getState()->setContext(new PlacemarkContext(&node));
+
+                osg::ref_ptr<osgEarth::Symbology::Style> style = new osgEarth::Symbology::Style;
+                {
+                    style->setName("Polygon");
+                    osg::ref_ptr<osgEarth::Symbology::PolygonSymbol> symbol = new osgEarth::Symbology::PolygonSymbol;
+                    symbol->fill()->color()= osg::Vec4(1.0,0,0,0.5);
+                    style->addSymbol(symbol.get());
+                }
+                psn->getState()->setStyle(style.get());
+                node.addChild(psn);
+#endif
             }
             break;
             case Geometry::TYPE_UNKNOWN:
@@ -249,4 +314,12 @@ void ApplyFeature::apply(osgEarth::MapNode& node)
             }
         }
     }
+
+    if (!list.empty()) {
+        osg::ref_ptr<AGGLiteRasterizerTileSource> ts = new AGGLiteRasterizerTileSource(list);
+        ts->initialize("", node.getMap()->getProfile());
+        osg::ref_ptr<osgEarth::ImageMapLayer> ml = new osgEarth::ImageMapLayer("lines", ts.get());
+        node.getMap()->addMapLayer(ml.get());
+    }
+
 }
