@@ -28,7 +28,7 @@
 
 namespace Godzi { namespace Features {
 
-        void applyFeatureToMap(osgEarth::Map* map, const Godzi::Features::KMLFeatureSource* fs);
+        extern GODZI_EXPORT void applyFeatureToMap(osgEarth::Map* map, const Godzi::Features::KMLFeatureSource* fs);
 
 
 }}

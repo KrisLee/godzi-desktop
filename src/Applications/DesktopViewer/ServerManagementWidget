@@ -60,8 +60,8 @@ class ServerManagementWidget : public QWidget
 		void onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
 		void onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource> source, int position);
 		void onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource> source);
-		//void onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source);
-		//void onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource> source, int position);
+		void onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source);
+		void onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource> source, int position);
 
 	private:
 	  osg::ref_ptr<Godzi::Application> _app;

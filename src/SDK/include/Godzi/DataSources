@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#ifndef GODZI_DATA_SOURCE
-#define GODZI_DATA_SOURCE 1
+#ifndef GODZI_DATA_SOURCES
+#define GODZI_DATA_SOURCES 1
 
 #include <QObject>
 #include <Godzi/Common>
@@ -27,6 +27,7 @@
 #include <osgEarth/Config>
 #include <osgEarth/Revisioning>
 #include <osgEarth/TileSource>
+#include <osgEarth/MapLayer>
 #include <osgEarthDrivers/wms/WMSOptions>
 #include <osgEarthDrivers/tms/TMSOptions>
 
@@ -38,20 +39,13 @@ namespace Godzi
 	class GODZI_EXPORT DataSource : public osgEarth::Revisioned<osg::Referenced>
   {
   public:
-		enum Type
-		{
-			TYPE_WMS,
-			TYPE_TMS,
-			TYPE_KML
-		};
-
     virtual Config toConfig() const =0;
 		virtual const std::string& getLocation() const =0;
 		virtual const osgEarth::DriverOptions* getOptions() const =0;
+		virtual osgEarth::MapLayer* createMapLayer() const =0;
 		virtual DataSource* clone() const =0;
 		
-		Type type() { return _type; }
-		const Type type() const { return _type; }
+		virtual const std::string& type() const =0;
 		
 		osgEarth::optional<std::string>& name() { return _name; }
     const osgEarth::optional<std::string>& name() const { return _name; }
@@ -74,8 +68,7 @@ namespace Godzi
     void setErrorMsg(const std::string& msg) { _errorMsg = msg; }
 
 	protected:
-		DataSource(Type type, bool visible) : _type(type), _visible(visible), _error(false), _errorMsg("") {};
-		Type _type;
+		DataSource(bool visible) : _visible(visible), _error(false), _errorMsg("") {};
 		osgEarth::optional<std::string> _name;
 		bool _visible;
 		bool _error;
@@ -87,12 +80,16 @@ namespace Godzi
 	class GODZI_EXPORT WMSSource : public DataSource
 	{
 	public:
-		WMSSource(Type type, osgEarth::Drivers::WMSOptions* opt, bool visible=true, std::string fullUrl="") : DataSource(type, visible), _opt(opt), _fullUrl(fullUrl) {};
+		static const std::string TYPE_WMS;
+	
+		WMSSource(osgEarth::Drivers::WMSOptions* opt, bool visible=true, std::string fullUrl="") : DataSource(visible), _opt(opt), _fullUrl(fullUrl) {};
 
 		Config toConfig() const;
 		const std::string& getLocation() const;
 		const osgEarth::DriverOptions* getOptions() const;
+		osgEarth::MapLayer* createMapLayer() const;
 		DataSource* clone() const;
+		const std::string& type() const { return TYPE_WMS; }
 		const std::vector<std::string> getAvailableLayers() const;
 		void setAvailableLayers(const std::vector<std::string>& layers);
     const std::vector<std::string> getActiveLayers() const;
@@ -110,12 +107,16 @@ namespace Godzi
 	class GODZI_EXPORT TMSSource : public DataSource
 	{
 	public:
-		TMSSource(Type type, osgEarth::Drivers::TMSOptions* opt, bool visible=true) : DataSource(type, visible), _opt(opt) {};
+		static const std::string TYPE_TMS;
+		
+		TMSSource(osgEarth::Drivers::TMSOptions* opt, bool visible=true) : DataSource(visible), _opt(opt) {};
 
 		Config toConfig() const;
 		const std::string& getLocation() const;
 		const osgEarth::DriverOptions* getOptions() const;
+		osgEarth::MapLayer* createMapLayer() const;
 		DataSource* clone() const;
+		const std::string& type() const { return TYPE_TMS; }
 
 	private:
 		osg::ref_ptr<osgEarth::Drivers::TMSOptions> _opt;
@@ -154,4 +155,4 @@ namespace Godzi
 	};
 }
 
-#endif // GODZI_DATA_SOURCE
+#endif // GODZI_DATA_SOURCES

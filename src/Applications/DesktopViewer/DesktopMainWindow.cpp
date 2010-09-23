@@ -141,10 +141,8 @@ void DesktopMainWindow::updateStatusBar(const QString &message)
 
 void DesktopMainWindow::loadScene(const std::string& filename)
 {
-    if (filename.length() > 0) {
-        osg::Node* node = osgDB::readNodeFile(filename);
-        loadScene(node);
-    }
+    if (filename.length() > 0)
+			loadScene(osgDB::readNodeFile(filename));
 }
 
 void DesktopMainWindow::loadScene(osg::Node* n)
@@ -261,7 +259,7 @@ void DesktopMainWindow::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject
     opt->url() = "/home/trigrou/dev/godzi/src/data/example.kml";
     Godzi::Features::KMLFeatureSource* fs = new Godzi::Features::KMLFeatureSource(opt);
     fs->initialize();
-    applyFeatureToMap(mapNode->getMap(), fs);
+		Godzi::Features::applyFeatureToMap(mapNode->getMap(), fs);
 #else
     Godzi::Features::KMLFeatureSourceOptions* opt = new Godzi::Features::KMLFeatureSourceOptions;
     opt->url() = "/home/trigrou/dev/godzi/src/data/example.kml";

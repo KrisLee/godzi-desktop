@@ -23,6 +23,7 @@
 #define GODZI_FEATURE_SOURCE 1
 
 #include <osgEarthFeatures/FeatureSource>
+#include <Godzi/Common>
 
 namespace Godzi { namespace Features {
 
@@ -62,7 +63,7 @@ namespace Godzi { namespace Features {
             osgEarth::Features::FeatureList::iterator _iterator;
         };
 
-        class KMLFeatureSource :  public osgEarth::Features::FeatureSource
+        class GODZI_EXPORT KMLFeatureSource :  public osgEarth::Features::FeatureSource
         {
         public:
             void initialize( const std::string& referenceURI = "");

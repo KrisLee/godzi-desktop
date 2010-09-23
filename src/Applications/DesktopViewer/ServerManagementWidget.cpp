@@ -153,8 +153,8 @@ void ServerManagementWidget::onProjectChanged(osg::ref_ptr<Godzi::Project> oldPr
 	{
 		connect(p, SIGNAL(dataSourceAdded(osg::ref_ptr<const Godzi::DataSource>, int)), this, SLOT(onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource>, int)));
 		connect(p, SIGNAL(dataSourceUpdated(osg::ref_ptr<const Godzi::DataSource>)), this, SLOT(onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource>)));
-		//connect(p, SIGNAL(dataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)), this, SLOT(onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)));
-		//connect(p, SIGNAL(dataSourceMoved(osg::ref_ptr<Godzi::DataSource>, int)), this, SLOT(onDataSourceMoved(osg::ref_ptr<Godzi::DataSource>, int)));
+		connect(p, SIGNAL(dataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)), this, SLOT(onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)));
+		connect(p, SIGNAL(dataSourceMoved(osg::ref_ptr<Godzi::DataSource>, int)), this, SLOT(onDataSourceMoved(osg::ref_ptr<Godzi::DataSource>, int)));
 	}
 
 	//TODO: disconnect from old project signal???
@@ -181,23 +181,30 @@ void ServerManagementWidget::onDataSourceUpdated(osg::ref_ptr<const Godzi::DataS
 	  updateDataSourceTreeItem(source, item);
 }
 
-//void ServerManagementWidget::onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source)
-//{
-//	int index = -1;//findDataSourceTreeItem(source);
-//	if (index != -1)
-//		_sourceTree->takeTopLevelItem(index);
-//}
-//
-//void ServerManagementWidget::onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource> source, int position)
-//{
-//	if (!source)
-//		return;
-//
-//	//TODO
-//
-//	//int index = _sourceTree->indexOfTopLevelItem(
-//	//_sourceTree->takeTopLevelItem(
-//}
+void ServerManagementWidget::onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source)
+{
+	int index = findDataSourceTreeItem(source);
+	if (index != -1)
+		_sourceTree->takeTopLevelItem(index);
+}
+
+void ServerManagementWidget::onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource> source, int position)
+{
+	if (!source.valid() || position < 0)
+		return;
+
+	CustomDataSourceTreeItem* item;
+	int index = findDataSourceTreeItem(source, &item);
+	if (item && index != -1)
+	{
+		_sourceTree->takeTopLevelItem(index);
+		
+		if (position >= _sourceTree->topLevelItemCount())
+			_sourceTree->addTopLevelItem(item);
+		else
+			_sourceTree->insertTopLevelItem(position, item);
+	}
+}
 
 QTreeWidgetItem* ServerManagementWidget::createDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source)
 {
@@ -238,8 +245,8 @@ void ServerManagementWidget::updateDataSourceTreeItem(osg::ref_ptr<const Godzi::
 
 	//Remove old child items and free memory
 	QList<QTreeWidgetItem*> oldChildren = item->takeChildren();
-	while (!oldChildren.isEmpty())
-     delete oldChildren.takeFirst();
+	//while (!oldChildren.isEmpty())
+  //   delete oldChildren.takeFirst();
 
 	for (int i=0; i < layers.size(); i++)
 	{
@@ -311,7 +318,7 @@ void ServerManagementWidget::addTMSSource()
 		{
 			osgEarth::Drivers::TMSOptions* opt = new osgEarth::Drivers::TMSOptions();
 			opt->url() = url.toStdString();
-			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::TMSSource(Godzi::DataSource::TYPE_TMS, opt)));
+			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::TMSSource(opt)));
 		}
 	}
 }
@@ -343,11 +350,9 @@ void ServerManagementWidget::addWMSSource()
 			if (options->srsCheckBox->isChecked())
 				opt->srs() = options->srsLineEdit->text().toStdString();
 
-			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::WMSSource(Godzi::DataSource::TYPE_WMS, opt, true, urlStr)));
+			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::WMSSource(opt, true, urlStr)));
 		}
 	}
-
-	delete options;
 }
 
 void ServerManagementWidget::addKMLSource()

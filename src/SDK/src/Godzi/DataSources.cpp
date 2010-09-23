@@ -19,8 +19,6 @@
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
 
-//#include <QVariant>
-//#include <QModelIndex>
 #include <osgEarth/Config>
 #include <osgEarthDrivers/wms/WMSOptions>
 #include <Godzi/Application>
@@ -32,6 +30,8 @@ using namespace Godzi;
 const std::vector<std::string> DataSource::NO_LAYERS = std::vector<std::string>();
 
 /* --------------------------------------------- */
+
+const std::string WMSSource::TYPE_WMS = "WMS";
 
 Godzi::Config WMSSource::toConfig() const
 {
@@ -51,6 +51,19 @@ const osgEarth::DriverOptions* WMSSource::getOptions() const
 	return _opt.get();
 }
 
+osgEarth::MapLayer* WMSSource::createMapLayer() const
+{
+	if (getActiveLayers().size() > 0)
+	{
+		std::string name = _name.isSet() ? _name.get() : "WMS Source";
+		return new ImageMapLayer(name, _opt.get());
+	}
+	else
+	{
+		return 0;
+	}
+}
+
 DataSource* WMSSource::clone() const
 {
 	// [jas] Following shouldn't be necessary, but the TMSOptions copy
@@ -59,12 +72,14 @@ DataSource* WMSSource::clone() const
 	cOpt->url() = _opt->url();
 	cOpt->layers() = _opt->layers();
 
-	//WMSSource* c = new WMSSource(_type, new osgEarth::Drivers::WMSOptions(_opt), _visible, _fullUrl);
-	WMSSource* c = new WMSSource(_type, cOpt, _visible, _fullUrl);
+	//WMSSource* c = new WMSSource(new osgEarth::Drivers::WMSOptions(_opt), _visible, _fullUrl);
+	WMSSource* c = new WMSSource(cOpt, _visible, _fullUrl);
 
 	if (_name.isSet())
 		c->name() = _name;
 
+	c->setError(_error);
+	c->setErrorMsg(_errorMsg);
 	c->setAvailableLayers(_availableLayers);
 	c->setLayerDisplayNames(_displayNames);
 
@@ -132,6 +147,8 @@ const std::string& WMSSource::layerDisplayName (const std::string& layerName) co
 
 /* --------------------------------------------- */
 
+const std::string TMSSource::TYPE_TMS = "TMS";
+
 Godzi::Config TMSSource::toConfig() const
 {
 	Godzi::Config conf;
@@ -150,6 +167,12 @@ const osgEarth::DriverOptions* TMSSource::getOptions() const
 	return _opt.get();
 }
 
+osgEarth::MapLayer* TMSSource::createMapLayer() const
+{
+	std::string name = _name.isSet() ? _name.get() : "TMS Source";
+	return new ImageMapLayer(name, _opt.get());
+}
+
 DataSource* TMSSource::clone() const
 {
 	// [jas] Following shouldn't be necessary, but the TMSOptions copy
@@ -157,11 +180,13 @@ DataSource* TMSSource::clone() const
 	osgEarth::Drivers::TMSOptions* cOpt = new osgEarth::Drivers::TMSOptions();
 	cOpt->url() = _opt->url();
 
-	//TMSSource* c = new TMSSource(_type, new osgEarth::Drivers::TMSOptions(_opt));
-	TMSSource* c = new TMSSource(_type, cOpt);
+	//TMSSource* c = new TMSSource(new osgEarth::Drivers::TMSOptions(_opt));
+	TMSSource* c = new TMSSource(cOpt);
 	if (_name.isSet())
 		c->name() = _name;
 	
+	c->setError(_error);
+	c->setErrorMsg(_errorMsg);
 
 	return c;
 }

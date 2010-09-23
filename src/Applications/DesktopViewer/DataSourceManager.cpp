@@ -62,8 +62,8 @@ void DataSourceManager::onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource> 
 	if (!source.valid())
 		return;
 
-	osgEarth::MapLayer* mapLayer = createMapLayer(source);
-	if (mapLayer && source->type() == Godzi::DataSource::TYPE_WMS)
+	createMapLayer(source);
+	if (source->type().compare(Godzi::WMSSource::TYPE_WMS) == 0)
 			updateWMSCapabilities(source);
 }
 
@@ -101,33 +101,20 @@ void DataSourceManager::onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource
 	if (it != _layerMap.end())
 	{
 		_app->getProject()->map()->removeMapLayer(_layerMap[source->getLocation()]);
-		createMapLayer(source);
+		_layerMap.erase(it);
 	}
+
+	createMapLayer(source);
 }
 
 osgEarth::MapLayer* DataSourceManager::createMapLayer(osg::ref_ptr<const Godzi::DataSource> source)
 {
-	std::string name = source->name().isSet() ? source->name().get() : "Data Source";
-
-	osgEarth::MapLayer* mapLayer=0;
-	if (source->type() == Godzi::DataSource::TYPE_TMS)
-	{
-		mapLayer = new ImageMapLayer(name, source->getOptions());
-	}
-	else if (source->type() == Godzi::DataSource::TYPE_WMS)
-	{
-		mapLayer = new ImageMapLayer(name, source->getOptions());
-	}
-	else
-	{
-		//TODO
-	}
-
+	osgEarth::MapLayer* mapLayer = source->createMapLayer();
 	if (mapLayer)
 	{
 		_layerMap[source->getLocation()] = mapLayer;
 
-		if (source->visible() && source->getActiveLayers().size() > 0)
+		if (source->visible())
 			_app->getProject()->map()->addMapLayer(mapLayer);
 	}
 
