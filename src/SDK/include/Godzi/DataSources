@@ -39,13 +39,13 @@ namespace Godzi
 	class GODZI_EXPORT DataSource : public osgEarth::Revisioned<osg::Referenced>
   {
   public:
-    virtual Config toConfig() const =0;
+    virtual const osgEarth::DriverOptions* getOptions() const =0;
 		virtual const std::string& getLocation() const =0;
-		virtual const osgEarth::DriverOptions* getOptions() const =0;
+		virtual const std::string& type() const =0;
+		
+		virtual Config toConfig() const { return Godzi::Config("DataSource"); }
 		virtual osgEarth::MapLayer* createMapLayer() const =0;
 		virtual DataSource* clone() const =0;
-		
-		virtual const std::string& type() const =0;
 		
 		osgEarth::optional<std::string>& name() { return _name; }
     const osgEarth::optional<std::string>& name() const { return _name; }
@@ -54,7 +54,7 @@ namespace Godzi
     bool visible() const { return _visible; }
     
     virtual const std::vector<std::string> getAvailableLayers() const { return NO_LAYERS; }
-    virtual void setAvailableLayers(const std::vector<std::string>& layers) {};
+    //virtual void setAvailableLayers(const std::vector<std::string>& layers) {};
     
     virtual const std::vector<std::string> getActiveLayers() const { return NO_LAYERS; }
     virtual void setActiveLayers(const std::vector<std::string>& layers) {};
@@ -77,32 +77,42 @@ namespace Godzi
 		static const std::vector<std::string> NO_LAYERS;
 	};
 	
+	/* --------------------------------------------- */
+	
 	class GODZI_EXPORT WMSSource : public DataSource
 	{
 	public:
 		static const std::string TYPE_WMS;
 	
-		WMSSource(osgEarth::Drivers::WMSOptions* opt, bool visible=true, std::string fullUrl="") : DataSource(visible), _opt(opt), _fullUrl(fullUrl) {};
-
-		Config toConfig() const;
-		const std::string& getLocation() const;
+		WMSSource(osgEarth::Drivers::WMSOptions* opt, bool visible=true) : DataSource(visible), _opt(opt) {};
+		WMSSource(osgEarth::Drivers::WMSOptions* opt, const std::string& fullUrl, bool visible=true) : DataSource(visible), _opt(opt) { _fullUrl = fullUrl; };
+		
 		const osgEarth::DriverOptions* getOptions() const;
+		const std::string& getLocation() const;
+		const std::string& type() const { return TYPE_WMS; }
+		osgEarth::optional<std::string>& fullUrl() { return _fullUrl; }
+		
+		Config toConfig() const;
 		osgEarth::MapLayer* createMapLayer() const;
 		DataSource* clone() const;
-		const std::string& type() const { return TYPE_WMS; }
+		
 		const std::vector<std::string> getAvailableLayers() const;
 		void setAvailableLayers(const std::vector<std::string>& layers);
+		
     const std::vector<std::string> getActiveLayers() const;
     void setActiveLayers(const std::vector<std::string>& layers);
+    
     const std::string& layerDisplayName(const std::string& layerName) const;
     void setLayerDisplayNames(const std::map<std::string, std::string>& nameMap) { _displayNames = nameMap; }
 
 	private:
 		osg::ref_ptr<osgEarth::Drivers::WMSOptions> _opt;
-		std::string _fullUrl;
+		osgEarth::optional<std::string> _fullUrl;
 		std::vector<std::string> _availableLayers;
 		std::map<std::string, std::string> _displayNames;
 	};
+	
+	/* --------------------------------------------- */
 
 	class GODZI_EXPORT TMSSource : public DataSource
 	{
@@ -110,17 +120,43 @@ namespace Godzi
 		static const std::string TYPE_TMS;
 		
 		TMSSource(osgEarth::Drivers::TMSOptions* opt, bool visible=true) : DataSource(visible), _opt(opt) {};
-
-		Config toConfig() const;
-		const std::string& getLocation() const;
+		
 		const osgEarth::DriverOptions* getOptions() const;
+		const std::string& getLocation() const;
+		const std::string& type() const { return TYPE_TMS; }
+		
+		Config toConfig() const;
 		osgEarth::MapLayer* createMapLayer() const;
 		DataSource* clone() const;
-		const std::string& type() const { return TYPE_TMS; }
 
 	private:
 		osg::ref_ptr<osgEarth::Drivers::TMSOptions> _opt;
 	};
+	
+	/* --------------------------------------------- */
+	
+	/*
+	class GODZI_EXPORT DataSourceFactory : public osg::Referenced
+	{
+	public:
+		virtual bool canCreate(const Godzi::Config& config) =0;
+		virtual DataSource* createDataSource(const Godzi::Config& config) =0;
+	};
+	
+	class GODZI_EXPORT DataSourceFactoryManager
+	{
+	public:
+		virtual void addFactory(DataSourceFactory* factory) =0;
+		virtual DataSourceFactory* getFactory(const Godzi::Config& config) =0;
+
+  protected:
+      DataSourceFactoryManager();
+      static DataSourceFactoryManager* create();
+      friend class Godzi::Application;
+	};
+	*/
+	
+	/* --------------------------------------------- */
 
 	class GODZI_EXPORT AddorUpdateDataSourceAction : public ReversibleAction
 	{
@@ -128,7 +164,6 @@ namespace Godzi
 		AddorUpdateDataSourceAction(osg::ref_ptr<DataSource> source) : _source(source), _wasUpdate(false) { }
 
 		bool doAction( void* sender, Application* app );
-		bool isCheckPoint() { return false; };
 		bool undoAction( void* sender, Application* app );
 		
 		const DataSource* getDataSource() { return _source.get(); };
@@ -145,7 +180,6 @@ namespace Godzi
 		RemoveDataSourceAction(osg::ref_ptr<DataSource> source) : _source(source) { }
 
 		bool doAction( void* sender, Application* app );
-		bool isCheckPoint() { return false; };
 		bool undoAction( void* sender, Application* app );
 		
 		const DataSource* getDataSource() { return _source.get(); };
@@ -153,6 +187,19 @@ namespace Godzi
 	protected:
 		osg::ref_ptr<DataSource> _source;
 	};
+	
+	//class GODZI_EXPORT SelectDataSourceAction : public Action
+	//{
+	//public:
+	//  SelectDataSourceAction(osg::ref_ptr<DataSource> source) : _source(source) { }
+	//  
+	//  bool doAction(void* sender, Application* app);
+	//  
+	//  const DataSource* getDataSource() { return _source.get(); };
+	//  
+	//protected:
+	//  osg::ref_ptr<DataSource> _source;
+	//};
 }
 
 #endif // GODZI_DATA_SOURCES

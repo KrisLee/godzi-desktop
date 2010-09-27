@@ -350,7 +350,7 @@ void ServerManagementWidget::addWMSSource()
 			if (options->srsCheckBox->isChecked())
 				opt->srs() = options->srsLineEdit->text().toStdString();
 
-			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::WMSSource(opt, true, urlStr)));
+			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::WMSSource(opt, urlStr)));
 		}
 	}
 }

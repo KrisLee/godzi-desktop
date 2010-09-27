@@ -47,7 +47,7 @@ DesktopMainWindow::DesktopMainWindow(Godzi::Application* app)
 
 void DesktopMainWindow::initUi()
 {
-	setWindowTitle(tr("Godzi"));
+	setWindowTitle(tr("Godzi[*]"));
 	setWindowIcon(QIcon(":/resources/images/globe.png"));
 
 	_osgViewer = new Godzi::UI::ViewerWidget( this, 0, 0, true );

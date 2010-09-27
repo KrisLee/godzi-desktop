@@ -40,7 +40,7 @@ namespace Godzi
 
         /** The global action manager */
         ActionManager* actionManager() { return _actionMgr; }
-        
+                
     public:
         /** The current active project */
         Project* getProject() { return _project.get(); }
@@ -70,12 +70,12 @@ namespace Godzi
 			void projectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
 		
     protected:
-        osg::ref_ptr<Project> _project;
-        osgEarth::Revision    _projectCheckpoint;
-        std::string           _projectLocation;
-        std::string						_defaultMap;
+        osg::ref_ptr<Project>     _project;
+        osgEarth::Revision        _projectCheckpoint;
+        std::string               _projectLocation;
+        std::string						    _defaultMap;
 
-        ActionManager*        _actionMgr;
+        ActionManager*            _actionMgr;
     };
 
 } // namespace Godzi

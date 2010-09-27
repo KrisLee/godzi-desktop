@@ -24,6 +24,7 @@
 #include <Godzi/DataSources>
 #include <osgEarth/DriverOptions>
 #include <osgEarthUtil/WMS>
+#include <osgDB/FileNameUtils>
 
 #include "DataSourceManager"
 
@@ -128,7 +129,8 @@ void DataSourceManager::updateWMSCapabilities(osg::ref_ptr<const Godzi::DataSour
 	{
 		osg::ref_ptr<Godzi::WMSSource> updated = (Godzi::WMSSource*)wms->clone();
 
-		if (wms->getActiveLayers().size() > 0)
+		std::string lower = osgDB::convertToLowerCase(wms->getLocation());
+		if (lower.find("layers=", 0) != std::string::npos && wms->getActiveLayers().size() > 0)
 		{
 			updated->setAvailableLayers(wms->getActiveLayers());
 		}

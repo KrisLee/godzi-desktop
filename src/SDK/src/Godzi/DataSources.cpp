@@ -35,15 +35,19 @@ const std::string WMSSource::TYPE_WMS = "WMS";
 
 Godzi::Config WMSSource::toConfig() const
 {
-	Godzi::Config conf;
-	//conf.add("type", _type);
+	Godzi::Config conf = DataSource::toConfig();
+	conf.add("type", TYPE_WMS);
+	conf.addIfSet("name", _name);
+	conf.add("visible", osgEarth::toString<bool>(_visible));
 	conf.add("options", ((osgEarth::DriverOptions*)_opt)->toConfig());
+	conf.addIfSet("fullUrl", _fullUrl);
+
   return conf;
 }
 
 const std::string& WMSSource::getLocation() const
 {
-	return _fullUrl.empty() ? _opt->url().get() : _fullUrl;
+	return !_fullUrl.isSet() || _fullUrl.get().empty() ? _opt->url().get() : _fullUrl.get();
 }
 
 const osgEarth::DriverOptions* WMSSource::getOptions() const
@@ -72,8 +76,10 @@ DataSource* WMSSource::clone() const
 	cOpt->url() = _opt->url();
 	cOpt->layers() = _opt->layers();
 
-	//WMSSource* c = new WMSSource(new osgEarth::Drivers::WMSOptions(_opt), _visible, _fullUrl);
-	WMSSource* c = new WMSSource(cOpt, _visible, _fullUrl);
+	//WMSSource* c = new WMSSource(new osgEarth::Drivers::WMSOptions(_opt), _visible);
+	WMSSource* c = new WMSSource(cOpt, _visible);
+	if (_fullUrl.isSet())
+		c->fullUrl() = _fullUrl.get();
 
 	if (_name.isSet())
 		c->name() = _name;
@@ -151,9 +157,12 @@ const std::string TMSSource::TYPE_TMS = "TMS";
 
 Godzi::Config TMSSource::toConfig() const
 {
-	Godzi::Config conf;
-	//conf.add("type", _type);
+	Godzi::Config conf = DataSource::toConfig();
+	conf.add("type", TYPE_TMS);
+	conf.addIfSet("name", _name);
+	conf.add("visible", osgEarth::toString<bool>(_visible));
 	conf.add("options", ((osgEarth::DriverOptions*)_opt)->toConfig());
+
   return conf;
 }
 
@@ -190,6 +199,62 @@ DataSource* TMSSource::clone() const
 
 	return c;
 }
+
+/* --------------------------------------------- */
+
+/*
+class DataSourceFactoryManagerImpl : public DataSourceFactoryManager //no export
+{
+public:
+	DataSourceFactoryManagerImpl();
+
+	void addFactory(DataSourceFactory* factory);
+	DataSourceFactory* getFactory(const Godzi::Config& config);
+
+private:
+	std::list<osg::ref_ptr<DataSourceFactory>> _factories;
+};
+
+DataSourceFactoryManagerImpl::DataSourceFactoryManagerImpl()
+{
+	//nop
+}
+
+void DataSourceFactoryManagerImpl::addFactory(DataSourceFactory *factory)
+{
+	_factories.push_back(factory);
+}
+
+DataSourceFactory* DataSourceFactoryManagerImpl::getFactory(const Godzi::Config& config)
+{
+	DataSourceFactory* found=0;
+	for (std::list<osg::ref_ptr<DataSourceFactory>>::iterator i = _factories.begin(); i != _factories.end(); ++i)
+	{
+		if (i->get()->canCreate(config))
+		{
+			found = i->get();
+			break;
+		}
+	}
+
+	return found;
+}
+*/
+
+/* --------------------------------------------- */
+
+/*
+DataSourceFactoryManager::DataSourceFactoryManager()
+{
+	//nop
+}
+
+DataSourceFactoryManager*
+DataSourceFactoryManager::create()
+{
+	return new DataSourceFactoryManagerImpl();
+}
+*/
 
 /* --------------------------------------------- */
 
@@ -241,3 +306,13 @@ bool RemoveDataSourceAction::undoAction(void *sender, Application *app)
 	app->getProject()->addDataSource(_source);
 	return true;
 }
+
+/* --------------------------------------------- */
+
+//bool SelectDataSourceAction::doAction(void *sender, Application *app)
+//{
+//	if (!_source)
+//		return false;
+//
+//	return true;
+//}
