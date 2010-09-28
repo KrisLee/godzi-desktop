@@ -68,7 +68,7 @@ namespace Godzi { namespace Features {
             optional<KMLAltitude> _altitude;
         };
 
-        typedef KMLSymbolType<osgEarth::Symbology::MarkerSymbol>  KMLPointSymbol;
+        typedef KMLSymbolType<osgEarth::Symbology::MarkerSymbol>  KMLIconSymbol;
         typedef KMLSymbolType<osgEarth::Symbology::LineSymbol>  KMLLineSymbol;
         typedef KMLSymbolType<osgEarth::Symbology::PolygonSymbol>  KMLPolygonSymbol;
 

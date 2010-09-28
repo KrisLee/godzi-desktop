@@ -45,35 +45,62 @@
 using namespace Godzi;
 using namespace Godzi::Features;
 
+#define DEFAULT_IMAGE_FILE "mark.png"
+
+
 typedef osgEarth::Symbology::SymbolicNode< osgEarth::Symbology::State<osgEarth::Symbology::GeometryContent> > GeometrySymbolicNode;
 
-static osg::Group* createPlacemarkPointSymbology()
+
+
+osg::Group* createTexturedQuad(const KMLIconSymbol* symbol)
 {
-    osg::ref_ptr<osgEarth::Symbology::GeometryContent> content = new osgEarth::Symbology::GeometryContent;
-    osg::Vec3dArray* array = new osg::Vec3dArray;
-    array->push_back(osg::Vec3d(0,0,0));
-    content->getGeometryList().push_back(osgEarth::Symbology::Geometry::create(osgEarth::Symbology::Geometry::TYPE_POINTSET, array));
+    osg::Image* image = osgDB::readImageFile(symbol->marker().value());
+    if (!image) {
+        image = osgDB::readImageFile(DEFAULT_IMAGE_FILE);
+    }
+                
+    if (!image) {
+        osg::notify(osg::WARN) << "No image for marker " << std::endl;
+    }
 
-    osg::ref_ptr<osgEarth::Symbology::Style> style = new osgEarth::Symbology::Style;
-    style->setName("Marker");
-    osg::ref_ptr<osgEarth::Symbology::MarkerSymbol> pointSymbol = new osgEarth::Symbology::MarkerSymbol;
-    pointSymbol->marker() = "../../data/marker.osg";
-    style->addSymbol(pointSymbol.get());
+    float scale = symbol->size().value();
 
-    GeometrySymbolicNode* node = new GeometrySymbolicNode();
-    node->setSymbolizer( new osgEarth::Symbology::MarkerSymbolizer() );
-    node->getState()->setStyle(style.get());
-    node->getState()->setContent(content.get());
+    float sizex = 32.0;
+    float sizey = 32.0;
+    if (image) {
+        sizex = image->s();
+        sizey = image->t();
+    }
+    sizex*=scale;
+    sizey*=scale;
+    osg::Vec3 c(-sizex*0.5, -sizey*0.5, 0);
+    osg::Vec3 s(sizex,0,0);
+    osg::Vec3 b(0,sizey,0);
+    osg::Geometry* geom = osg::createTexturedQuadGeometry(
+        c, s, b
+        );
+    geom->getOrCreateStateSet()->setTextureAttributeAndModes(0, new osg::Texture2D(image));
+    geom->getOrCreateStateSet()->setMode(GL_BLEND,true);
+    geom->getOrCreateStateSet()->setMode(GL_LIGHTING,false);
+    geom->getOrCreateStateSet()->setMode(GL_DEPTH_TEST,false);
+    geom->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+    geom->getOrCreateStateSet()->setBinNumber(10000);
 
+    osg::Material* material = new osg::Material;
+    material->setDiffuse(osg::Material::FRONT_AND_BACK, symbol->fill()->color());
+    geom->getOrCreateStateSet()->setAttributeAndModes(material);
+    osg::Geode* geode = new osg::Geode;
+    geode->addDrawable(geom);
+    
     osg::AutoTransform* tr = new osg::AutoTransform;
     {
-    tr->addChild(node);
+    tr->addChild(geode);
     tr->setAutoScaleToScreen(true);
     tr->setAutoRotateMode(osg::AutoTransform::ROTATE_TO_SCREEN);
     }
-
     return tr;
 }
+
 
 osg::Node* KMLGeometrySymbolizer::KMLGeometrySymbolizerOperator::operator()(const osgEarth::Symbology::GeometryList& geometryList, const osgEarth::Symbology::Style* style)
 {
@@ -91,12 +118,13 @@ osg::Node* KMLGeometrySymbolizer::KMLGeometrySymbolizerOperator::operator()(cons
         {
         case osgEarth::Symbology::Geometry::TYPE_POINTSET:
         {
-            const KMLPointSymbol* point = dynamic_cast<const KMLPointSymbol*>(style->getSymbol<osgEarth::Symbology::PointSymbol>());
+            const KMLIconSymbol* point = style->getSymbol<KMLIconSymbol>();
             if (point)
             {
                 osg::MatrixTransform* m = new osg::MatrixTransform;
                 m->setMatrix(osg::Matrix::translate(osg::Vec3((*geom)[0])));
-                m->addChild(createPlacemarkPointSymbology());
+                
+                m->addChild(createTexturedQuad(point));
                 group->addChild(m);
                 return group.release();
             }
@@ -106,7 +134,7 @@ osg::Node* KMLGeometrySymbolizer::KMLGeometrySymbolizerOperator::operator()(cons
         case osgEarth::Symbology::Geometry::TYPE_LINESTRING:
         {
             primMode = osg::PrimitiveSet::LINE_STRIP;
-            const KMLLineSymbol* line = dynamic_cast<const KMLLineSymbol*>(style->getSymbol<osgEarth::Symbology::LineSymbol>());
+            const KMLLineSymbol* line = style->getSymbol<KMLLineSymbol>();
             if (line)
             {
                 color = line->stroke()->color();
@@ -119,7 +147,7 @@ osg::Node* KMLGeometrySymbolizer::KMLGeometrySymbolizerOperator::operator()(cons
         case osgEarth::Symbology::Geometry::TYPE_RING:
         {
             primMode = osg::PrimitiveSet::LINE_LOOP;
-            const KMLLineSymbol* line = dynamic_cast<const KMLLineSymbol*>(style->getSymbol<osgEarth::Symbology::LineSymbol>());
+            const KMLLineSymbol* line = style->getSymbol<KMLLineSymbol>();
             if (line)
             {
                 color = line->stroke()->color();
@@ -132,7 +160,7 @@ osg::Node* KMLGeometrySymbolizer::KMLGeometrySymbolizerOperator::operator()(cons
         case osgEarth::Symbology::Geometry::TYPE_POLYGON:
         {
             primMode = osg::PrimitiveSet::LINE_LOOP; // loop will tessellate into polys
-            const KMLPolygonSymbol* poly = dynamic_cast<const KMLPolygonSymbol*>(style->getSymbol<osgEarth::Symbology::PolygonSymbol>());
+            const KMLPolygonSymbol* poly = style->getSymbol<KMLPolygonSymbol>();
             if (poly)
             {
                 color = poly->fill()->color();
@@ -186,32 +214,6 @@ osg::Node* KMLGeometrySymbolizer::KMLGeometrySymbolizerOperator::operator()(cons
         return group.release();
     return 0;
 }
-
-#if 0
-bool
-KMLGeometrySymbolizer::compile(GeometrySymbolizerState* state,
-                                osg::Group* attachPoint)
-{
-    if ( !state || !state->getContent() || !attachPoint || !state->getStyle() )
-        return false;
-
-    const GeometryList& geometryList = state->getContent()->getGeometryList();
-
-    KMLGeometrySymbolizerOperator functor;
-    osg::Node* node = (functor)(geometryList, state->getStyle());
-    if (node)
-    {
-        attachPoint->removeChildren(0, attachPoint->getNumChildren());
-        attachPoint->addChild(node);
-        return true;
-    }
-
-    return false;
-}
-#endif
-
-
-
 
 
 class FactoryKMLSymbolizer : public osgEarth::Features::SymbolizerFactory
@@ -270,7 +272,7 @@ public:
         xform.setLocalizeCoordinates( true );
 
         // Apply the height offset if necessary:
-        double height = 1.0;
+        double height = 0.0;
         xform.setHeightOffset( height);
         contextFilter = xform.push( features, contextFilter );
 

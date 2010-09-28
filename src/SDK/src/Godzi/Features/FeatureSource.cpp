@@ -90,24 +90,6 @@ osgEarth::Symbology::Geometry* createGeometryFromElement(const kmldom::GeometryP
         osg::Vec3dArray* array = CoordinatesToVec3dArray(coord);
         if (array) {
             osgEarth::Symbology::PointSet* geom = new osgEarth::Symbology::PointSet(array);
-
-#if 0
-            geom->setExtrude(kmldom::AsPoint(kmlGeom)->get_extrude());
-            switch (kmldom::AsPoint(kmlGeom)->get_altitudemode()) {
-            case kmldom::ALTITUDEMODE_CLAMPTOGROUND:
-                geom->setAltitudeMode(Point::ClampToGround);
-                break;
-            case kmldom::ALTITUDEMODE_RELATIVETOGROUND:
-                geom->setAltitudeMode(Point::RelativeToGround);
-                break;
-            case kmldom::ALTITUDEMODE_ABSOLUTE:
-                geom->setAltitudeMode(Point::Absolute);
-                break;
-            default:
-                geom->setAltitudeMode(Point::ClampToGround);
-                break;
-            }
-#endif
             return (geom);
         }
     }
@@ -180,10 +162,8 @@ osgEarth::Symbology::Geometry* createGeometryFromElement(const kmldom::GeometryP
 }
 
 
-
-template <class T,class G> T* createSymbol(const G kmlGeom)
+template <class T, class G> void getExtrudeAltitudeMode(T* symbol, const G kmlGeom)
 {
-    T* symbol = new T;
     switch (kmlGeom->get_altitudemode()) {
     case kmldom::ALTITUDEMODE_CLAMPTOGROUND:
         symbol->altitude()->setAltitudeMode(KMLAltitude::ClampToGround);
@@ -198,51 +178,113 @@ template <class T,class G> T* createSymbol(const G kmlGeom)
         symbol->altitude()->setAltitudeMode(KMLAltitude::ClampToGround);
         break;
     }
-    
     symbol->extrude()->setExtrude(kmlGeom->get_extrude());
+}
+
+template <class T> T* createSymbol(const kmldom::GeometryPtr kmlGeom)
+{
+    T* symbol = new T;
+
+    {
+        kmldom::PolygonPtr geom = kmldom::AsPolygon(kmlGeom);
+        if (geom) {
+            getExtrudeAltitudeMode<T,kmldom::PolygonPtr>(symbol, geom);
+            return symbol;
+        }
+    }
+
+    {
+        kmldom::LineStringPtr geom = kmldom::AsLineString(kmlGeom);
+        if (geom) {
+            getExtrudeAltitudeMode<T,kmldom::LineStringPtr>(symbol, geom);
+            return symbol;
+        }
+    }
+
+    {
+        kmldom::LinearRingPtr geom = kmldom::AsLinearRing(kmlGeom);
+        if (geom) {
+            getExtrudeAltitudeMode<T,kmldom::LinearRingPtr>(symbol, geom);
+            return symbol;
+        }
+    }
+
+    {
+        kmldom::PointPtr geom = kmldom::AsPoint(kmlGeom);
+        if (geom) {
+            getExtrudeAltitudeMode<T,kmldom::PointPtr>(symbol, geom);
+            return symbol;
+        }
+    }
+
+
     return symbol;
 }
 
-static osgEarth::Symbology::Style* setupStyle(const kmldom::GeometryPtr kmlGeom)
-{
-    osg::ref_ptr<osgEarth::Symbology::Style> style = new osgEarth::Symbology::Style;
-    switch (kmlGeom->Type()) 
-    {
-    case kmldom::Type_Point:
-    {
-        KMLPointSymbol* s = createSymbol<KMLPointSymbol,kmldom::PointPtr>(kmldom::AsPoint(kmlGeom));
-        style->addSymbol(s);
-    }
-    break;
-    case kmldom::Type_LineString:
-    {
-        KMLLineSymbol* s =  createSymbol<KMLLineSymbol,kmldom::LineStringPtr>(kmldom::AsLineString(kmlGeom));
-        style->addSymbol(s);
 
+static osg::Vec4 getColor(const kmlbase::Color32& color)
+{
+    float r = color.get_red() * 1.0 / 255.0;
+    float g = color.get_green() * 1.0 / 255.0;
+    float b = color.get_blue() * 1.0 / 255.0;
+    float a = color.get_alpha() * 1.0 / 255.0;
+    return osg::Vec4(r,g,b,a);
+}
+
+static osgEarth::Symbology::Style* createStyle(kmldom::StylePtr kmlStyle, const kmldom::GeometryPtr kmlGeom)
+{
+    osg::ref_ptr<osgEarth::Symbology::Style> earthStyle = new osgEarth::Symbology::Style;
+    if (kmlStyle->has_linestyle()) {
+        kmldom::LineStylePtr kmls = kmlStyle->get_linestyle();
+        KMLLineSymbol* s =  createSymbol<KMLLineSymbol>(kmlGeom);
+        if (kmls->has_color()) {
+            // do not support yet random color
+            //kmls->has_colormode()
+
+            s->stroke()->color() = getColor(kmls->get_color());
+        }
+
+        if (kmls->has_width())
+            s->stroke()->width() = kmls->get_width();
+
+        earthStyle->addSymbol(s);
     }
-    break;
-    case kmldom::Type_LinearRing:
-    {
-        KMLLineSymbol* s = createSymbol<KMLLineSymbol,kmldom::LinearRingPtr>(kmldom::AsLinearRing(kmlGeom));
-        style->addSymbol(s);
+
+    if (kmlStyle->has_polystyle()) {
+        kmldom::PolyStylePtr kmls = kmlStyle->get_polystyle();
+        KMLPolygonSymbol* s = createSymbol<KMLPolygonSymbol>(kmlGeom);
+        if (kmls->has_color()) {
+            s->fill()->color() = getColor(kmls->get_color());
+        }
+
+        // no outline yet
+        // no fill
+        earthStyle->addSymbol(s);
     }
-    break;
-    case kmldom::Type_Polygon:
-    {
-        KMLPolygonSymbol* s = createSymbol<KMLPolygonSymbol,kmldom::PolygonPtr>(kmldom::AsPolygon(kmlGeom));
-        style->addSymbol(s);
+
+    if (kmlStyle->has_iconstyle()) {
+        kmldom::IconStylePtr kmls = kmlStyle->get_iconstyle();
+        KMLIconSymbol* s = createSymbol<KMLIconSymbol>(kmlGeom);
+
+        if (kmls->has_color()) {
+            s->fill()->color() = getColor(kmls->get_color());
+        }
+
+        if (kmls->has_scale()) {
+            s->size() = kmls->get_scale();
+        }
+
+        if (kmls->has_icon() && kmls->get_icon()->has_href()) {
+            s->marker() = kmls->get_icon()->get_href();
+        }
+
+        earthStyle->addSymbol(s);
     }
-        break;
-    default:
-        return 0;
-        break;
-    }
-    return style.release();
+    return earthStyle.release();
 }
 
 
-
-void collectFeature(osgEarth::Features::FeatureList& fl, const kmldom::FeaturePtr& feature, int depth)
+void collectFeature(kmlengine::KmlFilePtr kml_file, osgEarth::Features::FeatureList& fl, const kmldom::FeaturePtr& feature, int depth)
 {
     switch (feature->Type()) {
     case kmldom::Type_Document:
@@ -265,13 +307,17 @@ void collectFeature(osgEarth::Features::FeatureList& fl, const kmldom::FeaturePt
         const kmldom::PlacemarkPtr placemark = kmldom::AsPlacemark(feature);
         if (placemark) {
             Placemark* p = new Placemark;
+            // Create a resolved style for the Feature and print it.
+            kmldom::StylePtr kmlStyle = CreateResolvedStyle(feature, kml_file,kmldom::STYLESTATE_NORMAL);
+            //std::cout << kmldom::SerializePretty(style);
+            //osg::notify(osg::WARN) << "use style " << placemark->get_styleurl() << std::endl;
             p->setName(placemark->get_name());
             if (placemark->has_geometry()) {
                 osgEarth::Symbology::Geometry* geom = createGeometryFromElement(placemark->get_geometry());
                 if (geom) {
                     p->setGeometry(geom);
 
-                    osgEarth::Symbology::Style* style = setupStyle(placemark->get_geometry());
+                    osgEarth::Symbology::Style* style = createStyle(kmlStyle, placemark->get_geometry());
                     if (style)
                         p->style() = style;
 
@@ -299,7 +345,7 @@ void collectFeature(osgEarth::Features::FeatureList& fl, const kmldom::FeaturePt
 
     if (const kmldom::ContainerPtr container = kmldom::AsContainer(feature)) {
         for (size_t i = 0; i < container->get_feature_array_size(); ++i) {
-            collectFeature(fl, container->get_feature_array_at(i), depth+1);
+            collectFeature(kml_file, fl, container->get_feature_array_at(i), depth+1);
         }
     }
 }
@@ -355,10 +401,16 @@ void KMLFeatureSource::initialize( const std::string& referenceURI )
         return;
     }
 
-    // Parse it.
     std::string errors;
-    kmldom::ElementPtr root = kmldom::Parse(kml, &errors);
+    kmlengine::KmlFilePtr kml_file = kmlengine::KmlFile::CreateFromParse(kml, &errors);
+    if (!kml_file) {
+        std::cout << errors << std::endl;
+        return;
+    }
 
+    // Parse it.
+    errors.clear();
+    kmldom::ElementPtr root = kmldom::Parse(kml, &errors);
     if (!root) {
         std::cout << errors << std::endl;
         return;
@@ -367,7 +419,7 @@ void KMLFeatureSource::initialize( const std::string& referenceURI )
     const kmldom::FeaturePtr feature = getRootFeature(root);
 
     if (feature) {
-        collectFeature(features, feature, 0);
+        collectFeature(kml_file, features, feature, 0);
 
     } else {
         std::cout << "No root feature" << std::endl;
