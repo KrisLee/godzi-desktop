@@ -7,6 +7,8 @@ set(PROJECT_FILES
     OpenFileDialog.cpp
     AboutDialog.cpp
     ServerManagementWidget.cpp
+    DataSourceManager.cpp
+    WMSOptionsWidget.cpp
 )
 
 # Qt resrouce files
@@ -18,6 +20,7 @@ set(GODZI_DESKTOP_RCS
 set(GODZI_DESKTOP_UIS
     ui/OpenFileDialog.ui
     ui/AboutDialog.ui
+    ui/WMSOptionsWidget.ui
 )
 
 # Header files that need to be moc'd
@@ -26,6 +29,8 @@ set (GODZI_DESKTOP_MOC_HDRS
     OpenFileDialog
     AboutDialog
     ServerManagementWidget
+    DataSourceManager
+    WMSOptionsWidget
 )
 
 FIND_PACKAGE( Qt4 REQUIRED )

@@ -21,6 +21,7 @@
 #include <QtGui/QApplication>
 #include <Godzi/Application>
 #include <Godzi/Project>
+#include "DataSourceManager"
 
 #include "DesktopMainWindow"
 
@@ -33,9 +34,11 @@ main( int argc, char** argv )
 
 		osg::ref_ptr<Godzi::Application> app = new Godzi::Application(EARTH_FILE);
 
-		DesktopMainWindow* top = new DesktopMainWindow(app);
-    top->resize( 800, 600 );
-    top->show();
+		DesktopMainWindow top(app);
+    top.resize( 800, 600 );
+    top.show();
+
+		DataSourceManager manager(app);
 
 		app->actionManager()->doAction(NULL, new Godzi::NewProjectAction());
 

@@ -46,7 +46,7 @@ DesktopMainWindow::DesktopMainWindow(Godzi::Application* app)
 
 void DesktopMainWindow::initUi()
 {
-	setWindowTitle(tr("Godzi"));
+	setWindowTitle(tr("Godzi[*]"));
 	setWindowIcon(QIcon(":/resources/images/globe.png"));
 
 	_osgViewer = new Godzi::UI::ViewerWidget( this, 0, 0, true );
@@ -83,6 +83,9 @@ void DesktopMainWindow::createActions()
 	_exitAction = new QAction(tr("&Exit"), this);
 	connect(_exitAction, SIGNAL(triggered()), this, SLOT(close()));
 
+	_undoAction = new QAction(QIcon(":/resources/images/undo.png"), tr("&Undo"), this);
+	connect(_undoAction, SIGNAL(triggered()), this, SLOT(undo()));
+
 	_aboutAction = new QAction(QIcon(":/resources/images/info.png"), tr("&About"), this);
 	_aboutAction->setStatusTip(tr("About Godzi"));
 	connect(_aboutAction, SIGNAL(triggered()), this, SLOT(showAbout()));
@@ -99,6 +102,9 @@ void DesktopMainWindow::createMenus()
 	_fileMenu->addSeparator();
 	_fileMenu->addAction(_exitAction);
 
+	_editMenu = menuBar()->addMenu(tr("&Edit"));
+	_editMenu->addAction(_undoAction);
+
 	_viewMenu = menuBar()->addMenu(tr("&View"));
 
 	_helpMenu = menuBar()->addMenu(tr("&Help"));
@@ -111,6 +117,9 @@ void DesktopMainWindow::createToolbars()
 	_fileToolbar->setIconSize(QSize(24, 24));
 	_fileToolbar->addAction(_openProjectAction);
 	_fileToolbar->addAction(_saveProjectAction);
+	_fileToolbar->addSeparator();
+	_fileToolbar->addAction(_undoAction);
+
 	_viewMenu->addAction(_fileToolbar->toggleViewAction());
 }
 
@@ -118,7 +127,7 @@ void DesktopMainWindow::createDockWindows()
 {
 	QDockWidget *dock = new QDockWidget(tr("Servers"), this);
   dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-	_serverManager = new ServerManagementWidget();
+	_serverManager = new ServerManagementWidget(_app);
 	dock->setWidget(_serverManager);
 	addDockWidget(Qt::LeftDockWidgetArea, dock);
 	_viewMenu->addAction(dock->toggleViewAction());
@@ -131,10 +140,8 @@ void DesktopMainWindow::updateStatusBar(const QString &message)
 
 void DesktopMainWindow::loadScene(const std::string& filename)
 {
-    if (filename.length() > 0) {
-        osg::Node* node = osgDB::readNodeFile(filename);
-        loadScene(node);
-    }
+    if (filename.length() > 0)
+			loadScene(osgDB::readNodeFile(filename));
 }
 
 void DesktopMainWindow::loadScene(osg::Node* n)
@@ -223,6 +230,11 @@ void DesktopMainWindow::loadMap()
     }
 }
 
+void DesktopMainWindow::undo()
+{
+	_app->actionManager()->undoAction();
+}
+
 void DesktopMainWindow::showAbout()
 {
 	AboutDialog ad;
@@ -240,5 +252,4 @@ void DesktopMainWindow::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject
     Godzi::Features::KMLFeatureSource* fs = new Godzi::Features::KMLFeatureSource(opt);
     fs->initialize();
     applyFeatureToMap(mapNode->getMap(), fs);
-
 }

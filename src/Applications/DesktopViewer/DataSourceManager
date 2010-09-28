@@ -1,0 +1,51 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+ */
+ 
+#include <QObject>
+#include <Godzi/Application>
+#include <Godzi/Project>
+#include <osgEarthUtil/WMS>
+
+class DataSourceManager : public QObject//, public Godzi::ActionCallback
+{
+
+	Q_OBJECT
+
+	public:
+		DataSourceManager(Godzi::Application* app);
+		
+		//void operator()( void* sender, Godzi::Action* action );
+		
+	private slots:
+		void onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
+		void onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource> source, int position);
+		void onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source);
+		void onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource> source, int position);
+		void onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource> source);
+		
+	private:
+		osg::ref_ptr<Godzi::Application> _app;
+		std::map<std::string, osg::ref_ptr<osgEarth::MapLayer> > _layerMap;
+		
+		osgEarth::MapLayer* createMapLayer(osg::ref_ptr<const Godzi::DataSource> source);
+		void updateWMSCapabilities(osg::ref_ptr<const Godzi::DataSource> source);
+		void getLayerNames(osgEarthUtil::WMSLayer::LayerList& layers, std::vector<std::string>& names, std::map<std::string, std::string>& displayNames);
+};

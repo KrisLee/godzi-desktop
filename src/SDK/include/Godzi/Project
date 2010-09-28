@@ -21,8 +21,10 @@
 #ifndef GODZI_PROJECTS
 #define GODZI_PROJECTS 1
 
+#include <QObject>
 #include <Godzi/Common>
 #include <Godzi/Actions>
+#include <Godzi/DataSources>
 #include <osgEarth/Config>
 #include <osgEarth/Map>
 #include <osgEarth/Revisioning>
@@ -55,8 +57,11 @@ namespace Godzi
     /**
      * Project holds an serializable application configuration state.
      */
-    class GODZI_EXPORT Project : public osgEarth::Revisioned<osg::Referenced>
+    class GODZI_EXPORT Project : public QObject, public osgEarth::Revisioned<osg::Referenced>
     {
+    
+    Q_OBJECT
+    
     public:
         Project();
         Project( const std::string& defaultMap );
@@ -67,14 +72,28 @@ namespace Godzi
 
         const ProjectProperties& getProperties() const { return _props; }
         void setProperties( const ProjectProperties& props ) { _props = props; }
+        
+        void addDataSource(Godzi::DataSource* source);
+        void removeDataSource(Godzi::DataSource* source);
+        bool updateDataSource(Godzi::DataSource* source, Godzi::DataSource** out_old = 0);
+        void moveDataSource(Godzi::DataSource* source, int position);
+        
+        const std::vector<osg::ref_ptr<Godzi::DataSource> >& sources() const { return _sources; }
 
         /** The map model */
         osgEarth::Map* map() { return _map.get(); }
         const osgEarth::Map* map() const { return _map.get(); }
+        
+    signals:
+			void dataSourceAdded(osg::ref_ptr<const Godzi::DataSource> source, int position);
+			void dataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source);
+			void dataSourceMoved(osg::ref_ptr<const Godzi::DataSource> source, int position);
+			void dataSourceUpdated(osg::ref_ptr<const Godzi::DataSource> source);
 
     protected:
         osg::ref_ptr<osgEarth::Map> _map;
         ProjectProperties _props;
+        std::vector<osg::ref_ptr<Godzi::DataSource> > _sources;
         
         void loadMap( const std::string& map );
     };

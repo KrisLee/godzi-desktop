@@ -29,18 +29,19 @@ class OpenFileDialog : public QDialog
 	Q_OBJECT
 
 	public:
-		OpenFileDialog();
-		OpenFileDialog(const QString &caption, const QString &dir, const QString &filter);
+		OpenFileDialog(bool canBrowse=true, QWidget* options=0);
+		OpenFileDialog(const QString &caption, const QString &dir, const QString &filter, bool canBrowse=true, QWidget* options=0);
 		QString getUrl();
 		
 	private slots:
 		void showBrowse();
 
 	private:		
-		Ui::OpenFileDialog ui;
-		QString caption, dir, filter;
+		Ui::OpenFileDialog _ui;
+		QString _caption, _dir, _filter;
+		QWidget* _options;
 		
-		void InitUi();
+		void InitUi(bool canBrowse);
 };
 
 

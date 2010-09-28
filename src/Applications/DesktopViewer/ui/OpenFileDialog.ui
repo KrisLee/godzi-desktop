@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>434</width>
-    <height>100</height>
+    <height>119</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,7 +25,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>URL / Path</string>
+        <string>Location</string>
        </property>
       </widget>
      </item>
@@ -43,6 +43,13 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="optionsBox">
+     <property name="title">
+      <string/>
+     </property>
+    </widget>
    </item>
    <item>
     <spacer name="verticalSpacer">
@@ -105,8 +112,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>319</x>
-     <y>85</y>
+     <x>342</x>
+     <y>108</y>
     </hint>
     <hint type="destinationlabel">
      <x>233</x>
@@ -127,6 +134,22 @@
     <hint type="destinationlabel">
      <x>187</x>
      <y>76</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>urlText</sender>
+   <signal>returnPressed()</signal>
+   <receiver>OpenFileDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>96</x>
+     <y>14</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>84</x>
+     <y>58</y>
     </hint>
    </hints>
   </connection>

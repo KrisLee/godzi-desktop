@@ -20,10 +20,10 @@
  */
 #include <Godzi/Project>
 #include <Godzi/Application>
-#include <Godzi/Features/ApplyFeature>
 #include <osgEarth/XmlUtils>
 #include <osgEarth/MapNode>
 #include <fstream>
+#include <iterator>
 
 using namespace Godzi;
 
@@ -44,7 +44,7 @@ ProjectProperties::ProjectProperties( const Godzi::Config& conf )
 Godzi::Config
 ProjectProperties::toConfig() const
 {
-    Config conf;
+	Godzi::Config conf;
     conf.addIfSet( "name", _name );
 		conf.addIfSet( "map", _map );
     return conf;
@@ -62,7 +62,7 @@ Project::Project( const std::string& defaultMap )
 	  loadMap(defaultMap);
 }
 
-Project::Project( const std::string& defaultMap, const Config& conf )
+Project::Project( const std::string& defaultMap, const Godzi::Config& conf )
 {
 		_props = ProjectProperties( conf.child( "properties" ) );
 
@@ -70,19 +70,91 @@ Project::Project( const std::string& defaultMap, const Config& conf )
 			loadMap(_props.map().get());
 		else
 			loadMap(defaultMap);
+
+		//TODO
 }
 
 Godzi::Config
 Project::toConfig() const
 {
-    Config conf( "godzi_project" );
+	  Godzi::Config conf( "godzi_project" );
 
     conf.add( "properties", _props.toConfig() );
-
-    //if ( _map.valid() )
-    //    conf.add( "map", _map->toConfig() );
+		for (int i=0; i < _sources.size(); i++)
+			conf.add(_sources[i]->toConfig());
 
     return conf;
+}
+
+void
+Project::addDataSource(Godzi::DataSource* source)
+{
+	_sources.push_back(source);
+
+	dirty();
+	emit dataSourceAdded(source, _sources.size() - 1);
+}
+
+void
+Project::removeDataSource(Godzi::DataSource* source)
+{
+	_sources.erase(remove(_sources.begin(), _sources.end(), source), _sources.end());
+
+	dirty();
+	emit dataSourceRemoved(source);
+}
+
+bool
+Project::updateDataSource(Godzi::DataSource* source, Godzi::DataSource** out_old)
+{
+	for (int i=0; i < _sources.size(); i++)
+	{
+		if (_sources[i].get()->getLocation().compare(source->getLocation()) == 0)
+		{
+			if (out_old)
+				*out_old = _sources[i].get();
+
+			_sources[i] = source;
+
+			dirty();
+			emit dataSourceUpdated(source);
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void
+Project::moveDataSource(Godzi::DataSource* source, int position)
+{
+	if (position < 0)
+		return;
+
+	int found = -1;
+	for (int i=0; i < _sources.size(); i++)
+	{
+		if (_sources[i].get()->getLocation().compare(source->getLocation()) == 0)
+		{
+			if (i == position)
+				return;
+			
+			found = i;
+			break;
+		}
+	}
+
+	if (found != -1)
+		_sources.erase(_sources.begin() + found);
+
+	if (position > _sources.size())
+		_sources.push_back(source);
+	else
+		_sources.insert(_sources.begin() + position, source);
+
+	dirty();
+	emit dataSourceMoved(source, position);
 }
 
 void

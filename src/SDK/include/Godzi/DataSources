@@ -1,0 +1,205 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+#ifndef GODZI_DATA_SOURCES
+#define GODZI_DATA_SOURCES 1
+
+#include <QObject>
+#include <Godzi/Common>
+#include <Godzi/Actions>
+#include <osgEarth/Config>
+#include <osgEarth/Revisioning>
+#include <osgEarth/TileSource>
+#include <osgEarth/MapLayer>
+#include <osgEarthDrivers/wms/WMSOptions>
+#include <osgEarthDrivers/tms/TMSOptions>
+
+namespace Godzi
+{
+	class Application;
+	class Project;
+
+	class GODZI_EXPORT DataSource : public osgEarth::Revisioned<osg::Referenced>
+  {
+  public:
+    virtual const osgEarth::DriverOptions* getOptions() const =0;
+		virtual const std::string& getLocation() const =0;
+		virtual const std::string& type() const =0;
+		
+		virtual Config toConfig() const { return Godzi::Config("DataSource"); }
+		virtual osgEarth::MapLayer* createMapLayer() const =0;
+		virtual DataSource* clone() const =0;
+		
+		osgEarth::optional<std::string>& name() { return _name; }
+    const osgEarth::optional<std::string>& name() const { return _name; }
+    
+    void setVisible( bool value ) { _visible = value; }
+    bool visible() const { return _visible; }
+    
+    virtual const std::vector<std::string> getAvailableLayers() const { return NO_LAYERS; }
+    //virtual void setAvailableLayers(const std::vector<std::string>& layers) {};
+    
+    virtual const std::vector<std::string> getActiveLayers() const { return NO_LAYERS; }
+    virtual void setActiveLayers(const std::vector<std::string>& layers) {};
+    
+    virtual const std::string& layerDisplayName (const std::string& layerName) const { return layerName; }
+    
+    bool error() const { return _error; }
+    void setError(bool isError) { _error = isError; }
+    
+    const std::string& errorMsg() const { return _errorMsg; }
+    void setErrorMsg(const std::string& msg) { _errorMsg = msg; }
+
+	protected:
+		DataSource(bool visible) : _visible(visible), _error(false), _errorMsg("") {};
+		osgEarth::optional<std::string> _name;
+		bool _visible;
+		bool _error;
+		std::string _errorMsg;
+		
+		static const std::vector<std::string> NO_LAYERS;
+	};
+	
+	/* --------------------------------------------- */
+	
+	class GODZI_EXPORT WMSSource : public DataSource
+	{
+	public:
+		static const std::string TYPE_WMS;
+	
+		WMSSource(osgEarth::Drivers::WMSOptions* opt, bool visible=true) : DataSource(visible), _opt(opt) {};
+		WMSSource(osgEarth::Drivers::WMSOptions* opt, const std::string& fullUrl, bool visible=true) : DataSource(visible), _opt(opt) { _fullUrl = fullUrl; };
+		
+		const osgEarth::DriverOptions* getOptions() const;
+		const std::string& getLocation() const;
+		const std::string& type() const { return TYPE_WMS; }
+		osgEarth::optional<std::string>& fullUrl() { return _fullUrl; }
+		
+		Config toConfig() const;
+		osgEarth::MapLayer* createMapLayer() const;
+		DataSource* clone() const;
+		
+		const std::vector<std::string> getAvailableLayers() const;
+		void setAvailableLayers(const std::vector<std::string>& layers);
+		
+    const std::vector<std::string> getActiveLayers() const;
+    void setActiveLayers(const std::vector<std::string>& layers);
+    
+    const std::string& layerDisplayName(const std::string& layerName) const;
+    void setLayerDisplayNames(const std::map<std::string, std::string>& nameMap) { _displayNames = nameMap; }
+
+	private:
+		osg::ref_ptr<osgEarth::Drivers::WMSOptions> _opt;
+		osgEarth::optional<std::string> _fullUrl;
+		std::vector<std::string> _availableLayers;
+		std::map<std::string, std::string> _displayNames;
+	};
+	
+	/* --------------------------------------------- */
+
+	class GODZI_EXPORT TMSSource : public DataSource
+	{
+	public:
+		static const std::string TYPE_TMS;
+		
+		TMSSource(osgEarth::Drivers::TMSOptions* opt, bool visible=true) : DataSource(visible), _opt(opt) {};
+		
+		const osgEarth::DriverOptions* getOptions() const;
+		const std::string& getLocation() const;
+		const std::string& type() const { return TYPE_TMS; }
+		
+		Config toConfig() const;
+		osgEarth::MapLayer* createMapLayer() const;
+		DataSource* clone() const;
+
+	private:
+		osg::ref_ptr<osgEarth::Drivers::TMSOptions> _opt;
+	};
+	
+	/* --------------------------------------------- */
+	
+	/*
+	class GODZI_EXPORT DataSourceFactory : public osg::Referenced
+	{
+	public:
+		virtual bool canCreate(const Godzi::Config& config) =0;
+		virtual DataSource* createDataSource(const Godzi::Config& config) =0;
+	};
+	
+	class GODZI_EXPORT DataSourceFactoryManager
+	{
+	public:
+		virtual void addFactory(DataSourceFactory* factory) =0;
+		virtual DataSourceFactory* getFactory(const Godzi::Config& config) =0;
+
+  protected:
+      DataSourceFactoryManager();
+      static DataSourceFactoryManager* create();
+      friend class Godzi::Application;
+	};
+	*/
+	
+	/* --------------------------------------------- */
+
+	class GODZI_EXPORT AddorUpdateDataSourceAction : public ReversibleAction
+	{
+	public:
+		AddorUpdateDataSourceAction(osg::ref_ptr<DataSource> source) : _source(source), _wasUpdate(false) { }
+
+		bool doAction( void* sender, Application* app );
+		bool undoAction( void* sender, Application* app );
+		
+		const DataSource* getDataSource() { return _source.get(); };
+
+	protected:
+		osg::ref_ptr<DataSource> _source;
+		osg::ref_ptr<DataSource> _oldSource;
+		bool _wasUpdate;
+	};
+	
+	class GODZI_EXPORT RemoveDataSourceAction : public ReversibleAction
+	{
+	public:
+		RemoveDataSourceAction(osg::ref_ptr<DataSource> source) : _source(source) { }
+
+		bool doAction( void* sender, Application* app );
+		bool undoAction( void* sender, Application* app );
+		
+		const DataSource* getDataSource() { return _source.get(); };
+
+	protected:
+		osg::ref_ptr<DataSource> _source;
+	};
+	
+	//class GODZI_EXPORT SelectDataSourceAction : public Action
+	//{
+	//public:
+	//  SelectDataSourceAction(osg::ref_ptr<DataSource> source) : _source(source) { }
+	//  
+	//  bool doAction(void* sender, Application* app);
+	//  
+	//  const DataSource* getDataSource() { return _source.get(); };
+	//  
+	//protected:
+	//  osg::ref_ptr<DataSource> _source;
+	//};
+}
+
+#endif // GODZI_DATA_SOURCES

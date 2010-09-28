@@ -24,6 +24,7 @@
 #include <QObject>
 #include <Godzi/Common>
 #include <Godzi/Project>
+#include <Godzi/DataSources>
 
 namespace Godzi
 {
@@ -31,15 +32,15 @@ namespace Godzi
 
     class GODZI_EXPORT Application : public QObject, public osg::Referenced
     {
-		
-		Q_OBJECT
+
+    Q_OBJECT
 			
     public:
         Application( const std::string& defaultMap ="" );
 
         /** The global action manager */
         ActionManager* actionManager() { return _actionMgr; }
-        
+                
     public:
         /** The current active project */
         Project* getProject() { return _project.get(); }
@@ -69,12 +70,12 @@ namespace Godzi
 			void projectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
 		
     protected:
-        osg::ref_ptr<Project> _project;
-        osgEarth::Revision    _projectCheckpoint;
-        std::string           _projectLocation;
-        std::string						_defaultMap;
+        osg::ref_ptr<Project>     _project;
+        osgEarth::Revision        _projectCheckpoint;
+        std::string               _projectLocation;
+        std::string						    _defaultMap;
 
-        ActionManager*        _actionMgr;
+        ActionManager*            _actionMgr;
     };
 
 } // namespace Godzi

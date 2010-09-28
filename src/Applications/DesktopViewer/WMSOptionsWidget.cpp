@@ -18,19 +18,11 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#ifndef GODZI_DISPATCH_FEATURE
-#define GODZI_DISPATCH_FEATURE 1
 
-#include <osgEarthFeatures/Feature>
-#include <osgEarth/Map>
-#include <Godzi/Common>
-#include <Godzi/Features/FeatureSource>
+#include "WMSOptionsWidget"
 
-namespace Godzi { namespace Features {
-
-        extern GODZI_EXPORT void applyFeatureToMap(osgEarth::Map* map, const Godzi::Features::KMLFeatureSource* fs);
-
-
-}}
-
-#endif
+WMSOptionsWidget::WMSOptionsWidget(QWidget* parent)
+: QWidget(parent)
+{
+	setupUi(this);
+}

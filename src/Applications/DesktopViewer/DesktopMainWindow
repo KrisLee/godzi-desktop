@@ -44,6 +44,7 @@ class DesktopMainWindow : public QMainWindow, public Godzi::ActionCallback
 		void openProject();
 		bool saveProject();
 		void loadMap();
+		void undo();
 		void showAbout();
 		void onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
 		
@@ -68,8 +69,10 @@ class DesktopMainWindow : public QMainWindow, public Godzi::ActionCallback
 		QAction *_saveProjectAction;
 		QAction *_loadMapAction;
 		QAction *_exitAction;
+		QAction *_undoAction;
 		QAction *_aboutAction;
 		QMenu *_fileMenu;
+		QMenu *_editMenu;
 		QMenu *_viewMenu;
 		QMenu *_helpMenu;
 		QToolBar *_fileToolbar;
