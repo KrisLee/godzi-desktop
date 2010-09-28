@@ -28,7 +28,7 @@
 
 using namespace Godzi::Features;
 
-void Godzi::Features::applyFeatureToMap(osgEarth::Map* map, const Godzi::Features::KMLFeatureSource* fs)
+void Godzi::Features::dispatchFeature(osgEarth::Map* map, const Godzi::Features::KMLFeatureSource* fs)
 {
 #if 1
     Godzi::Features::KMLFeatureSource* fsm = new Godzi::Features::KMLFeatureSource(0);

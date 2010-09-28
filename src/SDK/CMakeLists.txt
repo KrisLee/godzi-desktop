@@ -24,7 +24,6 @@ set(CORE_INCLUDE
 	include/Godzi/DataSources
 	include/Godzi/Earth
 	include/Godzi/Features/DispatchFeature
-	include/Godzi/Features/ApplyFeature
 	include/Godzi/Features/Feature
 	include/Godzi/Features/FeatureSource
 	include/Godzi/Features/Geometry
