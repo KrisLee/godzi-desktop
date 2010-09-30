@@ -18,53 +18,26 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#ifndef GODZI_FEATURES_SYMBOLIZER
-#define GODZI_FEATURES_SYMBOLIZER 1
+#ifndef GODZI_FEATURES_KML_FEATURE_MODEL_SOURCE
+#define GODZI_FEATURES_KML_FEATURE_MODEL_SOURCE 1
 
-#include <osg/NodeVisitor>
 #include <Godzi/Common>
 #include <Godzi/Features/Feature>
 #include <osgEarth/MapNode>
-#include <osgEarthSymbology/GeometrySymbolizer>
 #include <osgEarthFeatures/FeatureModelSource>
 
 namespace Godzi { namespace Features {
 
 /** The model source implementation for feature_geom */
-        class FeatureKMLModelSource : public osgEarth::Features::FeatureModelSource
+        class GODZI_EXPORT KMLFeatureModelSource : public osgEarth::Features::FeatureModelSource
         {
         public:
-            FeatureKMLModelSource( const PluginOptions* options );
+            KMLFeatureModelSource( const PluginOptions* options );
             //override
             void initialize( const std::string& referenceURI, const osgEarth::Map* map );
             osg::Node* createNode( ProgressCallback* progress );
 
         };
-
-
-        class GODZI_EXPORT KMLGeometrySymbolizer : public osgEarth::Symbology::Symbolizer<osgEarth::Symbology::GeometrySymbolizerState>
-        {
-        public:
-//            KMLGeometrySymbolizer();
-
-            /**
-             * Creates or updates a subgraph representing the symbolized data.
-             * The Symbolizer can attach the subgraph to the attachPoint.
-             */
-            // virtual bool compile(
-            //     osgEarth::Symbology::GeometrySymbolizerState* state,
-            //     osg::Group*              attachPoint);
-
-
-            class GODZI_EXPORT KMLGeometrySymbolizerOperator
-            {
-            public:
-                osg::Node* operator()(const osgEarth::Symbology::GeometryList& geoms, 
-                                      const osgEarth::Symbology::Style* style);
-            };
-        };  
-
-
 }}
 
 #endif

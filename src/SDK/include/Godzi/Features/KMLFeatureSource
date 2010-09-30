@@ -19,36 +19,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
-#ifndef GODZI_FEATURE_SOURCE
-#define GODZI_FEATURE_SOURCE 1
+#ifndef GODZI_KML_FEATURE_SOURCE
+#define GODZI_KML_FEATURE_SOURCE 1
 
 #include <osgEarthFeatures/FeatureSource>
+#include <Godzi/Features/KMLFeatureSourceOptions>
 #include <Godzi/Common>
 
 namespace Godzi { namespace Features {
-
-        class KMLFeatureSourceOptions : public osgEarth::Features::FeatureSourceOptions
-        {
-        public:
-            osgEarth::optional<std::string>& url() { return _url; }
-            const osgEarth::optional<std::string>& url() const { return _url; }
-
-        public:
-            KMLFeatureSourceOptions( const osgEarth::PluginOptions* opt =0L ) : osgEarth::Features::FeatureSourceOptions( opt ) {
-                driver() = "kml";
-                config().getIfSet<std::string>( "url", _url );
-            }
-
-        protected:
-            osgEarth::Config toConfig() const {
-                osgEarth::Config conf = osgEarth::Features::FeatureSourceOptions::toConfig();
-                conf.updateIfSet( "url", _url );
-                return conf;
-            }
-
-            optional<std::string> _url;
-        };
-
 
         class KMLFeatureCursor : public osgEarth::Features::FeatureCursor
         {

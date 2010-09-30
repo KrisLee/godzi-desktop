@@ -18,16 +18,25 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#ifndef GODZI_DISPATCH_FEATURE
-#define GODZI_DISPATCH_FEATURE 1
+#ifndef GODZI_FEATURES_KML_GEOMETRY_SYMBOLIZER
+#define GODZI_FEATURES_KML_GEOMETRY_SYMBOLIZER 1
 
-#include <osgEarth/Map>
+#include <osg/NodeVisitor>
 #include <Godzi/Common>
-#include <Godzi/Features/FeatureSource>
+#include <osgEarthSymbology/GeometrySymbolizer>
 
 namespace Godzi { namespace Features {
 
-        extern GODZI_EXPORT void dispatchFeature(osgEarth::Map* map, const Godzi::Features::KMLFeatureSource* fs);
+        class GODZI_EXPORT KMLGeometrySymbolizer : public osgEarth::Symbology::Symbolizer<osgEarth::Symbology::GeometrySymbolizerState>
+        {
+        public:
+            class GODZI_EXPORT KMLGeometrySymbolizerOperator
+            {
+            public:
+                osg::Node* operator()(const osgEarth::Symbology::GeometryList& geoms, 
+                                      const osgEarth::Symbology::Style* style);
+            };
+        };  
 
 
 }}
