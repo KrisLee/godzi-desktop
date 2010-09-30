@@ -21,9 +21,13 @@
 
 #include <osgEarth/Config>
 #include <osgEarthDrivers/wms/WMSOptions>
+#include <osgEarthFeatures/FeatureModelSource>
 #include <Godzi/Application>
 #include <Godzi/Project>
 #include <Godzi/DataSources>
+#include <Godzi/Features/Feature>
+#include <Godzi/Features/KMLFeatureModelSource>
+#include <Godzi/Features/KMLFeatureSource>
 
 using namespace Godzi;
 
@@ -201,6 +205,65 @@ DataSource* TMSSource::clone() const
 }
 
 /* --------------------------------------------- */
+
+
+
+
+/* --------------------------------------------- */
+
+const std::string KMLSource::TYPE_KML = "KML";
+
+Godzi::Config KMLSource::toConfig() const
+{
+	Godzi::Config conf = DataSource::toConfig();
+	conf.add("type", TYPE_KML);
+	conf.addIfSet("name", _name);
+	conf.add("visible", osgEarth::toString<bool>(_visible));
+	conf.add("options", ((osgEarth::DriverOptions*)_opt)->toConfig());
+
+  return conf;
+}
+
+const std::string& KMLSource::getLocation() const
+{
+	return _opt->url().get();
+}
+
+const osgEarth::DriverOptions* KMLSource::getOptions() const
+{
+	return _opt.get();
+}
+
+osgEarth::ModelLayer* KMLSource::createModelLayer() const
+{
+	std::string name = _name.isSet() ? _name.get() : "KML Source";
+
+  Godzi::Features::KMLFeatureSource* fs = new Godzi::Features::KMLFeatureSource(_opt);
+  fs->initialize();
+
+  osgEarth::Features::FeatureModelSourceOptions* option = new osgEarth::Features::FeatureModelSourceOptions;
+  option->featureSource() = fs;
+  return new osgEarth::ModelLayer(name, new Godzi::Features::KMLFeatureModelSource(option));
+}
+
+DataSource* KMLSource::clone() const
+{
+	// [jas] Following shouldn't be necessary, but the TMSOptions copy
+	// constructor does not appear to be working correctly.
+	Godzi::Features::KMLFeatureSourceOptions* cOpt = new Godzi::Features::KMLFeatureSourceOptions();
+	cOpt->url() = _opt->url();
+
+	//TMSSource* c = new TMSSource(new osgEarth::Drivers::TMSOptions(_opt));
+	KMLSource* c = new KMLSource(cOpt);
+	if (_name.isSet())
+		c->name() = _name;
+	
+	c->setError(_error);
+	c->setErrorMsg(_errorMsg);
+
+	return c;
+}
+
 
 /*
 class DataSourceFactoryManagerImpl : public DataSourceFactoryManager //no export

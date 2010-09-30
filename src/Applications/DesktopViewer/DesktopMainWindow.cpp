@@ -26,8 +26,6 @@
 #include <Godzi/Application>
 #include <Godzi/Project>
 #include <Godzi/Actions>
-#include <Godzi/Features/DispatchFeature>
-#include <Godzi/Features/FeatureSource>
 #include "OpenFileDialog"
 #include "AboutDialog"
 #include "DesktopMainWindow"
@@ -244,9 +242,11 @@ void DesktopMainWindow::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject
     loadScene(mapNode);
 
 		//TEST
+#if 0
     Godzi::Features::KMLFeatureSourceOptions* opt = new Godzi::Features::KMLFeatureSourceOptions;
     opt->url() = "/home/trigrou/dev/godzi/src/data/example.kml";
     Godzi::Features::KMLFeatureSource* fs = new Godzi::Features::KMLFeatureSource(opt);
     fs->initialize();
     dispatchFeature(mapNode->getMap(), fs);
+#endif
 }

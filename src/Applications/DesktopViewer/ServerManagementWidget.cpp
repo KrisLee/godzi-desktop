@@ -363,7 +363,10 @@ void ServerManagementWidget::addKMLSource()
 		QString url = ofd.getUrl();
 		if (!url.isNull() && !url.isEmpty())
 		{
-			//TODO
+
+      Godzi::Features::KMLFeatureSourceOptions* opt = new Godzi::Features::KMLFeatureSourceOptions();
+			opt->url() = url.toStdString();
+			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::KMLSource(opt)));
 		}
 	}
 }

@@ -66,6 +66,7 @@ void DataSourceManager::onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource> 
 	createMapLayer(source);
 	if (source->type().compare(Godzi::WMSSource::TYPE_WMS) == 0)
 			updateWMSCapabilities(source);
+	createModelLayer(source);
 }
 
 void DataSourceManager::onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source)
@@ -80,6 +81,13 @@ void DataSourceManager::onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource
 		_app->getProject()->map()->removeMapLayer(_layerMap[source->getLocation()]);
 		_layerMap.erase(it);
 	}
+
+	std::map<std::string, osg::ref_ptr<osgEarth::ModelLayer> >::iterator itModel = _layerModel.find(source->getLocation());
+	if (itModel != _layerModel.end())
+	{
+		_app->getProject()->map()->removeModelLayer(_layerModel[source->getLocation()]);
+		_layerModel.erase(itModel);
+	}
 }
 
 void DataSourceManager::onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource> source, int position)
@@ -90,6 +98,7 @@ void DataSourceManager::onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource> 
 	osgEarth::MapLayer* layer = _layerMap[source->getLocation()];
 	if (layer)
 		_app->getProject()->map()->moveMapLayer(layer, position);
+
 }
 
 void DataSourceManager::onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource> source)
@@ -106,6 +115,16 @@ void DataSourceManager::onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource
 	}
 
 	createMapLayer(source);
+
+	std::map<std::string, osg::ref_ptr<osgEarth::ModelLayer> >::iterator itModel = _layerModel.find(source->getLocation());
+
+	if (itModel != _layerModel.end())
+	{
+      _app->getProject()->map()->removeModelLayer(_layerModel[source->getLocation()]);
+      _layerModel.erase(itModel);
+	}
+
+	createModelLayer(source);
 }
 
 osgEarth::MapLayer* DataSourceManager::createMapLayer(osg::ref_ptr<const Godzi::DataSource> source)
@@ -120,6 +139,20 @@ osgEarth::MapLayer* DataSourceManager::createMapLayer(osg::ref_ptr<const Godzi::
 	}
 
 	return mapLayer;
+}
+
+osgEarth::ModelLayer* DataSourceManager::createModelLayer(osg::ref_ptr<const Godzi::DataSource> source)
+{
+	osgEarth::ModelLayer* layer = source->createModelLayer();
+	if (layer)
+	{
+		_layerModel[source->getLocation()] = layer;
+
+		if (source->visible())
+			_app->getProject()->map()->addModelLayer(layer);
+	}
+
+	return layer;
 }
 
 void DataSourceManager::updateWMSCapabilities(osg::ref_ptr<const Godzi::DataSource> source)

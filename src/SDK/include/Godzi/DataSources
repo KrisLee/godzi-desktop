@@ -24,10 +24,12 @@
 #include <QObject>
 #include <Godzi/Common>
 #include <Godzi/Actions>
+#include <Godzi/Features/KMLFeatureSourceOptions>
 #include <osgEarth/Config>
 #include <osgEarth/Revisioning>
 #include <osgEarth/TileSource>
 #include <osgEarth/MapLayer>
+#include <osgEarth/ModelLayer>
 #include <osgEarthDrivers/wms/WMSOptions>
 #include <osgEarthDrivers/tms/TMSOptions>
 
@@ -44,7 +46,8 @@ namespace Godzi
 		virtual const std::string& type() const =0;
 		
 		virtual Config toConfig() const { return Godzi::Config("DataSource"); }
-		virtual osgEarth::MapLayer* createMapLayer() const =0;
+		virtual osgEarth::MapLayer* createMapLayer() const { return 0;}
+		virtual osgEarth::ModelLayer* createModelLayer() const { return 0;}
 		virtual DataSource* clone() const =0;
 		
 		osgEarth::optional<std::string>& name() { return _name; }
@@ -131,6 +134,27 @@ namespace Godzi
 
 	private:
 		osg::ref_ptr<osgEarth::Drivers::TMSOptions> _opt;
+	};
+
+
+
+	class GODZI_EXPORT KMLSource : public DataSource
+	{
+	public:
+		static const std::string TYPE_KML;
+		
+		KMLSource(Godzi::Features::KMLFeatureSourceOptions* opt, bool visible=true) : DataSource(visible), _opt(opt) {};
+		
+		const osgEarth::DriverOptions* getOptions() const;
+		const std::string& getLocation() const;
+		const std::string& type() const { return TYPE_KML; }
+		
+		Config toConfig() const;
+		osgEarth::ModelLayer* createModelLayer() const;
+		DataSource* clone() const;
+
+	private:
+		osg::ref_ptr<Godzi::Features::KMLFeatureSourceOptions> _opt;
 	};
 	
 	/* --------------------------------------------- */
