@@ -21,6 +21,7 @@
 
 #include <Godzi/Features/KMLFeatureModelSource>
 #include <Godzi/Features/KMLGeometrySymbolizer>
+#include <Godzi/Features/Symbol>
 #include <osgEarthFeatures/FeatureModelSource>
 #include <osgEarthFeatures/FeatureSymbolizer>
 #include <osgEarthFeatures/TransformFilter>
@@ -77,6 +78,26 @@ public:
     osg::Node*
     compileGeometries( osgEarth::Features::FeatureList& features, const osgEarth::Symbology::Style* style )
     {
+        // check if it's a model
+        if (style) {
+            const KMLModelSymbol* model = style->getSymbol<KMLModelSymbol>();
+            if (model) {
+                osg::Node* node = osgDB::readNodeFile(model->marker().value());
+                const osg::EllipsoidModel* em = _model->getMap()->getProfile()->getSRS()->getEllipsoid();
+                if (em) {
+                    osg::Matrix matrix;
+                    double lat = model->getLocation()[0];
+                    double lon = model->getLocation()[1];
+                    double alt = model->getLocation()[2];
+                    em->computeLocalToWorldTransformFromLatLongHeight(lat, lon, alt, matrix);
+                    osg::MatrixTransform* mtr = new osg::MatrixTransform;
+                    mtr->setMatrix(matrix);
+                    mtr->addChild(node);
+                    return mtr;
+                }
+            }
+        }
+
         // A processing context to use with the filters:
         osgEarth::Features::FilterContext contextFilter;
         contextFilter.profile() = _model->getFeatureSource()->getFeatureProfile();

@@ -68,6 +68,41 @@ namespace Godzi { namespace Features {
             optional<KMLAltitude> _altitude;
         };
 
+        template <class T>
+        class KMLAltitudeSymbol : public T
+        {
+        public:
+            optional<KMLAltitude>& altitude() { return _altitude; }
+            const optional<KMLAltitude>& altitude() const { return _altitude; }
+
+        protected:
+            optional<KMLAltitude> _altitude;
+        };
+
+        class KMLModelSymbol : public osgEarth::Symbology::MarkerSymbol
+        {
+        public:
+
+            const osg::Vec3d& getScale() const { return _location; }
+            const osg::Vec3d& getLocation() const { return _scale; }
+            double getTilt() const { return _tilt; }
+            double getRoll() const { return _roll; }
+            double getHeading() const { return _heading; }
+
+            void setScale(const osg::Vec3d& s) { _scale = s; }
+            void setLocation(const osg::Vec3d& l) {  _location = l; }
+            void setHeading(double h) { _heading = h; }
+            void setRoll(double r) { _roll = r; }
+            void setTilt(double t) { _tilt = t; }
+
+        protected:
+            osg::Vec3d _location;
+            double _heading;
+            double _roll;
+            double _tilt;
+            osg::Vec3d _scale;
+        };
+
         typedef KMLSymbolType<osgEarth::Symbology::MarkerSymbol>  KMLIconSymbol;
         typedef KMLSymbolType<osgEarth::Symbology::LineSymbol>  KMLLineSymbol;
         typedef KMLSymbolType<osgEarth::Symbology::PolygonSymbol>  KMLPolygonSymbol;

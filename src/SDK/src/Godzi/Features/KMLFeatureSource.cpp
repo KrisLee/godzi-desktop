@@ -162,7 +162,7 @@ osgEarth::Symbology::Geometry* createGeometryFromElement(const kmldom::GeometryP
 }
 
 
-template <class T, class G> void getExtrudeAltitudeMode(T* symbol, const G kmlGeom)
+template <class T, class G> void getAltitudeMode(T* symbol, const G kmlGeom)
 {
     switch (kmlGeom->get_altitudemode()) {
     case kmldom::ALTITUDEMODE_CLAMPTOGROUND:
@@ -178,6 +178,9 @@ template <class T, class G> void getExtrudeAltitudeMode(T* symbol, const G kmlGe
         symbol->altitude()->setAltitudeMode(KMLAltitude::ClampToGround);
         break;
     }
+}
+template <class T, class G> void getExtrudeMode(T* symbol, const G kmlGeom)
+{
     symbol->extrude()->setExtrude(kmlGeom->get_extrude());
 }
 
@@ -188,7 +191,8 @@ template <class T> T* createSymbol(const kmldom::GeometryPtr kmlGeom)
     {
         kmldom::PolygonPtr geom = kmldom::AsPolygon(kmlGeom);
         if (geom) {
-            getExtrudeAltitudeMode<T,kmldom::PolygonPtr>(symbol, geom);
+            getAltitudeMode<T,kmldom::PolygonPtr>(symbol, geom);
+            getExtrudeMode<T,kmldom::PolygonPtr>(symbol, geom);
             return symbol;
         }
     }
@@ -196,7 +200,8 @@ template <class T> T* createSymbol(const kmldom::GeometryPtr kmlGeom)
     {
         kmldom::LineStringPtr geom = kmldom::AsLineString(kmlGeom);
         if (geom) {
-            getExtrudeAltitudeMode<T,kmldom::LineStringPtr>(symbol, geom);
+            getAltitudeMode<T,kmldom::LineStringPtr>(symbol, geom);
+            getExtrudeMode<T,kmldom::LineStringPtr>(symbol, geom);
             return symbol;
         }
     }
@@ -204,7 +209,8 @@ template <class T> T* createSymbol(const kmldom::GeometryPtr kmlGeom)
     {
         kmldom::LinearRingPtr geom = kmldom::AsLinearRing(kmlGeom);
         if (geom) {
-            getExtrudeAltitudeMode<T,kmldom::LinearRingPtr>(symbol, geom);
+            getAltitudeMode<T,kmldom::LinearRingPtr>(symbol, geom);
+            getExtrudeMode<T,kmldom::LinearRingPtr>(symbol, geom);
             return symbol;
         }
     }
@@ -212,7 +218,16 @@ template <class T> T* createSymbol(const kmldom::GeometryPtr kmlGeom)
     {
         kmldom::PointPtr geom = kmldom::AsPoint(kmlGeom);
         if (geom) {
-            getExtrudeAltitudeMode<T,kmldom::PointPtr>(symbol, geom);
+            getAltitudeMode<T,kmldom::PointPtr>(symbol, geom);
+            getExtrudeMode<T,kmldom::PointPtr>(symbol, geom);
+            return symbol;
+        }
+    }
+
+    {
+        kmldom::ModelPtr geom = kmldom::AsModel(kmlGeom);
+        if (geom) {
+            getAltitudeMode<T,kmldom::ModelPtr>(symbol, geom);
             return symbol;
         }
     }
@@ -313,16 +328,52 @@ void collectFeature(kmlengine::KmlFilePtr kml_file, osgEarth::Features::FeatureL
             //osg::notify(osg::WARN) << "use style " << placemark->get_styleurl() << std::endl;
             p->setName(placemark->get_name());
             if (placemark->has_geometry()) {
-                osgEarth::Symbology::Geometry* geom = createGeometryFromElement(placemark->get_geometry());
-                if (geom) {
-                    p->setGeometry(geom);
+                if (placemark->get_geometry()->Type() == kmldom::Type_Model) {
+                    // specific case for model
+                    KMLModelSymbol* modelSymbol = new KMLModelSymbol;
+                    kmldom::ModelPtr kmlModel = kmldom::AsModel(placemark->get_geometry());
+                    if (kmlModel->has_location()) {
+                        kmldom::LocationPtr l = kmlModel->get_location();
+                        modelSymbol->setLocation(osg::Vec3d(l->get_longitude(),
+                                                            l->get_latitude(),
+                                                            l->has_altitude()? l->get_altitude() : 0));
+                    }
+                    if (kmlModel->has_orientation()) {
+                        kmldom::OrientationPtr l = kmlModel->get_orientation();
+                        modelSymbol->setHeading(l->get_heading());
+                        modelSymbol->setTilt(l->get_tilt());
+                        modelSymbol->setRoll(l->get_roll());
+                    }
+                    if (kmlModel->has_scale()) {
+                        kmldom::ScalePtr s = kmlModel->get_scale();
+                        modelSymbol->setScale(osg::Vec3d(s->get_x(),
+                                                         s->get_y(),
+                                                         s->get_z()));
+                    }
 
-                    osgEarth::Symbology::Style* style = createStyle(kmlStyle, placemark->get_geometry());
-                    if (style)
-                        p->style() = style;
+                    if (kmlModel->has_link()) {
+                        modelSymbol->marker() = kmlModel->get_link()->get_href();
+                        osg::notify(osg::NOTICE) << "Model link " << modelSymbol->marker().value() << std::endl;
+                    } else {
+                        osg::notify(osg::WARN) << "no link found on Model " << p->getName() << std::endl;
+                    }
+                    osg::ref_ptr<osgEarth::Symbology::Style> style = new osgEarth::Symbology::Style;
+                    style->addSymbol(modelSymbol);
+                    p->style() = style;
+                    // empty geometry use symbol instead
 
                 } else {
-                    osg::notify(osg::WARN) << "cant retrieve geometry for placemark " << p->getName() << std::endl;
+                    osgEarth::Symbology::Geometry* geom = createGeometryFromElement(placemark->get_geometry());
+                    if (geom) {
+                        p->setGeometry(geom);
+
+                        osgEarth::Symbology::Style* style = createStyle(kmlStyle, placemark->get_geometry());
+                        if (style)
+                            p->style() = style;
+
+                    } else {
+                        osg::notify(osg::WARN) << "cant retrieve geometry for placemark " << p->getName() << std::endl;
+                    }
                 }
                 printIndented("Placemark", depth);
                 fl.push_back(p);

@@ -73,7 +73,7 @@ osg::Group* createTexturedQuad(const KMLIconSymbol* symbol)
     }
     sizex*=scale;
     sizey*=scale;
-    osg::Vec3 c(-sizex*0.5, -sizey*0.5, 0);
+    osg::Vec3 c(-sizex*0.5, 0, 0);
     osg::Vec3 s(sizex,0,0);
     osg::Vec3 b(0,sizey,0);
     osg::Geometry* geom = osg::createTexturedQuadGeometry(
@@ -84,7 +84,7 @@ osg::Group* createTexturedQuad(const KMLIconSymbol* symbol)
     geom->getOrCreateStateSet()->setMode(GL_LIGHTING,false);
     geom->getOrCreateStateSet()->setMode(GL_DEPTH_TEST,false);
     geom->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-    geom->getOrCreateStateSet()->setBinNumber(10000);
+//    geom->getOrCreateStateSet()->setBinNumber(10000);
 
     osg::Material* material = new osg::Material;
     material->setDiffuse(osg::Material::FRONT_AND_BACK, symbol->fill()->color());
