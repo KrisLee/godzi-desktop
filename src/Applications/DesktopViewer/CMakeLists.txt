@@ -9,6 +9,7 @@ set(PROJECT_FILES
     ServerManagementWidget.cpp
     DataSourceManager.cpp
     WMSOptionsWidget.cpp
+    MapLayerCatalogWidget.cpp
 )
 
 # Qt resrouce files
@@ -31,6 +32,7 @@ set (GODZI_DESKTOP_MOC_HDRS
     ServerManagementWidget
     DataSourceManager
     WMSOptionsWidget
+    MapLayerCatalogWidget
 )
 
 FIND_PACKAGE( Qt4 REQUIRED )
