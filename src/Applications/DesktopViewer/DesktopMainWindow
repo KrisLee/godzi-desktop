@@ -67,7 +67,6 @@ class DesktopMainWindow : public QMainWindow, public Godzi::ActionCallback
 		QAction *_newProjectAction;
 		QAction *_openProjectAction;
 		QAction *_saveProjectAction;
-		QAction *_loadMapAction;
 		QAction *_exitAction;
 		QAction *_undoAction;
 		QAction *_aboutAction;
