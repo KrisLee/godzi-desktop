@@ -43,7 +43,7 @@ class DesktopMainWindow : public QMainWindow, public Godzi::ActionCallback
 		void newProject();
 		void openProject();
 		bool saveProject();
-		void loadMap();
+		//void loadMap();
 		void undo();
 		void showAbout();
 		void onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);

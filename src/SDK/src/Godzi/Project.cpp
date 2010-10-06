@@ -20,8 +20,10 @@
  */
 #include <Godzi/Project>
 #include <Godzi/Application>
+#include <Godzi/Earth>
 #include <osgEarth/XmlUtils>
 #include <osgEarth/MapNode>
+#include <osgEarth/Map>
 #include <fstream>
 #include <iterator>
 
@@ -166,9 +168,8 @@ Project::loadMap( const std::string& map )
 				return;
 		}
 
-		osg::Node* node = osgDB::readNodeFile( map );
-		osgEarth::MapNode* mapNode = osgEarth::MapNode::findMapNode(node);
-		_map = mapNode->getMap();
+		osgEarth::MapNode* _mapNode = Godzi::readEarthFile(map);
+		_map = _mapNode->getMap();
 }
 
 //---------------------------------------------------------------------------

@@ -21,6 +21,7 @@
 
 #include <QtGui>
 #include <QString>
+#include <osgEarthUtil/FadeLayerNode>
 #include <osgViewer/View>
 #include <Godzi/UI/ViewerWidgets>
 #include <Godzi/Application>
@@ -28,6 +29,7 @@
 #include <Godzi/Actions>
 #include "OpenFileDialog"
 #include "AboutDialog"
+#include "MapLayerCatalogWidget"
 #include "DesktopMainWindow"
 
 DesktopMainWindow::DesktopMainWindow(Godzi::Application* app)
@@ -41,8 +43,8 @@ DesktopMainWindow::DesktopMainWindow(Godzi::Application* app)
 
 void DesktopMainWindow::initUi()
 {
-	setWindowTitle(tr("Godzi[*]"));
-	setWindowIcon(QIcon(":/resources/images/globe.png"));
+	setWindowTitle(tr("Godzi[*] - Pelican Mapping"));
+	setWindowIcon(QIcon(":/resources/images/pmicon32.png"));
 
 	_osgViewer = new Godzi::UI::ViewerWidget( this, 0, 0, true );
 	setCentralWidget(_osgViewer);
@@ -70,10 +72,6 @@ void DesktopMainWindow::createActions()
 	_saveProjectAction->setShortcut(QKeySequence::Save);
 	_saveProjectAction->setStatusTip(tr("Save current project"));
 	connect(_saveProjectAction, SIGNAL(triggered()), this, SLOT(saveProject()));
-
-	_loadMapAction = new QAction(tr("&Load Map"), this);
-	_loadMapAction->setStatusTip(tr("Load new base map"));
-	connect(_loadMapAction, SIGNAL(triggered()), this, SLOT(loadMap()));
 
 	_exitAction = new QAction(tr("&Exit"), this);
 	connect(_exitAction, SIGNAL(triggered()), this, SLOT(close()));
@@ -120,12 +118,19 @@ void DesktopMainWindow::createToolbars()
 
 void DesktopMainWindow::createDockWindows()
 {
-	QDockWidget *dock = new QDockWidget(tr("Servers"), this);
-  dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	QDockWidget *catalogDock = new QDockWidget(tr("Base Map"), this);
+  catalogDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	MapLayerCatalogWidget* layerCatalog = new MapLayerCatalogWidget(_app);
+	catalogDock->setWidget(layerCatalog);
+	addDockWidget(Qt::LeftDockWidgetArea, catalogDock);
+	_viewMenu->addAction(catalogDock->toggleViewAction());
+
+	QDockWidget *serverDock = new QDockWidget(tr("Data Servers"), this);
+  serverDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	_serverManager = new ServerManagementWidget(_app);
-	dock->setWidget(_serverManager);
-	addDockWidget(Qt::LeftDockWidgetArea, dock);
-	_viewMenu->addAction(dock->toggleViewAction());
+	serverDock->setWidget(_serverManager);
+	addDockWidget(Qt::LeftDockWidgetArea, serverDock);
+	_viewMenu->addAction(serverDock->toggleViewAction());
 }
 
 void DesktopMainWindow::updateStatusBar(const QString &message)
@@ -214,16 +219,18 @@ bool DesktopMainWindow::saveProject()
 	return false;
 }
 
-void DesktopMainWindow::loadMap()
-{
-    OpenFileDialog ofd(tr("Select globe file..."), tr(""), tr("osgEarth files (*.earth);;All files (*.*)"));
-    if (ofd.exec() == QDialog::Accepted)
-    {
-        QString url = ofd.getUrl();
-        if (!url.isNull() && !url.isEmpty())
-            loadScene(url.toStdString());
-    }
-}
+//TEST
+//void DesktopMainWindow::loadMap()
+//{
+//    OpenFileDialog ofd(tr("Select globe file..."), tr(""), tr("osgEarth files (*.earth);;All files (*.*)"));
+//    if (ofd.exec() == QDialog::Accepted)
+//    {
+//        QString url = ofd.getUrl();
+//        if (!url.isNull() && !url.isEmpty())
+//            loadScene(url.toStdString());
+//    }
+//}
+//TEST
 
 void DesktopMainWindow::undo()
 {
@@ -238,15 +245,8 @@ void DesktopMainWindow::showAbout()
 
 void DesktopMainWindow::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject)
 {
-    osgEarth::MapNode* mapNode = new osgEarth::MapNode(_app->getProject()->map());
-    loadScene(mapNode);
-
-		//TEST
-#if 0
-    Godzi::Features::KMLFeatureSourceOptions* opt = new Godzi::Features::KMLFeatureSourceOptions;
-    opt->url() = "/home/trigrou/dev/godzi/src/data/example.kml";
-    Godzi::Features::KMLFeatureSource* fs = new Godzi::Features::KMLFeatureSource(opt);
-    fs->initialize();
-    dispatchFeature(mapNode->getMap(), fs);
-#endif
+		osgEarth::MapNode* mapNode = new osgEarth::MapNode(_app->getProject()->map());
+		osgEarthUtil::FadeLayerNode* fadeLayerNode = new osgEarthUtil::FadeLayerNode(_app->getProject()->map(), mapNode->getEngine()->getEngineProperties());
+		fadeLayerNode->addChild(mapNode);
+    loadScene(fadeLayerNode);
 }

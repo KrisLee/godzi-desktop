@@ -95,15 +95,11 @@ void ServerManagementWidget::initUi()
 	_sourceTree->setHeaderHidden(true);
 	connect(_sourceTree, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)), this, SLOT(onCurrentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)));
 
-	//_sourceView = new QTreeView();
-
 	QVBoxLayout *layout = new QVBoxLayout;
 	layout->setSpacing(2);
 	layout->setContentsMargins(3, 0, 3, 3);
 	layout->addWidget(_toolbar);
 	layout->addWidget(_sourceTree);
-	//layout->addWidget(_sourceView);
-	layout->addStretch();
   setLayout(layout);
 }
 
@@ -154,7 +150,7 @@ void ServerManagementWidget::onProjectChanged(osg::ref_ptr<Godzi::Project> oldPr
 		connect(p, SIGNAL(dataSourceAdded(osg::ref_ptr<const Godzi::DataSource>, int)), this, SLOT(onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource>, int)));
 		connect(p, SIGNAL(dataSourceUpdated(osg::ref_ptr<const Godzi::DataSource>)), this, SLOT(onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource>)));
 		connect(p, SIGNAL(dataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)), this, SLOT(onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)));
-		connect(p, SIGNAL(dataSourceMoved(osg::ref_ptr<Godzi::DataSource>, int)), this, SLOT(onDataSourceMoved(osg::ref_ptr<Godzi::DataSource>, int)));
+		connect(p, SIGNAL(dataSourceMoved(osg::ref_ptr<const Godzi::DataSource>, int)), this, SLOT(onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource>, int)));
 	}
 
 	//TODO: disconnect from old project signal???
