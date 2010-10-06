@@ -73,10 +73,6 @@ void DesktopMainWindow::createActions()
 	_saveProjectAction->setStatusTip(tr("Save current project"));
 	connect(_saveProjectAction, SIGNAL(triggered()), this, SLOT(saveProject()));
 
-	_loadMapAction = new QAction(tr("&Load Map"), this);
-	_loadMapAction->setStatusTip(tr("Load new base map"));
-	connect(_loadMapAction, SIGNAL(triggered()), this, SLOT(loadMap()));
-
 	_exitAction = new QAction(tr("&Exit"), this);
 	connect(_exitAction, SIGNAL(triggered()), this, SLOT(close()));
 
@@ -223,16 +219,18 @@ bool DesktopMainWindow::saveProject()
 	return false;
 }
 
-void DesktopMainWindow::loadMap()
-{
-    OpenFileDialog ofd(tr("Select globe file..."), tr(""), tr("osgEarth files (*.earth);;All files (*.*)"));
-    if (ofd.exec() == QDialog::Accepted)
-    {
-        QString url = ofd.getUrl();
-        if (!url.isNull() && !url.isEmpty())
-            loadScene(url.toStdString());
-    }
-}
+//TEST
+//void DesktopMainWindow::loadMap()
+//{
+//    OpenFileDialog ofd(tr("Select globe file..."), tr(""), tr("osgEarth files (*.earth);;All files (*.*)"));
+//    if (ofd.exec() == QDialog::Accepted)
+//    {
+//        QString url = ofd.getUrl();
+//        if (!url.isNull() && !url.isEmpty())
+//            loadScene(url.toStdString());
+//    }
+//}
+//TEST
 
 void DesktopMainWindow::undo()
 {
