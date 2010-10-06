@@ -168,8 +168,8 @@ Project::loadMap( const std::string& map )
 				return;
 		}
 
-		osgEarth::MapNode* _mapNode = Godzi::readEarthFile(map);
-		_map = _mapNode->getMap();
+		osgEarth::MapNode* mapNode = Godzi::readEarthFile(map);
+		_map = mapNode->getMap();
 }
 
 //---------------------------------------------------------------------------
