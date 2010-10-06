@@ -91,7 +91,6 @@ void DesktopMainWindow::createMenus()
 	_fileMenu->addAction(_openProjectAction);
 	_fileMenu->addAction(_saveProjectAction);
 	_fileMenu->addSeparator();
-	_fileMenu->addAction(_loadMapAction);
 	_fileMenu->addSeparator();
 	_fileMenu->addAction(_exitAction);
 
