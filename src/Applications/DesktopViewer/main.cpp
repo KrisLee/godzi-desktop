@@ -25,7 +25,7 @@
 
 #include "DesktopMainWindow"
 
-#define EARTH_FILE "http://demo.pelicanmapping.com/rmweb/maps/bluemarble.earth"
+#define EARTH_FILE "http://demo.pelicanmapping.com/rmweb/maps/godzi.earth"
 
 int
 main( int argc, char** argv )
