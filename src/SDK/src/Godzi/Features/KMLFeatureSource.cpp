@@ -30,6 +30,8 @@
 #include "kml/engine.h"
 #include <iostream>
 
+
+#define DEFAULT_LABEL_SIZE 32
 using namespace Godzi::Features;
 
 KMLFeatureSource::KMLFeatureSource( const osgEarth::PluginOptions* options): osgEarth::Features::FeatureSource(options)
@@ -249,6 +251,24 @@ static osg::Vec4 getColor(const kmlbase::Color32& color)
 static osgEarth::Symbology::Style* createStyle(kmldom::StylePtr kmlStyle, const kmldom::GeometryPtr kmlGeom)
 {
     osg::ref_ptr<osgEarth::Symbology::Style> earthStyle = new osgEarth::Symbology::Style;
+
+    if (kmlStyle->has_labelstyle()) {
+        kmldom::LabelStylePtr kmls = kmlStyle->get_labelstyle();
+        KMLLabelSymbol* s =  new KMLLabelSymbol;
+        if (kmls->has_color()) {
+            // do not support yet random color
+            //kmls->has_colormode()
+            s->fill()->color() = getColor(kmls->get_color());
+        }
+
+        s->size() = DEFAULT_LABEL_SIZE;
+        if (kmls->has_scale()) {
+            s->size() = s->size().value() * kmls->get_scale();
+        }
+
+        earthStyle->addSymbol(s);
+    }
+
     if (kmlStyle->has_linestyle()) {
         kmldom::LineStylePtr kmls = kmlStyle->get_linestyle();
         KMLLineSymbol* s =  createSymbol<KMLLineSymbol>(kmlGeom);
@@ -375,6 +395,16 @@ void collectFeature(kmlengine::KmlFilePtr kml_file, osgEarth::Features::FeatureL
                         osg::notify(osg::WARN) << "cant retrieve geometry for placemark " << p->getName() << std::endl;
                     }
                 }
+                
+                KMLLabelSymbol* label = p->style().get()->getSymbol<KMLLabelSymbol>();
+                if (!label) {
+                    label = new KMLLabelSymbol;
+                    p->style().get()->addSymbol(label);
+                    label->size() = DEFAULT_LABEL_SIZE;
+                }
+                label->content() = p->getName();
+                osg::notify(osg::NOTICE) << "label " << label->content().value() << std::endl;
+
                 printIndented("Placemark", depth);
                 fl.push_back(p);
             }

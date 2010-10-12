@@ -26,11 +26,29 @@
 #include <osgEarthFeatures/FeatureSymbolizer>
 #include <osgEarthFeatures/TransformFilter>
 #include <osg/MatrixTransform>
-
+#include <osgText/Text>
+#include <osgEarthFeatures/BuildTextOperator>
+#include <osg/Depth>
 
 using namespace Godzi;
 using namespace Godzi::Features;
 
+
+struct CullPlaneCallback : public osg::NodeCallback
+{
+    osg::Vec3d _n;
+
+    CullPlaneCallback( const osg::Vec3d& planeNormal ) : _n(planeNormal) {
+        _n.normalize();
+    }
+
+    void operator()(osg::Node* node, osg::NodeVisitor* nv) {
+        if (nv && nv->getEyePoint() * _n <= 0) {
+            return;
+        }
+        traverse(node,nv);
+    }
+};
 
 class FactoryKMLSymbolizer : public osgEarth::Features::SymbolizerFactory
 {
@@ -135,7 +153,55 @@ public:
             osg::MatrixTransform* delocalizer = new osg::MatrixTransform( contextFilter.inverseReferenceFrame() );
             delocalizer->addChild( result );
             result = delocalizer;
+
+
+            const KMLLabelSymbol* sym = style->getSymbol<KMLLabelSymbol>();
+            if (sym) {
+                if (sym->content().isSet()) {
+                    osgText::Text* text = new osgText::Text;
+                    text->setCharacterSizeMode( osgText::TextBase::SCREEN_COORDS );
+                    text->setText(sym->content().value());
+
+                    std::string font = "fonts/arial.ttf";
+                    if (sym->font().isSet() && !sym->font().get().empty())
+                    {
+                        font = sym->font().value();
+                    }
+
+                    text->setFont( font );
+                    text->setCharacterSize(sym->size().value());
+                    text->setAlignment( osgText::TextBase::CENTER_CENTER );
+                    text->getOrCreateStateSet()->setAttributeAndModes( new osg::Depth(osg::Depth::ALWAYS), osg::StateAttribute::ON );
+                    text->getOrCreateStateSet()->setRenderBinDetails( 99999, "RenderBin" );
+                    text->setAutoRotateToScreen( true );
+                    osg::Vec4f textColor = sym->fill()->color();
+                    text->setColor( textColor);
+                    osg::Vec4f haloColor = sym->halo()->color();
+        
+                    text->setBackdropColor( haloColor );
+                    text->setBackdropType( osgText::Text::OUTLINE );
+                    osg::Geode* geode = new osg::Geode;
+                    geode->addDrawable(text);
+                    delocalizer->addChild(geode);
+                }
+            }
+
+            delocalizer->setCullCallback( new CullPlaneCallback( osg::Vec3(0,0,0) * contextFilter.inverseReferenceFrame() ) );
         }
+
+#if 0
+        const KMLLabelSymbol* sym = style->getSymbol<KMLLabelSymbol>();
+        if (sym) {
+            osgEarth::Features::BuildTextOperator textOperator;
+            osg::Node* text = textOperator(features, sym, contextFilter);
+            if (text) {
+                osg::Group* grp = new osg::Group;
+                grp->addChild(text);
+                grp->addChild(result);
+                result = grp;
+            }
+        }
+#endif
 
         return result;
     }

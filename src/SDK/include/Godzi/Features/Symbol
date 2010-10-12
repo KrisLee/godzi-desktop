@@ -23,6 +23,7 @@
 
 #include <osgEarthSymbology/MarkerSymbol>
 #include <osgEarthSymbology/GeometrySymbol>
+#include <osgEarthSymbology/Text>
 
 namespace Godzi { namespace Features {
 
@@ -106,6 +107,7 @@ namespace Godzi { namespace Features {
         typedef KMLSymbolType<osgEarth::Symbology::MarkerSymbol>  KMLIconSymbol;
         typedef KMLSymbolType<osgEarth::Symbology::LineSymbol>  KMLLineSymbol;
         typedef KMLSymbolType<osgEarth::Symbology::PolygonSymbol>  KMLPolygonSymbol;
+        typedef osgEarth::Symbology::TextSymbol  KMLLabelSymbol;
 
 }}
 #endif

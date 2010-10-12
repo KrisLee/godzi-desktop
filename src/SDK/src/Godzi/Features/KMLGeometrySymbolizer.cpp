@@ -106,7 +106,7 @@ osg::Node* KMLGeometrySymbolizer::KMLGeometrySymbolizerOperator::operator()(cons
 {
 
     osg::ref_ptr<osg::Group> group = new osg::Group;
-
+//    group->getOrCreateStateSet()->setMode(GL_LIGHTING, false);
     for (int i = 0; i < geometryList.size(); ++i) {
         const osgEarth::Symbology::Geometry* geom = geometryList[i].get(); 
         osg::ref_ptr<osg::Geometry> osgGeom = new osg::Geometry;
