@@ -34,11 +34,9 @@
 #define DEFAULT_LABEL_SIZE 32
 using namespace Godzi::Features;
 
-KMLFeatureSource::KMLFeatureSource( const osgEarth::PluginOptions* options): osgEarth::Features::FeatureSource(options)
+KMLFeatureSource::KMLFeatureSource(const KMLFeatureSourceOptions& options): osgEarth::Features::FeatureSource(options), _options(options)
 {
-    _options = dynamic_cast<const KMLFeatureSourceOptions*>(options);
-    if ( !_options.valid() )
-        _options = new KMLFeatureSourceOptions( options );
+	//nop
 }
 
 
@@ -454,7 +452,7 @@ osgEarth::Features::Feature* KMLFeatureCursor::nextFeature()
 }
 
 
-osgEarth::Features::FeatureCursor* KMLFeatureSource::createFeatureCursor( const Symbology::Query& query )
+osgEarth::Features::FeatureCursor* KMLFeatureSource::createFeatureCursor( const osgEarth::Symbology::Query& query )
 {
     return new KMLFeatureCursor(_features);
 }
@@ -465,9 +463,9 @@ void KMLFeatureSource::initialize( const std::string& referenceURI )
     if (!_features.empty())
         return;
 
-    if ( _options->url().isSet() )
+    if ( _options.url().isSet() )
     {
-        _url = osgEarth::getFullPath( referenceURI, _options->url().value() );
+        _url = osgEarth::getFullPath( referenceURI, _options.url().value() );
     }
 
 

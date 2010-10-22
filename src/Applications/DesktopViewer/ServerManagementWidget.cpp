@@ -30,7 +30,7 @@
 #include <QIcon>
 #include <osgDB/FileNameUtils>
 #include <osgEarth/TileSource>
-#include <osgEarth/DriverOptions>
+#include <osgEarth/Config>
 #include <osgEarthDrivers/tms/TMSOptions>
 #include <osgEarthDrivers/wms/WMSOptions>
 #include <Godzi/Application>
@@ -312,8 +312,8 @@ void ServerManagementWidget::addTMSSource()
 		QString url = ofd.getUrl();
 		if (!url.isNull() && !url.isEmpty())
 		{
-			osgEarth::Drivers::TMSOptions* opt = new osgEarth::Drivers::TMSOptions();
-			opt->url() = url.toStdString();
+			osgEarth::Drivers::TMSOptions opt;
+			opt.url() = url.toStdString();
 			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::TMSSource(opt)));
 		}
 	}
@@ -329,22 +329,22 @@ void ServerManagementWidget::addWMSSource()
 		QString url = ofd.getUrl();
 		if (!url.isNull() && !url.isEmpty())
 		{
-			osgEarth::Drivers::WMSOptions* opt = new osgEarth::Drivers::WMSOptions();
+			osgEarth::Drivers::WMSOptions opt;
 			std::string urlStr = url.toStdString();
 
-			opt->url() = urlStr.substr(0, urlStr.find("?"));
+			opt.url() = urlStr.substr(0, urlStr.find("?"));
 
 			if (urlStr.find("?") != std::string::npos)
 				parseWMSOptions(urlStr, opt);
 
 			if (options->formatCheckBox->isChecked())
-				opt->format() = options->formatComboBox->currentText().toStdString();
+				opt.format() = options->formatComboBox->currentText().toStdString();
 
 			if (options->tileSizeCheckBox->isChecked())
-				opt->tileSize() = options->tileSizeComboBox->currentText().toInt();
+				opt.tileSize() = options->tileSizeComboBox->currentText().toInt();
 
 			if (options->srsCheckBox->isChecked())
-				opt->srs() = options->srsLineEdit->text().toStdString();
+				opt.srs() = options->srsLineEdit->text().toStdString();
 
 			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::WMSSource(opt, urlStr)));
 		}
@@ -360,26 +360,26 @@ void ServerManagementWidget::addKMLSource()
 		if (!url.isNull() && !url.isEmpty())
 		{
 
-      Godzi::Features::KMLFeatureSourceOptions* opt = new Godzi::Features::KMLFeatureSourceOptions();
-			opt->url() = url.toStdString();
+      Godzi::Features::KMLFeatureSourceOptions opt;
+			opt.url() = url.toStdString();
 			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::KMLSource(opt)));
 		}
 	}
 }
 
-void ServerManagementWidget::parseWMSOptions(const std::string& url, osgEarth::Drivers::WMSOptions* opt)
+void ServerManagementWidget::parseWMSOptions(const std::string& url, osgEarth::Drivers::WMSOptions& opt)
 {
 	std::string lower = osgDB::convertToLowerCase( url );
 
 	if (lower.find("layers=", 0) != std::string::npos)
-		opt->layers() = extractBetween(lower, "layers=", "&");
+		opt.layers() = extractBetween(lower, "layers=", "&");
 
 	if (lower.find("styles=", 0) != std::string::npos)
-		opt->style() = extractBetween(lower, "styles=", "&");
+		opt.style() = extractBetween(lower, "styles=", "&");
 
 	if (lower.find("srs=", 0) != std::string::npos)
-		opt->srs() = extractBetween(lower, "srs=", "&");
+		opt.srs() = extractBetween(lower, "srs=", "&");
 
 	if (lower.find("format=image/", 0) != std::string::npos)
-		opt->format() = extractBetween(lower, "format=image/", "&");
+		opt.format() = extractBetween(lower, "format=image/", "&");
 }

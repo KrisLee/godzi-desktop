@@ -60,7 +60,7 @@ void MapLayerCatalogWidget::onTreeItemChanged(QTreeWidgetItem* item, int col)
 	CustomObjectTreeItem* objItem = dynamic_cast<CustomObjectTreeItem*>(item);
 	if (objItem)
 	{
-		osgEarth::MapLayer* mapLayer = dynamic_cast<osgEarth::MapLayer*>(objItem->getObj());
+		osgEarth::ImageLayer* mapLayer = dynamic_cast<osgEarth::ImageLayer*>(objItem->getObj());
 		if (mapLayer)
 		{
 			mapLayer->setEnabled(objItem->checkState(0) == Qt::Checked);
@@ -92,21 +92,23 @@ void MapLayerCatalogWidget::update()
 
 	if (_app->getProject() && _app->getProject()->map())
 	{
-		osgEarth::MapLayerList imageLayers = _app->getProject()->map()->getImageMapLayers();
-		for (osgEarth::MapLayerList::const_iterator it = imageLayers.begin(); it != imageLayers.end(); ++it)
+		osgEarth::ImageLayerVector imageLayers;
+		_app->getProject()->map()->getImageLayers(imageLayers);
+		for (osgEarth::ImageLayerVector::const_iterator it = imageLayers.begin(); it != imageLayers.end(); ++it)
 		{
-			osgEarth::MapLayer* mapLayer = it->get();
+			osgEarth::ImageLayer* mapLayer = it->get();
 			if (mapLayer)
 			{
 				CustomObjectTreeItem* mapLayerItem = new CustomObjectTreeItem(mapLayer);
 				mapLayerItem->setText(0, QString::fromStdString(mapLayer->getName()));
-				mapLayerItem->setCheckState(0, mapLayer->enabled().isSet() && !mapLayer->enabled().get() ? Qt::Unchecked : Qt::Checked);
+				mapLayerItem->setCheckState(0, mapLayer->getEnabled() ? Qt::Checked : Qt::Unchecked);
 				imagesItem->addChild(mapLayerItem);
 			}
 		}
 
-		osgEarth::ModelLayerList modelLayers = _app->getProject()->map()->getModelLayers();
-		for (osgEarth::ModelLayerList::const_iterator it = modelLayers.begin(); it != modelLayers.end(); ++it)
+		osgEarth::ModelLayerVector modelLayers;
+		_app->getProject()->map()->getModelLayers(modelLayers);
+		for (osgEarth::ModelLayerVector::const_iterator it = modelLayers.begin(); it != modelLayers.end(); ++it)
 		{
 			osgEarth::ModelLayer* modelLayer = it->get();
 			if (modelLayer)

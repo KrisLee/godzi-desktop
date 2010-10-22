@@ -22,7 +22,7 @@
 #include <Godzi/Application>
 #include <Godzi/Project>
 #include <Godzi/DataSources>
-#include <osgEarth/DriverOptions>
+#include <osgEarth/Config>
 #include <osgEarthUtil/WMS>
 #include <osgDB/FileNameUtils>
 
@@ -63,7 +63,7 @@ void DataSourceManager::onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource> 
 	if (!source.valid())
 		return;
 
-	createMapLayer(source);
+	createImageLayer(source);
 	if (source->type().compare(Godzi::WMSSource::TYPE_WMS) == 0)
 			updateWMSCapabilities(source);
 	createModelLayer(source);
@@ -74,11 +74,11 @@ void DataSourceManager::onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource
 	if (!source.valid())
 		return;
 
-	std::map<std::string, osg::ref_ptr<osgEarth::MapLayer> >::iterator it = _layerMap.find(source->getLocation());
+	std::map<std::string, osg::ref_ptr<osgEarth::ImageLayer> >::iterator it = _layerMap.find(source->getLocation());
 
 	if (it != _layerMap.end())
 	{
-		_app->getProject()->map()->removeMapLayer(_layerMap[source->getLocation()]);
+		_app->getProject()->map()->removeImageLayer(_layerMap[source->getLocation()]);
 		_layerMap.erase(it);
 	}
 
@@ -95,9 +95,9 @@ void DataSourceManager::onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource> 
 	if (!source.valid() || position < 0)
 		return;
 
-	osgEarth::MapLayer* layer = _layerMap[source->getLocation()];
+	osgEarth::ImageLayer* layer = _layerMap[source->getLocation()];
 	if (layer)
-		_app->getProject()->map()->moveMapLayer(layer, position);
+		_app->getProject()->map()->moveImageLayer(layer, position);
 
 }
 
@@ -106,15 +106,15 @@ void DataSourceManager::onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource
 	if (!source.valid())
 		return;
 
-	std::map<std::string, osg::ref_ptr<osgEarth::MapLayer> >::iterator it = _layerMap.find(source->getLocation());
+	std::map<std::string, osg::ref_ptr<osgEarth::ImageLayer> >::iterator it = _layerMap.find(source->getLocation());
 
 	if (it != _layerMap.end())
 	{
-		_app->getProject()->map()->removeMapLayer(_layerMap[source->getLocation()]);
+		_app->getProject()->map()->removeImageLayer(_layerMap[source->getLocation()]);
 		_layerMap.erase(it);
 	}
 
-	createMapLayer(source);
+	createImageLayer(source);
 
 	std::map<std::string, osg::ref_ptr<osgEarth::ModelLayer> >::iterator itModel = _layerModel.find(source->getLocation());
 
@@ -127,15 +127,15 @@ void DataSourceManager::onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource
 	createModelLayer(source);
 }
 
-osgEarth::MapLayer* DataSourceManager::createMapLayer(osg::ref_ptr<const Godzi::DataSource> source)
+osgEarth::ImageLayer* DataSourceManager::createImageLayer(osg::ref_ptr<const Godzi::DataSource> source)
 {
-	osgEarth::MapLayer* mapLayer = source->createMapLayer();
+	osgEarth::ImageLayer* mapLayer = source->createImageLayer();
 	if (mapLayer)
 	{
 		_layerMap[source->getLocation()] = mapLayer;
 
 		if (source->visible())
-			_app->getProject()->map()->addMapLayer(mapLayer);
+			_app->getProject()->map()->addImageLayer(mapLayer);
 	}
 
 	return mapLayer;
@@ -169,21 +169,21 @@ void DataSourceManager::updateWMSCapabilities(osg::ref_ptr<const Godzi::DataSour
 		}
 		else
 		{
-			osgEarth::Drivers::WMSOptions* opt = (osgEarth::Drivers::WMSOptions*)wms->getOptions();
+			osgEarth::Drivers::WMSOptions opt = (osgEarth::Drivers::WMSOptions)wms->getOptions();
 
-			char sep = opt->url()->find_first_of('?') == std::string::npos? '?' : '&';
+			char sep = opt.url()->find_first_of('?') == std::string::npos? '?' : '&';
 
-			std::string capUrl = opt->capabilitiesUrl().value();
+			std::string capUrl = opt.capabilitiesUrl().value();
 			if (capUrl.empty())
 			{
-				capUrl = opt->url().value() + sep +
+				capUrl = opt.url().value() + sep +
 								 "SERVICE=WMS" +
-								 "&VERSION=" + opt->wmsVersion().value() +
+								 "&VERSION=" + opt.wmsVersion().value() +
 								 "&REQUEST=GetCapabilities";
 			}
 
 			//Try to read the WMS capabilities
-			osg::ref_ptr<osgEarthUtil::WMSCapabilities> capabilities = osgEarthUtil::WMSCapabilitiesReader::read(capUrl, opt);
+			osg::ref_ptr<osgEarthUtil::WMSCapabilities> capabilities = osgEarthUtil::WMSCapabilitiesReader::read(capUrl, 0L /*opt*/);
 			if (capabilities.valid())
 			{
 				//NOTE: Currently this flattens any layer heirarchy into a single list of layers

@@ -21,6 +21,7 @@
 #ifndef GODZI_FEATURES_SYMBOL
 #define GODZI_FEATURES_SYMBOL 1
 
+#include <osgEarth/Common>
 #include <osgEarthSymbology/MarkerSymbol>
 #include <osgEarthSymbology/GeometrySymbol>
 #include <osgEarthSymbology/Text>
@@ -58,26 +59,26 @@ namespace Godzi { namespace Features {
         class KMLSymbolType : public T
         {
         public:
-            optional<KMLExtrude>& extrude() { return _extrude; }
-            const optional<KMLExtrude>& extrude() const { return _extrude; }
+						osgEarth::optional<KMLExtrude>& extrude() { return _extrude; }
+            const osgEarth::optional<KMLExtrude>& extrude() const { return _extrude; }
 
-            optional<KMLAltitude>& altitude() { return _altitude; }
-            const optional<KMLAltitude>& altitude() const { return _altitude; }
+            osgEarth::optional<KMLAltitude>& altitude() { return _altitude; }
+            const osgEarth::optional<KMLAltitude>& altitude() const { return _altitude; }
 
         protected:
-            optional<KMLExtrude> _extrude;
-            optional<KMLAltitude> _altitude;
+            osgEarth::optional<KMLExtrude> _extrude;
+            osgEarth::optional<KMLAltitude> _altitude;
         };
 
         template <class T>
         class KMLAltitudeSymbol : public T
         {
         public:
-            optional<KMLAltitude>& altitude() { return _altitude; }
-            const optional<KMLAltitude>& altitude() const { return _altitude; }
+            osgEarth::optional<KMLAltitude>& altitude() { return _altitude; }
+            const osgEarth::optional<KMLAltitude>& altitude() const { return _altitude; }
 
         protected:
-            optional<KMLAltitude> _altitude;
+            osgEarth::optional<KMLAltitude> _altitude;
         };
 
         class KMLModelSymbol : public osgEarth::Symbology::MarkerSymbol

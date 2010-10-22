@@ -44,8 +44,8 @@ namespace Godzi { namespace Features {
         {
         public:
             void initialize( const std::string& referenceURI = "");
-            KMLFeatureSource(const osgEarth::PluginOptions* options);
-            osgEarth::Features::FeatureCursor* createFeatureCursor( const Symbology::Query& query );
+            KMLFeatureSource(const KMLFeatureSourceOptions& options);
+						osgEarth::Features::FeatureCursor* createFeatureCursor( const osgEarth::Symbology::Query& query );
             void setFeaturesList( const osgEarth::Features::FeatureList& list) { _features = list; }
             const osgEarth::Features::FeatureList& getFeaturesList() const { return _features; }
              bool hasEmbeddedStyles() const { return true; }
@@ -54,7 +54,7 @@ namespace Godzi { namespace Features {
 
             osgEarth::Features::FeatureProfile* createFeatureProfile();
 
-            osg::ref_ptr<const KMLFeatureSourceOptions> _options;
+            KMLFeatureSourceOptions _options;
             osgEarth::Features::FeatureList _features;
             std::string _url;
         };

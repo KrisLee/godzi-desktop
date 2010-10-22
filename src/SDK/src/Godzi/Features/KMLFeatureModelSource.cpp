@@ -208,7 +208,7 @@ public:
 };
 
 
-KMLFeatureModelSource::KMLFeatureModelSource( const PluginOptions* options ) : osgEarth::Features::FeatureModelSource( options )
+KMLFeatureModelSource::KMLFeatureModelSource( const osgEarth::DriverConfigOptions& options ) : osgEarth::Features::FeatureModelSource( options )
 {
 }
 

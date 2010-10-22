@@ -32,10 +32,10 @@ namespace Godzi { namespace Features {
         class GODZI_EXPORT KMLFeatureModelSource : public osgEarth::Features::FeatureModelSource
         {
         public:
-            KMLFeatureModelSource( const PluginOptions* options );
+						KMLFeatureModelSource( const osgEarth::DriverConfigOptions& options );
             //override
             void initialize( const std::string& referenceURI, const osgEarth::Map* map );
-            osg::Node* createNode( ProgressCallback* progress );
+						osg::Node* createNode( osgEarth::ProgressCallback* progress );
 
         };
 }}

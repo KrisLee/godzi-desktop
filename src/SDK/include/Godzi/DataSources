@@ -24,11 +24,12 @@
 #include <QObject>
 #include <Godzi/Common>
 #include <Godzi/Actions>
+#include <Godzi/Features/KMLFeatureSource>
 #include <Godzi/Features/KMLFeatureSourceOptions>
 #include <osgEarth/Config>
 #include <osgEarth/Revisioning>
 #include <osgEarth/TileSource>
-#include <osgEarth/MapLayer>
+#include <osgEarth/ImageLayer>
 #include <osgEarth/ModelLayer>
 #include <osgEarthDrivers/wms/WMSOptions>
 #include <osgEarthDrivers/tms/TMSOptions>
@@ -41,12 +42,12 @@ namespace Godzi
 	class GODZI_EXPORT DataSource : public osgEarth::Revisioned<osg::Referenced>
   {
   public:
-    virtual const osgEarth::DriverOptions* getOptions() const =0;
+    virtual const osgEarth::DriverConfigOptions& getOptions() const =0;
 		virtual const std::string& getLocation() const =0;
 		virtual const std::string& type() const =0;
 		
 		virtual Config toConfig() const { return Godzi::Config("DataSource"); }
-		virtual osgEarth::MapLayer* createMapLayer() const { return 0;}
+		virtual osgEarth::ImageLayer* createImageLayer() const { return 0;}
 		virtual osgEarth::ModelLayer* createModelLayer() const { return 0;}
 		virtual DataSource* clone() const =0;
 		
@@ -87,16 +88,16 @@ namespace Godzi
 	public:
 		static const std::string TYPE_WMS;
 	
-		WMSSource(osgEarth::Drivers::WMSOptions* opt, bool visible=true) : DataSource(visible), _opt(opt) {};
-		WMSSource(osgEarth::Drivers::WMSOptions* opt, const std::string& fullUrl, bool visible=true) : DataSource(visible), _opt(opt) { _fullUrl = fullUrl; };
+		WMSSource(const osgEarth::Drivers::WMSOptions& opt, bool visible=true);
+		WMSSource(const osgEarth::Drivers::WMSOptions& opt, const std::string& fullUrl, bool visible=true);
 		
-		const osgEarth::DriverOptions* getOptions() const;
+		const osgEarth::DriverConfigOptions& getOptions() const;
 		const std::string& getLocation() const;
 		const std::string& type() const { return TYPE_WMS; }
 		osgEarth::optional<std::string>& fullUrl() { return _fullUrl; }
 		
 		Config toConfig() const;
-		osgEarth::MapLayer* createMapLayer() const;
+		osgEarth::ImageLayer* createImageLayer() const;
 		DataSource* clone() const;
 		
 		const std::vector<std::string> getAvailableLayers() const;
@@ -109,7 +110,7 @@ namespace Godzi
     void setLayerDisplayNames(const std::map<std::string, std::string>& nameMap) { _displayNames = nameMap; }
 
 	private:
-		osg::ref_ptr<osgEarth::Drivers::WMSOptions> _opt;
+		osgEarth::Drivers::WMSOptions _opt;
 		osgEarth::optional<std::string> _fullUrl;
 		std::vector<std::string> _availableLayers;
 		std::map<std::string, std::string> _displayNames;
@@ -122,63 +123,48 @@ namespace Godzi
 	public:
 		static const std::string TYPE_TMS;
 		
-		TMSSource(osgEarth::Drivers::TMSOptions* opt, bool visible=true) : DataSource(visible), _opt(opt) {};
+		TMSSource(const osgEarth::Drivers::TMSOptions& opt, bool visible=true);
 		
-		const osgEarth::DriverOptions* getOptions() const;
+		const osgEarth::DriverConfigOptions& getOptions() const;
 		const std::string& getLocation() const;
 		const std::string& type() const { return TYPE_TMS; }
 		
 		Config toConfig() const;
-		osgEarth::MapLayer* createMapLayer() const;
+		osgEarth::ImageLayer* createImageLayer() const;
 		DataSource* clone() const;
 
 	private:
-		osg::ref_ptr<osgEarth::Drivers::TMSOptions> _opt;
+		osgEarth::Drivers::TMSOptions _opt;
 	};
 
-
+	/* --------------------------------------------- */
 
 	class GODZI_EXPORT KMLSource : public DataSource
 	{
 	public:
 		static const std::string TYPE_KML;
 		
-		KMLSource(Godzi::Features::KMLFeatureSourceOptions* opt, bool visible=true) : DataSource(visible), _opt(opt) {};
+		KMLSource(const Godzi::Features::KMLFeatureSourceOptions& opt, bool visible=true);
 		
-		const osgEarth::DriverOptions* getOptions() const;
+		const osgEarth::DriverConfigOptions& getOptions() const;
 		const std::string& getLocation() const;
 		const std::string& type() const { return TYPE_KML; }
+		
+		const std::vector<std::string> getAvailableLayers() const;
+		const std::vector<std::string> getActiveLayers() const;
+    void setActiveLayers(const std::vector<std::string>& layers);
 		
 		Config toConfig() const;
 		osgEarth::ModelLayer* createModelLayer() const;
 		DataSource* clone() const;
+		
+	protected:
+		KMLSource(const Godzi::Features::KMLFeatureSourceOptions& opt, bool visible, Godzi::Features::KMLFeatureSource* soruce);
 
 	private:
-		osg::ref_ptr<Godzi::Features::KMLFeatureSourceOptions> _opt;
+		Godzi::Features::KMLFeatureSourceOptions _opt;
+		osg::ref_ptr<Godzi::Features::KMLFeatureSource> _fs;
 	};
-	
-	/* --------------------------------------------- */
-	
-	/*
-	class GODZI_EXPORT DataSourceFactory : public osg::Referenced
-	{
-	public:
-		virtual bool canCreate(const Godzi::Config& config) =0;
-		virtual DataSource* createDataSource(const Godzi::Config& config) =0;
-	};
-	
-	class GODZI_EXPORT DataSourceFactoryManager
-	{
-	public:
-		virtual void addFactory(DataSourceFactory* factory) =0;
-		virtual DataSourceFactory* getFactory(const Godzi::Config& config) =0;
-
-  protected:
-      DataSourceFactoryManager();
-      static DataSourceFactoryManager* create();
-      friend class Godzi::Application;
-	};
-	*/
 	
 	/* --------------------------------------------- */
 

@@ -74,6 +74,11 @@ Project::Project( const std::string& defaultMap, const Godzi::Config& conf )
 			loadMap(defaultMap);
 
 		//TODO
+		osgEarth::ConfigSet sources = conf.children("DataSource");
+		for (osgEarth::ConfigSet::const_iterator it = sources.begin(); it != sources.end(); ++it)
+		{
+			//Factories???
+		}
 }
 
 Godzi::Config
@@ -190,7 +195,7 @@ OpenProjectAction::doAction( void* sender, Application* app )
     osg::ref_ptr<osgEarth::XmlDocument> doc = osgEarth::XmlDocument::load( input );
     if ( doc.valid() )
     {
-        Config conf = doc->toConfig().child( "godzi_project" );
+				Config conf = doc->getConfig().child( "godzi_project" );
 				Project* project = new Project( app->getDefaultMap(), conf );
         app->setProject( project, _location );
         return true;
