@@ -75,10 +75,10 @@ namespace Godzi
         
         void addDataSource(Godzi::DataSource* source);
         void removeDataSource(Godzi::DataSource* source);
-        bool updateDataSource(Godzi::DataSource* source, Godzi::DataSource** out_old = 0);
+        bool updateDataSource(Godzi::DataSource* source, bool dirtyProject=true, Godzi::DataSource** out_old = 0);
         void moveDataSource(Godzi::DataSource* source, int position);
         
-        const std::vector<osg::ref_ptr<Godzi::DataSource> >& sources() const { return _sources; }
+        const std::vector<osg::ref_ptr<Godzi::DataSource>>& sources() const { return _sources; }
 
         /** The map model */
         osgEarth::Map* map() { return _map.get(); }

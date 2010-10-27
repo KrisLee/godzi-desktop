@@ -10,6 +10,7 @@ set(PROJECT_FILES
     DataSourceManager.cpp
     WMSOptionsWidget.cpp
     MapLayerCatalogWidget.cpp
+    GodziQtApplication
 )
 
 # Qt resrouce files

@@ -74,6 +74,7 @@ class ServerManagementWidget : public QWidget
 		
 		void createActions();
 		void initUi();
+		void processDataSource(osg::ref_ptr<const Godzi::DataSource> source, int position = -1);
 		QTreeWidgetItem* createDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source);
 		void updateDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source, CustomDataSourceTreeItem* item);
 		int findDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source, CustomDataSourceTreeItem** out_item = 0);

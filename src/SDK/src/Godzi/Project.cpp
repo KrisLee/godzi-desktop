@@ -73,11 +73,22 @@ Project::Project( const std::string& defaultMap, const Godzi::Config& conf )
 		else
 			loadMap(defaultMap);
 
-		//TODO
-		osgEarth::ConfigSet sources = conf.children("DataSource");
+		osgEarth::ConfigSet sources = conf.children("datasource");
+
 		for (osgEarth::ConfigSet::const_iterator it = sources.begin(); it != sources.end(); ++it)
 		{
-			//Factories???
+			DataSourceFactory* factory = Application::dataSourceFactoryManager->getFactory(*it);
+			if (factory)
+			{
+				DataSource* source = factory->createDataSource(*it);
+				if (source)
+					_sources.push_back(source);
+			}
+			else
+			{
+				osgEarth::optional<std::string> type;
+				printf("[Godzi::Project] Skipping data source of unknown type \"%s\"\n", (*it).getIfSet("type", type) ? type.get().c_str() : "");
+			}
 		}
 }
 
@@ -96,6 +107,9 @@ Project::toConfig() const
 void
 Project::addDataSource(Godzi::DataSource* source)
 {
+	if (!source)
+		return;
+
 	_sources.push_back(source);
 
 	dirty();
@@ -112,7 +126,7 @@ Project::removeDataSource(Godzi::DataSource* source)
 }
 
 bool
-Project::updateDataSource(Godzi::DataSource* source, Godzi::DataSource** out_old)
+Project::updateDataSource(Godzi::DataSource* source, bool dirtyProject, Godzi::DataSource** out_old)
 {
 	for (int i=0; i < _sources.size(); i++)
 	{
@@ -123,7 +137,8 @@ Project::updateDataSource(Godzi::DataSource* source, Godzi::DataSource** out_old
 
 			_sources[i] = source;
 
-			dirty();
+			if (dirtyProject)
+				dirty();
 			emit dataSourceUpdated(source);
 
 			return true;
@@ -174,7 +189,9 @@ Project::loadMap( const std::string& map )
 		}
 
 		osgEarth::MapNode* mapNode = Godzi::readEarthFile(map);
-		_map = mapNode->getMap();
+
+		if (mapNode)
+			_map = mapNode->getMap();
 }
 
 //---------------------------------------------------------------------------

@@ -145,12 +145,16 @@ void ServerManagementWidget::removeSource()
 void ServerManagementWidget::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject)
 {
 	Godzi::Project* p = _app->getProject();
+
 	if (p)
 	{
 		connect(p, SIGNAL(dataSourceAdded(osg::ref_ptr<const Godzi::DataSource>, int)), this, SLOT(onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource>, int)));
 		connect(p, SIGNAL(dataSourceUpdated(osg::ref_ptr<const Godzi::DataSource>)), this, SLOT(onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource>)));
 		connect(p, SIGNAL(dataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)), this, SLOT(onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)));
 		connect(p, SIGNAL(dataSourceMoved(osg::ref_ptr<const Godzi::DataSource>, int)), this, SLOT(onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource>, int)));
+
+		for (std::vector<osg::ref_ptr<Godzi::DataSource>>::const_iterator it = p->sources().begin(); it != p->sources().end(); ++it)
+			processDataSource(*it);
 	}
 
 	//TODO: disconnect from old project signal???
@@ -158,15 +162,7 @@ void ServerManagementWidget::onProjectChanged(osg::ref_ptr<Godzi::Project> oldPr
 
 void ServerManagementWidget::onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource> source, int position)
 {
-	if (!source.valid())
-		return;
-
-	QTreeWidgetItem* item = createDataSourceTreeItem(source);
-
-	if (position >= _sourceTree->topLevelItemCount())
-		_sourceTree->addTopLevelItem(item);
-	else
-		_sourceTree->insertTopLevelItem(position, item);
+	processDataSource(source, position);
 }
 
 void ServerManagementWidget::onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource> source)
@@ -200,6 +196,19 @@ void ServerManagementWidget::onDataSourceMoved(osg::ref_ptr<const Godzi::DataSou
 		else
 			_sourceTree->insertTopLevelItem(position, item);
 	}
+}
+
+void ServerManagementWidget::processDataSource(osg::ref_ptr<const Godzi::DataSource> source, int position)
+{
+	if (!source.valid())
+		return;
+
+	QTreeWidgetItem* item = createDataSourceTreeItem(source);
+
+	if (position < 0 || position >= _sourceTree->topLevelItemCount())
+		_sourceTree->addTopLevelItem(item);
+	else
+		_sourceTree->insertTopLevelItem(position, item);
 }
 
 QTreeWidgetItem* ServerManagementWidget::createDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source)

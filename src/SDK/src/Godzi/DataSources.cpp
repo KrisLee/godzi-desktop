@@ -33,6 +33,24 @@ using namespace Godzi;
 
 const std::vector<std::string> DataSource::NO_LAYERS = std::vector<std::string>();
 
+DataSource::DataSource(const Config &conf)
+: _error(false), _errorMsg("")
+{
+	conf.getIfSet("name", _name);
+	_visible = osgEarth::as<bool>(conf.value<std::string>("visible", "true"), true);
+}
+
+Config DataSource::toConfig() const
+{
+	Godzi::Config conf = Godzi::Config("DataSource");
+	conf.addIfSet("name", _name);
+	conf.add("visible", osgEarth::toString<bool>(_visible));
+
+	//conf.add("options", getOptions().getConfig());
+
+	return conf;
+}
+
 /* --------------------------------------------- */
 
 const std::string WMSSource::TYPE_WMS = "WMS";
@@ -53,12 +71,17 @@ WMSSource::WMSSource(const osgEarth::Drivers::WMSOptions& opt, const std::string
 	_fullUrl = fullUrl;
 }
 
+WMSSource::WMSSource(const Config& conf)
+: DataSource(conf)
+{
+	_opt = osgEarth::Drivers::WMSOptions(osgEarth::TileSourceOptions(osgEarth::ConfigOptions(conf.child("options"))));
+	conf.getIfSet("fullUrl", _fullUrl);
+}
+
 Godzi::Config WMSSource::toConfig() const
 {
 	Godzi::Config conf = DataSource::toConfig();
 	conf.add("type", TYPE_WMS);
-	conf.addIfSet("name", _name);
-	conf.add("visible", osgEarth::toString<bool>(_visible));
 	conf.add("options", _opt.getConfig());
 	conf.addIfSet("fullUrl", _fullUrl);
 
@@ -182,12 +205,16 @@ TMSSource::TMSSource(const osgEarth::Drivers::TMSOptions& opt, bool visible)
 	_opt = osgEarth::Drivers::TMSOptions((osgEarth::TileSourceOptions)config);
 }
 
+TMSSource::TMSSource(const Config& conf)
+: DataSource(conf)
+{
+	_opt = osgEarth::Drivers::TMSOptions(osgEarth::TileSourceOptions(osgEarth::ConfigOptions(conf.child("options"))));
+}
+
 Godzi::Config TMSSource::toConfig() const
 {
 	Godzi::Config conf = DataSource::toConfig();
 	conf.add("type", TYPE_TMS);
-	conf.addIfSet("name", _name);
-	conf.add("visible", osgEarth::toString<bool>(_visible));
 	conf.add("options", _opt.getConfig());
 
   return conf;
@@ -229,38 +256,6 @@ DataSource* TMSSource::clone() const
 
 /* --------------------------------------------- */
 
-//bool TMSSourceFactory::canCreate(const Godzi::Config& config)
-//{
-//	osgEarth::optional<std::string> type;
-//	if(config.key().compare("DataSource") == 0 && config.getIfSet<std::string>("type", type) && type.get().compare(TMSSource::TYPE_TMS) == 0)
-//		return true;
-//
-//	return false;
-//}
-//
-//DataSource* TMSSourceFactory::createDataSource(const Godzi::Config& config)
-//{
-//	if (!canCreate(config))
-//		return 0;
-//
-//	osgEarth::Drivers::TMSOptions *opt = new osgEarth::Drivers::TMSOptions(new osgEarth::PluginOptions(config));
-//	if (opt)
-//	{
-//		TMSSource* source = new TMSSource(opt);
-//
-//		osgEarth::optional<std::string> name;
-//		if(config.getIfSet("name", name))
-//			source->name() = name.get();
-//
-//		osgEarth::optional<std::string> visible;
-//		if (config.getIfSet("visible", visible))
-//			source->setVisible(osgEarth::as<bool>(visible, true));
-//	}
-//	return opt;
-//}
-
-/* --------------------------------------------- */
-
 KMLSource::KMLSource(const Godzi::Features::KMLFeatureSourceOptions& opt, bool visible)
 : DataSource(visible)
 {
@@ -284,14 +279,18 @@ KMLSource::KMLSource(const Godzi::Features::KMLFeatureSourceOptions& opt, bool v
 	}
 }
 
+KMLSource::KMLSource(const Config& conf)
+: DataSource(conf)
+{
+	_opt = Godzi::Features::KMLFeatureSourceOptions(osgEarth::DriverConfigOptions(osgEarth::ConfigOptions(conf.child("options"))));
+}
+
 const std::string KMLSource::TYPE_KML = "KML";
 
 Godzi::Config KMLSource::toConfig() const
 {
 	Godzi::Config conf = DataSource::toConfig();
 	conf.add("type", TYPE_KML);
-	conf.addIfSet("name", _name);
-	conf.add("visible", osgEarth::toString<bool>(_visible));
 	conf.add("options", _opt.getConfig());
 
   return conf;
@@ -360,13 +359,123 @@ DataSource* KMLSource::clone() const
 
 /* --------------------------------------------- */
 
+class DataSourceFactoryManagerImpl : public DataSourceFactoryManager //no export
+{
+public:
+	DataSourceFactoryManagerImpl();
+
+	void addFactory(DataSourceFactory* factory);
+	DataSourceFactory* getFactory(const Godzi::Config& config);
+
+private:
+	std::list<osg::ref_ptr<DataSourceFactory>> _factories;
+};
+
+DataSourceFactoryManagerImpl::DataSourceFactoryManagerImpl()
+{
+	//nop
+}
+
+void DataSourceFactoryManagerImpl::addFactory(DataSourceFactory *factory)
+{
+	_factories.push_back(factory);
+}
+
+DataSourceFactory* DataSourceFactoryManagerImpl::getFactory(const Godzi::Config& config)
+{
+	DataSourceFactory* found=0;
+	for (std::list<osg::ref_ptr<DataSourceFactory>>::iterator i = _factories.begin(); i != _factories.end(); ++i)
+	{
+		if (i->get()->canCreate(config))
+		{
+			found = i->get();
+			break;
+		}
+	}
+
+	return found;
+}
+
+/* --------------------------------------------- */
+
+DataSourceFactoryManager::DataSourceFactoryManager()
+{
+	//nop
+}
+
+DataSourceFactoryManager*
+DataSourceFactoryManager::create()
+{
+	return new DataSourceFactoryManagerImpl();
+}
+
+/* --------------------------------------------- */
+
+//WMS
+bool WMSSourceFactory::canCreate(const Godzi::Config &config)
+{
+	osgEarth::optional<std::string> type;
+	if (config.key().compare("datasource") == 0 && config.getIfSet<std::string>("type", type) && type.get() == WMSSource::TYPE_WMS)
+			return true;
+
+	return false;
+}
+
+DataSource* WMSSourceFactory::createDataSource(const Godzi::Config& config)
+{
+	if (!canCreate(config))
+		return 0L;
+
+	return new WMSSource(config);
+}
+
+//TMS
+bool TMSSourceFactory::canCreate(const Godzi::Config &config)
+{
+	osgEarth::optional<std::string> type;
+	if (config.key().compare("datasource") == 0 && config.getIfSet<std::string>("type", type) && type.get() == TMSSource::TYPE_TMS)
+			return true;
+
+	return false;
+}
+
+DataSource* TMSSourceFactory::createDataSource(const Godzi::Config& config)
+{
+	if (!canCreate(config))
+		return 0L;
+
+	return new TMSSource(config);
+}
+
+//KML
+bool KMLSourceFactory::canCreate(const Godzi::Config &config)
+{
+	osgEarth::optional<std::string> type;
+	if (config.key().compare("datasource") == 0 && config.getIfSet<std::string>("type", type) && type.get() == KMLSource::TYPE_KML)
+			return true;
+
+	return false;
+}
+
+DataSource* KMLSourceFactory::createDataSource(const Godzi::Config& config)
+{
+	if (!canCreate(config))
+		return 0L;
+
+	return new KMLSource(config);
+}
+
+/* --------------------------------------------- */
+
 bool AddorUpdateDataSourceAction::doAction(void *sender, Application *app)
 {
 	if (!_source)
 		return false;
 
+	_wasDirty = app->isProjectDirty();
+
 	Godzi::DataSource* old;
-	_wasUpdate = app->getProject()->updateDataSource(_source, &old);
+	_wasUpdate = app->getProject()->updateDataSource(_source, _dirtyProject, &old);
 
 	if (_wasUpdate)
 		_oldSource = old;
@@ -385,6 +494,9 @@ bool AddorUpdateDataSourceAction::undoAction(void *sender, Application *app)
 		app->getProject()->updateDataSource(_oldSource);
 	else
 		app->getProject()->removeDataSource(_source);
+
+	if (!_wasDirty)
+		app->setProjectClean();
 
 	return true;
 }

@@ -53,6 +53,11 @@ void DataSourceManager::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject
 		connect(newProject.get(), SIGNAL(dataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)), this, SLOT(onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)));
 		connect(newProject.get(), SIGNAL(dataSourceMoved(osg::ref_ptr<const Godzi::DataSource>, int)), this, SLOT(onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource>, int)));
 		connect(newProject.get(), SIGNAL(dataSourceUpdated(osg::ref_ptr<const Godzi::DataSource>)), this, SLOT(onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource>)));
+
+		for (std::vector<osg::ref_ptr<Godzi::DataSource>>::const_iterator it = newProject->sources().begin(); it != newProject->sources().end(); ++it)
+		{
+			processDataSource(*it);
+		}
 	}
 
 	//TODO: disconnect from old project signal???
@@ -60,13 +65,7 @@ void DataSourceManager::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject
 
 void DataSourceManager::onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource> source, int position)
 {
-	if (!source.valid())
-		return;
-
-	createImageLayer(source);
-	if (source->type().compare(Godzi::WMSSource::TYPE_WMS) == 0)
-			updateWMSCapabilities(source);
-	createModelLayer(source);
+		processDataSource(source);
 }
 
 void DataSourceManager::onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source)
@@ -124,6 +123,17 @@ void DataSourceManager::onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource
       _layerModel.erase(itModel);
 	}
 
+	createModelLayer(source);
+}
+
+void DataSourceManager::processDataSource(osg::ref_ptr<const Godzi::DataSource> source)
+{
+	if (!source.valid())
+		return;
+
+	createImageLayer(source);
+	if (source->type().compare(Godzi::WMSSource::TYPE_WMS) == 0)
+			updateWMSCapabilities(source);
 	createModelLayer(source);
 }
 
@@ -201,7 +211,7 @@ void DataSourceManager::updateWMSCapabilities(osg::ref_ptr<const Godzi::DataSour
 			}
 		}
 
-		_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(updated));
+		_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(updated, false));
 	}
 }
 

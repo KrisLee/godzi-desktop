@@ -22,10 +22,16 @@
 
 using namespace Godzi;
 
+DataSourceFactoryManager* const Application::dataSourceFactoryManager = DataSourceFactoryManager::create();
+
 Application::Application( const std::string& defaultMap )
 {
     _defaultMap = defaultMap;
 		_actionMgr = ActionManager::create(this);
+
+		Application::dataSourceFactoryManager->addFactory(new WMSSourceFactory());
+		Application::dataSourceFactoryManager->addFactory(new TMSSourceFactory());
+		Application::dataSourceFactoryManager->addFactory(new KMLSourceFactory());
 }
 
 void

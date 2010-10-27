@@ -18,31 +18,23 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#include <QtGui/QApplication>
-#include <Godzi/Application>
-#include <Godzi/Project>
-#include "GodziQtApplication"
-#include "DataSourceManager"
-#include "DesktopMainWindow"
 
-#define EARTH_FILE "http://demo.pelicanmapping.com/rmweb/maps/godzi.earth"
+#ifndef GODZI_QT_APPLICATION
+#define GODZI_QT_APPLICATION 1
 
-int
-main( int argc, char** argv )
+#include <QApplication>
+#include <QEvent>
+
+class GodziQtApplication : public QApplication
 {
-    //QApplication qtApp( argc, argv );
-		GodziQtApplication qtApp(argc, argv);
+public:
+	GodziQtApplication(int& argc, char** argv) : QApplication(argc, argv) {}
+	virtual bool notify(QObject* receiver, QEvent* e )
+	{
+		try { return QApplication::notify(receiver, e); }
+		catch(std::exception& e) { printf("EXCEPTION: %s", e.what()); return false; }
+		catch(...) { printf("UNKNOWN EXCEPTION!"); abort(); }
+	}
+};
 
-		osg::ref_ptr<Godzi::Application> app = new Godzi::Application(EARTH_FILE);
-
-		DesktopMainWindow top(app);
-    top.resize( 800, 600 );
-    top.show();
-
-		DataSourceManager manager(app);
-
-		app->actionManager()->doAction(NULL, new Godzi::NewProjectAction());
-
-    qtApp.connect( &qtApp, SIGNAL(lastWindowClosed()), &qtApp, SLOT(quit()) );
-    return qtApp.exec();
-}
+#endif // GODZI_QT_APPLICATION

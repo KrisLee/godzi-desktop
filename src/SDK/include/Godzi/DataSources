@@ -46,7 +46,7 @@ namespace Godzi
 		virtual const std::string& getLocation() const =0;
 		virtual const std::string& type() const =0;
 		
-		virtual Config toConfig() const { return Godzi::Config("DataSource"); }
+		virtual Config toConfig() const;
 		virtual osgEarth::ImageLayer* createImageLayer() const { return 0;}
 		virtual osgEarth::ModelLayer* createModelLayer() const { return 0;}
 		virtual DataSource* clone() const =0;
@@ -73,6 +73,7 @@ namespace Godzi
 
 	protected:
 		DataSource(bool visible) : _visible(visible), _error(false), _errorMsg("") {};
+		DataSource(const Config& conf);
 		osgEarth::optional<std::string> _name;
 		bool _visible;
 		bool _error;
@@ -90,6 +91,7 @@ namespace Godzi
 	
 		WMSSource(const osgEarth::Drivers::WMSOptions& opt, bool visible=true);
 		WMSSource(const osgEarth::Drivers::WMSOptions& opt, const std::string& fullUrl, bool visible=true);
+		WMSSource(const Config& conf);
 		
 		const osgEarth::DriverConfigOptions& getOptions() const;
 		const std::string& getLocation() const;
@@ -124,6 +126,7 @@ namespace Godzi
 		static const std::string TYPE_TMS;
 		
 		TMSSource(const osgEarth::Drivers::TMSOptions& opt, bool visible=true);
+		TMSSource(const Config& conf);
 		
 		const osgEarth::DriverConfigOptions& getOptions() const;
 		const std::string& getLocation() const;
@@ -145,6 +148,7 @@ namespace Godzi
 		static const std::string TYPE_KML;
 		
 		KMLSource(const Godzi::Features::KMLFeatureSourceOptions& opt, bool visible=true);
+		KMLSource(const Config& conf);
 		
 		const osgEarth::DriverConfigOptions& getOptions() const;
 		const std::string& getLocation() const;
@@ -167,11 +171,55 @@ namespace Godzi
 	};
 	
 	/* --------------------------------------------- */
+	
+	class GODZI_EXPORT DataSourceFactory : public osg::Referenced
+	{
+	public:
+		virtual bool canCreate(const Godzi::Config& config) =0;
+		virtual DataSource* createDataSource(const Godzi::Config& config) =0;
+	};
+	
+	class GODZI_EXPORT DataSourceFactoryManager
+	{
+	public:
+		virtual void addFactory(DataSourceFactory* factory) =0;
+		virtual DataSourceFactory* getFactory(const Godzi::Config& config) =0;
+
+  protected:
+      DataSourceFactoryManager();
+      static DataSourceFactoryManager* create();
+      friend class Godzi::Application;
+	};
+	
+	/* --------------------------------------------- */
+	
+	class GODZI_EXPORT WMSSourceFactory : public DataSourceFactory
+	{
+	public:
+		bool canCreate(const Godzi::Config& config);
+		DataSource* createDataSource(const Godzi::Config& config);
+	};
+
+	class GODZI_EXPORT TMSSourceFactory : public DataSourceFactory
+	{
+	public:
+		bool canCreate(const Godzi::Config& config);
+		DataSource* createDataSource(const Godzi::Config& config);
+	};
+
+	class GODZI_EXPORT KMLSourceFactory : public DataSourceFactory
+	{
+	public:
+		bool canCreate(const Godzi::Config& config);
+		DataSource* createDataSource(const Godzi::Config& config);
+	};
+	
+	/* --------------------------------------------- */
 
 	class GODZI_EXPORT AddorUpdateDataSourceAction : public ReversibleAction
 	{
 	public:
-		AddorUpdateDataSourceAction(osg::ref_ptr<DataSource> source) : _source(source), _wasUpdate(false) { }
+		AddorUpdateDataSourceAction(osg::ref_ptr<DataSource> source, bool dirtyProject=true) : _source(source), _dirtyProject(dirtyProject), _wasUpdate(false) { }
 
 		bool doAction( void* sender, Application* app );
 		bool undoAction( void* sender, Application* app );
@@ -181,7 +229,9 @@ namespace Godzi
 	protected:
 		osg::ref_ptr<DataSource> _source;
 		osg::ref_ptr<DataSource> _oldSource;
+		bool _dirtyProject;
 		bool _wasUpdate;
+		bool _wasDirty;
 	};
 	
 	class GODZI_EXPORT RemoveDataSourceAction : public ReversibleAction

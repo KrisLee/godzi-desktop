@@ -38,9 +38,11 @@ namespace Godzi
     public:
         Application( const std::string& defaultMap ="" );
 
+				static DataSourceFactoryManager* const dataSourceFactoryManager;
+
         /** The global action manager */
         ActionManager* actionManager() { return _actionMgr; }
-                
+
     public:
         /** The current active project */
         Project* getProject() { return _project.get(); }
