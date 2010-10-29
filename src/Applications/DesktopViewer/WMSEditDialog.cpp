@@ -156,7 +156,9 @@ void WMSEditDialog::updateSourceOptions(bool urlChanged)
 	}
 
 	_source->setOptions(opt);
-	_source->setActiveLayers(activeLayers);
+
+	if (!opt.layers().isSet())
+		_source->setActiveLayers(activeLayers);
 }
 
 void WMSEditDialog::parseWMSOptions(const std::string& url, osgEarth::Drivers::WMSOptions& opt)
@@ -201,7 +203,14 @@ void WMSEditDialog::doQuery()
 		std::vector<std::string> layerList;
 		std::map<std::string, std::string> displayNames;
 		getLayerNames(capabilities->getLayers(), layerList, displayNames);
-		
+
+		// If layers are specified in the url, use only those specified as the available layers
+		std::string lower = osgDB::convertToLowerCase(url);
+		if (lower.find("layers=", 0) != std::string::npos && _source->getActiveLayers().size() > 0)
+		{
+			layerList = _source->getActiveLayers();
+		}
+
 		_source->setAvailableLayers(layerList);
 		_source->setLayerDisplayNames(displayNames);
 
