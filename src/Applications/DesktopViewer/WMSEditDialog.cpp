@@ -143,9 +143,6 @@ void WMSEditDialog::updateSourceOptions(bool urlChanged)
 		if (_ui.formatCheckBox->isChecked())
 			opt.format() = _ui.formatComboBox->currentText().toStdString();
 
-		//if (_ui->tileSizeCheckBox->isChecked())
-		//	opt.tileSize() = _ui->tileSizeComboBox->currentText().toInt();
-
 		//if (_ui->srsCheckBox->isChecked())
 		//	opt.srs() = _ui->srsLineEdit->text().toStdString();
 

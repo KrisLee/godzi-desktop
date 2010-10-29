@@ -75,23 +75,6 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QCheckBox" name="tileSizeCheckBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>Tile Size</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QComboBox" name="tileSizeComboBox">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
        <widget class="QCheckBox" name="srsCheckBox">
         <property name="enabled">
          <bool>false</bool>
@@ -101,7 +84,7 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1" colspan="2">
+      <item row="1" column="1" colspan="2">
        <widget class="QLineEdit" name="srsLineEdit">
         <property name="enabled">
          <bool>false</bool>
