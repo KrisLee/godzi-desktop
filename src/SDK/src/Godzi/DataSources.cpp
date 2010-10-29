@@ -22,6 +22,7 @@
 #include <osgEarth/Config>
 #include <osgEarthDrivers/wms/WMSOptions>
 #include <osgEarthFeatures/FeatureModelSource>
+#include <Godzi/Common>
 #include <Godzi/Application>
 #include <Godzi/Project>
 #include <Godzi/DataSources>
@@ -58,16 +59,13 @@ const std::string WMSSource::TYPE_WMS = "WMS";
 WMSSource::WMSSource(const osgEarth::Drivers::WMSOptions& opt, bool visible)
 : DataSource(visible)
 {
-	osgEarth::Config config = opt.getConfig();
-	_opt = osgEarth::Drivers::WMSOptions((osgEarth::TileSourceOptions)config);
+	setOptions(opt);
 }
 
 WMSSource::WMSSource(const osgEarth::Drivers::WMSOptions& opt, const std::string& fullUrl, bool visible)
 : DataSource(visible)
 {
-	osgEarth::Config config = opt.getConfig();
-	_opt = osgEarth::Drivers::WMSOptions((osgEarth::TileSourceOptions)config);
-
+	setOptions(opt);
 	_fullUrl = fullUrl;
 }
 
@@ -98,6 +96,12 @@ const osgEarth::DriverConfigOptions& WMSSource::getOptions() const
 	return _opt;
 }
 
+void WMSSource::setOptions(const osgEarth::Drivers::WMSOptions& opt)
+{
+	osgEarth::Config config = opt.getConfig();
+	_opt = osgEarth::Drivers::WMSOptions((osgEarth::TileSourceOptions)config);
+}
+
 osgEarth::ImageLayer* WMSSource::createImageLayer() const
 {
 	if (getActiveLayers().size() > 0)
@@ -118,6 +122,7 @@ DataSource* WMSSource::clone() const
 	osgEarth::Drivers::WMSOptions cOpt;
 	cOpt.url() = _opt.url();
 	cOpt.layers() = _opt.layers();
+	cOpt.format() = _opt.format();
 
 	//WMSSource* c = new WMSSource(new osgEarth::Drivers::WMSOptions(_opt), _visible);
 	WMSSource* c = new WMSSource(cOpt, _visible);
@@ -147,25 +152,10 @@ void WMSSource::setAvailableLayers(const std::vector<std::string>& layers)
 
 const std::vector<std::string> WMSSource::getActiveLayers() const
 {
-	std::vector<std::string> layers;
-
 	if (_opt.layers().isSet())
-	{
-		char* cstr = new char [_opt.layers().get().size() + 1];
-		strcpy (cstr, _opt.layers().get().c_str());
+		return Godzi::csvToVector(_opt.layers().get());
 
-		char* p = strtok(cstr, ",");
-
-		while (p != NULL)
-		{
-			layers.push_back(std::string(p));
-			p = strtok(NULL,",");
-		}
-
-		delete[] cstr;
-	}
-
-	return layers;
+	return std::vector<std::string>();
 }
 
 void WMSSource::setActiveLayers(const std::vector<std::string>& layers)
@@ -283,6 +273,9 @@ KMLSource::KMLSource(const Config& conf)
 : DataSource(conf)
 {
 	_opt = Godzi::Features::KMLFeatureSourceOptions(osgEarth::DriverConfigOptions(osgEarth::ConfigOptions(conf.child("options"))));
+
+	//_fs = new Godzi::Features::KMLFeatureSource(_opt);
+	//_fs->initialize();
 }
 
 const std::string KMLSource::TYPE_KML = "KML";
@@ -300,6 +293,7 @@ const std::string& KMLSource::getLocation() const
 {
 	return _opt.url().get();
 }
+
 
 const osgEarth::DriverConfigOptions& KMLSource::getOptions() const
 {

@@ -18,6 +18,8 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
+
+#include <Godzi/Common>
 #include <Godzi/Project>
 #include <Godzi/Application>
 #include <Godzi/Earth>
@@ -41,14 +43,19 @@ ProjectProperties::ProjectProperties( const Godzi::Config& conf )
 {
     conf.getIfSet( "name", _name );
 		conf.getIfSet( "map", _map);
+		conf.getIfSet( "visibleImageLayers", _visibleImageLayers );
+		conf.getIfSet( "visisbleModelLayers", _visibleModelLayers );
 }
 
 Godzi::Config
 ProjectProperties::toConfig() const
 {
-	Godzi::Config conf;
+		Godzi::Config conf;
     conf.addIfSet( "name", _name );
 		conf.addIfSet( "map", _map );
+		conf.addIfSet( "visibleImageLayers", _visibleImageLayers );
+		conf.addIfSet( "visibleModelLayers", _visibleModelLayers );
+
     return conf;
 }
 
@@ -93,9 +100,11 @@ Project::Project( const std::string& defaultMap, const Godzi::Config& conf )
 }
 
 Godzi::Config
-Project::toConfig() const
+Project::toConfig()
 {
 	  Godzi::Config conf( "godzi_project" );
+
+		updateVisibleLayers();
 
     conf.add( "properties", _props.toConfig() );
 		for (int i=0; i < _sources.size(); i++)
@@ -119,7 +128,14 @@ Project::addDataSource(Godzi::DataSource* source)
 void
 Project::removeDataSource(Godzi::DataSource* source)
 {
-	_sources.erase(remove(_sources.begin(), _sources.end(), source), _sources.end());
+	std::vector<osg::ref_ptr<Godzi::DataSource>>::iterator pos;
+	for (pos = _sources.begin(); pos != _sources.end(); ++pos)
+	{
+		if ((*pos)->getLocation() == source->getLocation())
+			break;
+	}
+	if (pos != _sources.end())
+		_sources.erase(pos);
 
 	dirty();
 	emit dataSourceRemoved(source);
@@ -191,7 +207,46 @@ Project::loadMap( const std::string& map )
 		osgEarth::MapNode* mapNode = Godzi::readEarthFile(map);
 
 		if (mapNode)
+		{
 			_map = mapNode->getMap();
+
+			if (_props.visibleImageLayers().isSet())
+			{
+				std::vector<std::string> visibleLayers = Godzi::csvToVector(_props.visibleImageLayers().get());
+
+				osgEarth::ImageLayerVector imageLayers;
+				_map->getImageLayers(imageLayers);
+				for (osgEarth::ImageLayerVector::iterator it = imageLayers.begin(); it != imageLayers.end(); ++it)
+				{
+					(*it)->setEnabled(std::find(visibleLayers.begin(), visibleLayers.end(), (*it)->getName()) != visibleLayers.end());
+				}
+			}
+		}
+}
+
+void
+Project::updateVisibleLayers()
+{
+	std::string visibleImages = "";
+	osgEarth::ImageLayerVector imageLayers;
+	_map->getImageLayers(imageLayers);
+	for (osgEarth::ImageLayerVector::const_iterator it = imageLayers.begin(); it != imageLayers.end(); ++it)
+		if ((*it)->getEnabled())
+			visibleImages += visibleImages.length() == 0 ? (*it)->getName() : "," + (*it)->getName();
+
+	if (visibleImages.length() > 0)
+		_props.visibleImageLayers() = visibleImages;
+
+
+	std::string visibleModels;
+	osgEarth::ModelLayerVector modelLayers;
+	_map->getModelLayers(modelLayers);
+	for (osgEarth::ModelLayerVector::const_iterator it = modelLayers.begin(); it != modelLayers.end(); ++it)
+		if ((*it)->getEnabled())
+			visibleModels += visibleModels.length() == 0 ? (*it)->getName() : "," + (*it)->getName();
+
+	if (visibleModels.length() > 0)
+		_props.visibleModelLayers() = visibleModels;
 }
 
 //---------------------------------------------------------------------------

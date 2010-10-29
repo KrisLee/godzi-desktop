@@ -38,22 +38,8 @@
 #include <Godzi/DataSources>
 #include "OpenFileDialog"
 #include "WMSOptionsWidget"
+#include "WMSEditDialog"
 #include "ServerManagementWidget"
-
-std::string extractBetween(const std::string& str, const std::string &lhs, const std::string &rhs)
-{
-    std::string result;
-		std::string::size_type start = str.find(lhs);
-		if (start != std::string::npos)
-    {
-        start += lhs.length();
-        std::string::size_type count = str.size() - start;
-        std::string::size_type end = str.find(rhs, start); 
-        if (end != std::string::npos) count = end-start;
-        result = str.substr(start, count);
-    }
-    return result;
-}
 
 ServerManagementWidget::ServerManagementWidget(Godzi::Application* app)
 {
@@ -330,34 +316,9 @@ void ServerManagementWidget::addTMSSource()
 
 void ServerManagementWidget::addWMSSource()
 {
-	WMSOptionsWidget* options = new WMSOptionsWidget();
-	OpenFileDialog ofd(false, options);
-
-	if (ofd.exec() == QDialog::Accepted)
-	{
-		QString url = ofd.getUrl();
-		if (!url.isNull() && !url.isEmpty())
-		{
-			osgEarth::Drivers::WMSOptions opt;
-			std::string urlStr = url.toStdString();
-
-			opt.url() = urlStr.substr(0, urlStr.find("?"));
-
-			if (urlStr.find("?") != std::string::npos)
-				parseWMSOptions(urlStr, opt);
-
-			if (options->formatCheckBox->isChecked())
-				opt.format() = options->formatComboBox->currentText().toStdString();
-
-			if (options->tileSizeCheckBox->isChecked())
-				opt.tileSize() = options->tileSizeComboBox->currentText().toInt();
-
-			if (options->srsCheckBox->isChecked())
-				opt.srs() = options->srsLineEdit->text().toStdString();
-
-			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::WMSSource(opt, urlStr)));
-		}
-	}
+	WMSEditDialog wed;
+	if (wed.exec() == QDialog::Accepted)
+		_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(wed.getSource()));
 }
 
 void ServerManagementWidget::addKMLSource()
@@ -374,21 +335,4 @@ void ServerManagementWidget::addKMLSource()
 			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::KMLSource(opt)));
 		}
 	}
-}
-
-void ServerManagementWidget::parseWMSOptions(const std::string& url, osgEarth::Drivers::WMSOptions& opt)
-{
-	std::string lower = osgDB::convertToLowerCase( url );
-
-	if (lower.find("layers=", 0) != std::string::npos)
-		opt.layers() = extractBetween(lower, "layers=", "&");
-
-	if (lower.find("styles=", 0) != std::string::npos)
-		opt.style() = extractBetween(lower, "styles=", "&");
-
-	if (lower.find("srs=", 0) != std::string::npos)
-		opt.srs() = extractBetween(lower, "srs=", "&");
-
-	if (lower.find("format=image/", 0) != std::string::npos)
-		opt.format() = extractBetween(lower, "format=image/", "&");
 }

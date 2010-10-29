@@ -49,9 +49,19 @@ namespace Godzi
         osgEarth::optional<std::string>& map() { return _map; }
         const osgEarth::optional<std::string>& map() const {return _map; }
 
+				/** Visible base map image layers **/
+				osgEarth::optional<std::string>& visibleImageLayers() { return _visibleImageLayers; }
+				const osgEarth::optional<std::string>& visibleImageLayers() const { return _visibleImageLayers; }
+
+				/** Visible base map model layers **/
+				osgEarth::optional<std::string>& visibleModelLayers() { return _visibleModelLayers; }
+				const osgEarth::optional<std::string>& visibleModelLayers() const { return _visibleModelLayers; }
+
     protected:
         osgEarth::optional<std::string> _name;
         osgEarth::optional<std::string> _map;
+				osgEarth::optional<std::string> _visibleImageLayers;
+				osgEarth::optional<std::string> _visibleModelLayers;
     };
 
     /**
@@ -68,7 +78,7 @@ namespace Godzi
         Project( const std::string& defaultMap, const Config& conf );
 
         /** serializes the project to a Config object */
-        Config toConfig() const;
+        Config toConfig();
 
         const ProjectProperties& getProperties() const { return _props; }
         void setProperties( const ProjectProperties& props ) { _props = props; }
@@ -96,6 +106,7 @@ namespace Godzi
         std::vector<osg::ref_ptr<Godzi::DataSource> > _sources;
         
         void loadMap( const std::string& map );
+				void updateVisibleLayers();
     };
 
     /**

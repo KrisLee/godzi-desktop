@@ -74,7 +74,6 @@ void DataSourceManager::onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource
 		return;
 
 	std::map<std::string, osg::ref_ptr<osgEarth::ImageLayer> >::iterator it = _layerMap.find(source->getLocation());
-
 	if (it != _layerMap.end())
 	{
 		_app->getProject()->map()->removeImageLayer(_layerMap[source->getLocation()]);
@@ -132,8 +131,6 @@ void DataSourceManager::processDataSource(osg::ref_ptr<const Godzi::DataSource> 
 		return;
 
 	createImageLayer(source);
-	if (source->type().compare(Godzi::WMSSource::TYPE_WMS) == 0)
-			updateWMSCapabilities(source);
 	createModelLayer(source);
 }
 
@@ -163,70 +160,4 @@ osgEarth::ModelLayer* DataSourceManager::createModelLayer(osg::ref_ptr<const God
 	}
 
 	return layer;
-}
-
-void DataSourceManager::updateWMSCapabilities(osg::ref_ptr<const Godzi::DataSource> source)
-{
-	const Godzi::WMSSource* wms = dynamic_cast<const Godzi::WMSSource*>(source.get());
-	if (wms)
-	{
-		osg::ref_ptr<Godzi::WMSSource> updated = (Godzi::WMSSource*)wms->clone();
-
-		std::string lower = osgDB::convertToLowerCase(wms->getLocation());
-		if (lower.find("layers=", 0) != std::string::npos && wms->getActiveLayers().size() > 0)
-		{
-			updated->setAvailableLayers(wms->getActiveLayers());
-		}
-		else
-		{
-			osgEarth::Drivers::WMSOptions opt = (osgEarth::Drivers::WMSOptions)wms->getOptions();
-
-			char sep = opt.url()->find_first_of('?') == std::string::npos? '?' : '&';
-
-			std::string capUrl = opt.capabilitiesUrl().value();
-			if (capUrl.empty())
-			{
-				capUrl = opt.url().value() + sep +
-								 "SERVICE=WMS" +
-								 "&VERSION=" + opt.wmsVersion().value() +
-								 "&REQUEST=GetCapabilities";
-			}
-
-			//Try to read the WMS capabilities
-			osg::ref_ptr<osgEarthUtil::WMSCapabilities> capabilities = osgEarthUtil::WMSCapabilitiesReader::read(capUrl, 0L /*opt*/);
-			if (capabilities.valid())
-			{
-				//NOTE: Currently this flattens any layer heirarchy into a single list of layers
-				std::vector<std::string> layerList;
-				std::map<std::string, std::string> displayNames;
-				getLayerNames(capabilities->getLayers(), layerList, displayNames);
-				
-				updated->setAvailableLayers(layerList);
-				updated->setLayerDisplayNames(displayNames);
-			}
-			else
-			{
-				updated->setError(true);
-				updated->setErrorMsg("Could not get WMS capabilities.");
-			}
-		}
-
-		_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(updated, false));
-	}
-}
-
-void DataSourceManager::getLayerNames(osgEarthUtil::WMSLayer::LayerList& layers, std::vector<std::string>& names, std::map<std::string, std::string>& displayNames)
-{
-	for (int i=0; i < layers.size(); i++)
-	{
-		if (layers[i]->getName().size() > 0)
-		{
-			names.push_back(layers[i]->getName());
-
-			if (layers[i]->getTitle().size() > 0)
-				displayNames[layers[i]->getName()] = layers[i]->getTitle() + " (" + layers[i]->getName() + ")";
-		}
-
-		getLayerNames(layers[i]->getLayers(), names, displayNames);
-	}
 }

@@ -83,7 +83,6 @@ class ServerManagementWidget : public QWidget
 		void addTMSSource();
 		void addWMSSource();
 		void addKMLSource();
-		void parseWMSOptions(const std::string& url, osgEarth::Drivers::WMSOptions& opt);
 };
 
 #endif // SERVER_MANAGEMENT_WIDGET

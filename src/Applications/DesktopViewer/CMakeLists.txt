@@ -5,6 +5,7 @@ set(PROJECT_FILES
     main.cpp
     DesktopMainWindow.cpp
     OpenFileDialog.cpp
+    WMSEditDialog.cpp
     AboutDialog.cpp
     ServerManagementWidget.cpp
     DataSourceManager.cpp
@@ -21,6 +22,7 @@ set(GODZI_DESKTOP_RCS
 # Qt .ui files
 set(GODZI_DESKTOP_UIS
     ui/OpenFileDialog.ui
+    ui/WMSEditDialog.ui
     ui/AboutDialog.ui
     ui/WMSOptionsWidget.ui
 )
@@ -29,6 +31,7 @@ set(GODZI_DESKTOP_UIS
 set (GODZI_DESKTOP_MOC_HDRS
     DesktopMainWindow
     OpenFileDialog
+    WMSEditDialog
     AboutDialog
     ServerManagementWidget
     DataSourceManager

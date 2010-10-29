@@ -49,6 +49,4 @@ class DataSourceManager : public QObject//, public Godzi::ActionCallback
 		void processDataSource(osg::ref_ptr<const Godzi::DataSource> source);
 		osgEarth::ImageLayer* createImageLayer(osg::ref_ptr<const Godzi::DataSource> source);
 		osgEarth::ModelLayer* createModelLayer(osg::ref_ptr<const Godzi::DataSource> source);
-		void updateWMSCapabilities(osg::ref_ptr<const Godzi::DataSource> source);
-		void getLayerNames(osgEarthUtil::WMSLayer::LayerList& layers, std::vector<std::string>& names, std::map<std::string, std::string>& displayNames);
 };

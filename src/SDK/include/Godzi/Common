@@ -69,6 +69,30 @@
 namespace Godzi
 {
     typedef osgEarth::Config Config;
+
+		inline
+		std::vector<std::string> csvToVector(std::string csv)
+		{
+			std::vector<std::string> values;
+
+			if (csv.size() > 0)
+			{
+				char* cstr = new char [csv.size() + 1];
+				strcpy (cstr, csv.c_str());
+
+				char* p = strtok(cstr, ",");
+
+				while (p != NULL)
+				{
+					values.push_back(std::string(p));
+					p = strtok(NULL,",");
+				}
+
+				delete[] cstr;
+			}
+
+			return values;
+		}
 }
 
 

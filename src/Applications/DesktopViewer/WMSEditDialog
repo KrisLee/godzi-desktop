@@ -1,0 +1,58 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef WMS_EDIT_DIALOG
+#define WMS_EDIT_DIALOG 1
+
+#include <osgEarthUtil/WMS>
+#include <Godzi/DataSources>
+#include "ui_WMSEditDialog.h"
+
+class WMSEditDialog : public QDialog
+{
+	Q_OBJECT
+
+	public:
+		WMSEditDialog(const Godzi::WMSSource* source=0L);
+		Godzi::WMSSource* getSource();
+		
+	private slots:
+		void doQuery();
+		void onDialogClose();
+		void toggleQueryEnabled();
+		void toggleOptions();
+
+	private:		
+		Ui::WMSEditDialog _ui;
+		bool _active;
+		bool _urlChanged;
+		osg::ref_ptr<Godzi::WMSSource> _source;
+		std::vector<std::string> _availableFormats;
+		
+		void initUi();
+		void updateUi();
+		void updateSourceOptions(bool urlChanged);
+		void parseWMSOptions(const std::string& url, osgEarth::Drivers::WMSOptions& opt);
+		void getLayerNames(osgEarthUtil::WMSLayer::LayerList& layers, std::vector<std::string>& names, std::map<std::string, std::string>& displayNames);
+};
+
+
+#endif // WMS_EDIT_DIALOG
