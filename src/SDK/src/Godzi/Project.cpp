@@ -43,8 +43,8 @@ ProjectProperties::ProjectProperties( const Godzi::Config& conf )
 {
     conf.getIfSet( "name", _name );
 		conf.getIfSet( "map", _map);
-		conf.getIfSet( "visibleImageLayers", _visibleImageLayers );
-		conf.getIfSet( "visisbleModelLayers", _visibleModelLayers );
+		conf.getIfSet( "visibleimagelayers", _visibleImageLayers );
+		conf.getIfSet( "visisblemodellayers", _visibleModelLayers );
 }
 
 Godzi::Config
