@@ -10,5 +10,6 @@
         <file>images/pmlogo.png</file>
         <file>images/pmicon32.png</file>
         <file>images/box.png</file>
+        <file>images/edit.png</file>
     </qresource>
 </RCC>

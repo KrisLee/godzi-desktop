@@ -57,6 +57,7 @@ class ServerManagementWidget : public QWidget
 	  void onTreeItemChanged(QTreeWidgetItem* item, int col);
 		void addSource();
 		void removeSource();
+		void editSource();
 		void onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
 		void onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource> source, int position);
 		void onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource> source);
@@ -67,6 +68,7 @@ class ServerManagementWidget : public QWidget
 	  osg::ref_ptr<Godzi::Application> _app;
 		QAction *_addSourceAction;
 		QAction *_removeSourceAction;
+		QAction *_editSourceAction;
 		QToolBar *_toolbar;
 		QComboBox *_typeBox;
 		QTreeWidget *_sourceTree;
@@ -81,7 +83,7 @@ class ServerManagementWidget : public QWidget
 		CustomDataSourceTreeItem* findParentSourceItem(QTreeWidgetItem* item);
 		void updateVisibilitiesFromTree(CustomDataSourceTreeItem* item);
 		void addTMSSource();
-		void addWMSSource();
+		void addOrUpdateWMSSource(Godzi::WMSSource* source = 0L);
 		void addKMLSource();
 };
 

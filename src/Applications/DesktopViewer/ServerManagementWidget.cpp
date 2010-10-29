@@ -59,6 +59,10 @@ void ServerManagementWidget::createActions()
 	_removeSourceAction = new QAction(QIcon(":/resources/images/remove.png"), tr("&Remove"), this);
 	_removeSourceAction->setEnabled(false);
 	connect(_removeSourceAction, SIGNAL(triggered()), this, SLOT(removeSource()));
+
+	_editSourceAction = new QAction(QIcon(":/resources/images/edit.png"), tr("&Edit"), this);
+	_editSourceAction->setEnabled(false);
+	connect(_editSourceAction, SIGNAL(triggered()), this, SLOT(editSource()));
 }
 
 void ServerManagementWidget::initUi()
@@ -75,6 +79,7 @@ void ServerManagementWidget::initUi()
 	_toolbar->addWidget(_typeBox);
 	_toolbar->addAction(_addSourceAction);
 	_toolbar->addAction(_removeSourceAction);
+	_toolbar->addAction(_editSourceAction);
 
 	_sourceTree = new QTreeWidget();
 	_sourceTree->setColumnCount(1);
@@ -95,6 +100,12 @@ void ServerManagementWidget::onCurrentItemChanged(QTreeWidgetItem* current, QTre
 		_removeSourceAction->setEnabled(true);
 	else
 		_removeSourceAction->setEnabled(false);
+
+	CustomDataSourceTreeItem* item = dynamic_cast<CustomDataSourceTreeItem*>(current);
+	if (item && item->getSource() && item->getSource()->type() == Godzi::WMSSource::TYPE_WMS)
+		_editSourceAction->setEnabled(true);
+	else
+		_editSourceAction->setEnabled(false);
 }
 
 void ServerManagementWidget::onTreeItemChanged(QTreeWidgetItem* item, int col)
@@ -113,7 +124,7 @@ void ServerManagementWidget::addSource()
 	}
 	else if (!type.compare("WMS"))
 	{
-		addWMSSource();
+		addOrUpdateWMSSource();
 	}
 	else if (!type.compare("KML/KMZ"))
 	{
@@ -126,6 +137,13 @@ void ServerManagementWidget::removeSource()
 	CustomDataSourceTreeItem* item = dynamic_cast<CustomDataSourceTreeItem*>(_sourceTree->currentItem());
 	if (item)
 		_app->actionManager()->doAction(this, new Godzi::RemoveDataSourceAction(item->getSource()));
+}
+
+void ServerManagementWidget::editSource()
+{
+	CustomDataSourceTreeItem* item = dynamic_cast<CustomDataSourceTreeItem*>(_sourceTree->currentItem());
+	if (item && item->getSource()->type() == Godzi::WMSSource::TYPE_WMS)
+		addOrUpdateWMSSource((Godzi::WMSSource*)item->getSource());
 }
 
 void ServerManagementWidget::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject)
@@ -315,9 +333,9 @@ void ServerManagementWidget::addTMSSource()
 	}
 }
 
-void ServerManagementWidget::addWMSSource()
+void ServerManagementWidget::addOrUpdateWMSSource(Godzi::WMSSource* source)
 {
-	WMSEditDialog wed;
+	WMSEditDialog wed(source);
 	if (wed.exec() == QDialog::Accepted)
 		_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(wed.getSource()));
 }

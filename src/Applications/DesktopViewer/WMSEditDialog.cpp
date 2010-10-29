@@ -62,7 +62,7 @@ void WMSEditDialog::initUi()
 
 	QObject::connect(_ui.queryButton, SIGNAL(clicked()), this, SLOT(doQuery()));
 	QObject::connect(this, SIGNAL(accepted()), this, SLOT(onDialogClose()));
-	QObject::connect(_ui.locationLineEdit, SIGNAL(textEdited(const QString&)), this, SLOT(toggleQueryEnabled()));
+	QObject::connect(_ui.locationLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(toggleQueryEnabled()));
 	QObject::connect(_ui.formatCheckBox, SIGNAL(toggled(bool)), this, SLOT(toggleOptions()));
 }
 
