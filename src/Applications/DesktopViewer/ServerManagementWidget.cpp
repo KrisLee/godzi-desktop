@@ -130,8 +130,9 @@ void ServerManagementWidget::removeSource()
 
 void ServerManagementWidget::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject)
 {
-	Godzi::Project* p = _app->getProject();
+	_sourceTree->clear();
 
+	Godzi::Project* p = _app->getProject();
 	if (p)
 	{
 		connect(p, SIGNAL(dataSourceAdded(osg::ref_ptr<const Godzi::DataSource>, int)), this, SLOT(onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource>, int)));

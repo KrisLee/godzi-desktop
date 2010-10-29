@@ -21,7 +21,6 @@
 
 #include <QtGui>
 #include <QString>
-#include <osgEarthUtil/FadeLayerNode>
 #include <osgViewer/View>
 #include <Godzi/UI/ViewerWidgets>
 #include <Godzi/Application>
@@ -246,8 +245,5 @@ void DesktopMainWindow::showAbout()
 void DesktopMainWindow::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject)
 {
 		osgEarth::MapNode* mapNode = new osgEarth::MapNode(_app->getProject()->map());
-		//osgEarthUtil::FadeLayerNode* fadeLayerNode = new osgEarthUtil::FadeLayerNode(_app->getProject()->map(), mapNode->getEngine()->getEngineProperties());
-		//fadeLayerNode->addChild(mapNode);
-    //loadScene(fadeLayerNode);
     loadScene(mapNode);
 }

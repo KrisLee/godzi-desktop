@@ -47,6 +47,9 @@ DataSourceManager::DataSourceManager(Godzi::Application* app)
 
 void DataSourceManager::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject)
 {
+	_layerMap.clear();
+	_layerModel.clear();
+
 	if (newProject.valid())
 	{
 		connect(newProject.get(), SIGNAL(dataSourceAdded(osg::ref_ptr<const Godzi::DataSource>, int)), this, SLOT(onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource>, int)));
