@@ -226,6 +226,9 @@ void WMSEditDialog::doQuery()
 
 			_availableFormats.push_back(format);
 		}
+
+		_source->setError(false);
+		_source->setErrorMsg("");
 	}
 	else
 	{
