@@ -28,6 +28,6 @@ osgEarth::MapNode* Godzi::readEarthFile(const std::string& file)
     if (mapNode.valid())
         return mapNode.release();
     
-    result->unref();
+		//result->unref();
     return 0;
 }

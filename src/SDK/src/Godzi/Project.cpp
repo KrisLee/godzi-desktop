@@ -26,7 +26,6 @@
 #include <osgEarth/XmlUtils>
 #include <osgEarth/MapNode>
 #include <osgEarth/Map>
-#include <fstream>
 #include <iterator>
 
 using namespace Godzi;
@@ -61,24 +60,14 @@ ProjectProperties::toConfig() const
 
 //---------------------------------------------------------------------------
 
-Project::Project()
-{
-    _map = new osgEarth::Map();
-}
-
-Project::Project( const std::string& defaultMap )
-{
-	  loadMap(defaultMap);
-}
-
-Project::Project( const std::string& defaultMap, const Godzi::Config& conf )
+Project::Project( const std::string& baseMap, const std::string& localMap, const Config& conf )
 {
 		_props = ProjectProperties( conf.child( "properties" ) );
 
-		if (_props.map().isSet())
-			loadMap(_props.map().get());
-		else
-			loadMap(defaultMap);
+		if (!_props.map().isSet() || !loadMap(_props.map().get()))
+			if (!loadMap(baseMap))
+				if (!loadMap(localMap))
+					_map = new osgEarth::Map();
 
 		osgEarth::ConfigSet sources = conf.children("datasource");
 
@@ -195,14 +184,11 @@ Project::moveDataSource(Godzi::DataSource* source, int position)
 	emit dataSourceMoved(source, position);
 }
 
-void
+bool
 Project::loadMap( const std::string& map )
 {
 		if (map.empty())
-		{
-				_map = new osgEarth::Map();
-				return;
-		}
+				return false;
 
 		osgEarth::MapNode* mapNode = Godzi::readEarthFile(map);
 
@@ -221,7 +207,11 @@ Project::loadMap( const std::string& map )
 					(*it)->setEnabled(std::find(visibleLayers.begin(), visibleLayers.end(), (*it)->getName()) != visibleLayers.end());
 				}
 			}
+
+			return true;
 		}
+
+		return false;
 }
 
 void
@@ -254,7 +244,7 @@ Project::updateVisibleLayers()
 bool
 NewProjectAction::doAction( void* sender, Application* app )
 {
-		app->setProject( new Godzi::Project(app->getDefaultMap()) );
+		app->setProject( new Godzi::Project(app->getBaseMap(), app->getLocalMap()) );
     return true;
 }
 
@@ -268,7 +258,7 @@ OpenProjectAction::doAction( void* sender, Application* app )
     if ( doc.valid() )
     {
 				Config conf = doc->getConfig().child( "godzi_project" );
-				Project* project = new Project( app->getDefaultMap(), conf );
+				Project* project = new Project( app->getBaseMap(), app->getLocalMap(), conf );
         app->setProject( project, _location );
         return true;
     }

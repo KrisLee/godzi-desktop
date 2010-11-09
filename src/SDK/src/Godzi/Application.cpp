@@ -24,9 +24,9 @@ using namespace Godzi;
 
 DataSourceFactoryManager* const Application::dataSourceFactoryManager = DataSourceFactoryManager::create();
 
-Application::Application( const std::string& defaultMap )
+Application::Application( const std::string& baseMap, const std::string& localMap )
+: _baseMap(baseMap), _localMap(localMap)
 {
-    _defaultMap = defaultMap;
 		_actionMgr = ActionManager::create(this);
 
 		Application::dataSourceFactoryManager->addFactory(new WMSSourceFactory());

@@ -123,7 +123,7 @@ void DesktopMainWindow::createDockWindows()
 	addDockWidget(Qt::LeftDockWidgetArea, catalogDock);
 	_viewMenu->addAction(catalogDock->toggleViewAction());
 
-	QDockWidget *serverDock = new QDockWidget(tr("Data Servers"), this);
+	QDockWidget *serverDock = new QDockWidget(tr("User Data"), this);
   serverDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	_serverManager = new ServerManagementWidget(_app);
 	serverDock->setWidget(_serverManager);

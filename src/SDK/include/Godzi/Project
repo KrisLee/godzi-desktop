@@ -73,9 +73,7 @@ namespace Godzi
     Q_OBJECT
     
     public:
-        Project();
-        Project( const std::string& defaultMap );
-        Project( const std::string& defaultMap, const Config& conf );
+				Project( const std::string& baseMap="", const std::string& localMap="", const Config& conf=Config() );
 
         /** serializes the project to a Config object */
         Config toConfig();
@@ -93,8 +91,10 @@ namespace Godzi
         /** The map model */
         osgEarth::Map* map() { return _map.get(); }
         const osgEarth::Map* map() const { return _map.get(); }
+				//void setMap(osgEarth::Map* map);
         
     signals:
+			//void mapChanged(osg::ref_ptr<osgEarth::Map> map);
 			void dataSourceAdded(osg::ref_ptr<const Godzi::DataSource> source, int position);
 			void dataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source);
 			void dataSourceMoved(osg::ref_ptr<const Godzi::DataSource> source, int position);
@@ -105,7 +105,7 @@ namespace Godzi
         ProjectProperties _props;
         std::vector<osg::ref_ptr<Godzi::DataSource> > _sources;
         
-        void loadMap( const std::string& map );
+        bool loadMap( const std::string& map );
 				void updateVisibleLayers();
     };
 

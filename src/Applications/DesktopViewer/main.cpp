@@ -26,6 +26,7 @@
 #include "DesktopMainWindow"
 
 #define EARTH_FILE "http://demo.pelicanmapping.com/rmweb/maps/godzi.earth"
+#define LOCAL_EARTH_FILE "data/local_default.earth"
 
 int
 main( int argc, char** argv )
@@ -33,7 +34,7 @@ main( int argc, char** argv )
     //QApplication qtApp( argc, argv );
 		GodziQtApplication qtApp(argc, argv);
 
-		osg::ref_ptr<Godzi::Application> app = new Godzi::Application(EARTH_FILE);
+		osg::ref_ptr<Godzi::Application> app = new Godzi::Application(EARTH_FILE, LOCAL_EARTH_FILE);
 
 		DesktopMainWindow top(app);
     top.resize( 800, 600 );
