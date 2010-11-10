@@ -23,6 +23,7 @@
 #include <QString>
 #include <osgViewer/View>
 #include <Godzi/UI/ViewerWidgets>
+#include <Godzi/Earth>
 #include <Godzi/Application>
 #include <Godzi/Project>
 #include <Godzi/Actions>
@@ -31,8 +32,8 @@
 #include "MapLayerCatalogWidget"
 #include "DesktopMainWindow"
 
-DesktopMainWindow::DesktopMainWindow(Godzi::Application* app)
-: _app(app)
+DesktopMainWindow::DesktopMainWindow(Godzi::Application* app, const std::string& defaultMap)
+: _app(app), _defaultMap(defaultMap)
 {
 	initUi();
 	_app->actionManager()->addAfterActionCallback(this);
@@ -136,6 +137,20 @@ void DesktopMainWindow::updateStatusBar(const QString &message)
 	statusBar()->showMessage(message);
 }
 
+osgEarth::Map* DesktopMainWindow::loadDefaultMap()
+{
+	osgEarth::Map* map = 0L;
+
+	if (!_defaultMap.empty())
+	{
+		osgEarth::MapNode* node = Godzi::readEarthFile(_defaultMap);
+		if (node)
+			map = node->getMap();
+	}
+
+	return map;
+}
+
 void DesktopMainWindow::loadScene(const std::string& filename)
 {
     if (filename.length() > 0)
@@ -186,7 +201,7 @@ void DesktopMainWindow::operator()( void* sender, Godzi::Action* action )
 void DesktopMainWindow::newProject()
 {
 	if (checkSave())
-		_app->actionManager()->doAction(this, new Godzi::NewProjectAction());
+		_app->actionManager()->doAction(this, new Godzi::NewProjectAction(loadDefaultMap()));
 }
 
 void DesktopMainWindow::openProject()
@@ -197,7 +212,7 @@ void DesktopMainWindow::openProject()
 
 		if (!filename.isNull())
 		{
-			_app->actionManager()->doAction(this, new Godzi::OpenProjectAction(filename.toStdString()));
+			_app->actionManager()->doAction(this, new Godzi::OpenProjectAction(filename.toStdString(), loadDefaultMap()));
 		}
 	}
 }

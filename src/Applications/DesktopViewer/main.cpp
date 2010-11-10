@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 #include <QtGui/QApplication>
+#include <Godzi/Earth>
 #include <Godzi/Application>
 #include <Godzi/Project>
 #include "GodziQtApplication"
@@ -34,15 +35,28 @@ main( int argc, char** argv )
     //QApplication qtApp( argc, argv );
 		GodziQtApplication qtApp(argc, argv);
 
-		osg::ref_ptr<Godzi::Application> app = new Godzi::Application(EARTH_FILE, LOCAL_EARTH_FILE);
+		osg::ref_ptr<Godzi::Application> app = new Godzi::Application();
 
-		DesktopMainWindow top(app);
+		std::string defaultMap = "";
+		osgEarth::MapNode* node = Godzi::readEarthFile(EARTH_FILE);
+		if (node)
+		{
+			defaultMap = EARTH_FILE;
+		}
+		else
+		{
+			node = Godzi::readEarthFile(LOCAL_EARTH_FILE);
+			if (node)
+				defaultMap = LOCAL_EARTH_FILE;
+		}
+
+		DesktopMainWindow top(app, defaultMap);
     top.resize( 800, 600 );
     top.show();
 
 		DataSourceManager manager(app);
 
-		app->actionManager()->doAction(NULL, new Godzi::NewProjectAction());
+		app->actionManager()->doAction(NULL, new Godzi::NewProjectAction(node ? node->getMap() : 0L));
 
     qtApp.connect( &qtApp, SIGNAL(lastWindowClosed()), &qtApp, SLOT(quit()) );
     return qtApp.exec();

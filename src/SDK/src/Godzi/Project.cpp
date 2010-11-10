@@ -60,14 +60,17 @@ ProjectProperties::toConfig() const
 
 //---------------------------------------------------------------------------
 
-Project::Project( const std::string& baseMap, const std::string& localMap, const Config& conf )
+Project::Project(osgEarth::Map* map, const Config& conf, const std::string& mapLocation)
+: _map(map)
 {
 		_props = ProjectProperties( conf.child( "properties" ) );
+		if (!mapLocation.empty())
+			_props.map() = mapLocation;
 
-		if (!_props.map().isSet() || !loadMap(_props.map().get()))
-			if (!loadMap(baseMap))
-				if (!loadMap(localMap))
-					_map = new osgEarth::Map();
+		if (!map)
+			_map = new osgEarth::Map();
+
+		setVisibleLayers();
 
 		osgEarth::ConfigSet sources = conf.children("datasource");
 
@@ -184,34 +187,23 @@ Project::moveDataSource(Godzi::DataSource* source, int position)
 	emit dataSourceMoved(source, position);
 }
 
-bool
-Project::loadMap( const std::string& map )
+void
+Project::setVisibleLayers()
 {
-		if (map.empty())
-				return false;
+	if (!_map.valid())
+		return;
 
-		osgEarth::MapNode* mapNode = Godzi::readEarthFile(map);
+	if (_props.visibleImageLayers().isSet())
+	{
+		std::vector<std::string> visibleLayers = Godzi::csvToVector(_props.visibleImageLayers().get());
 
-		if (mapNode)
+		osgEarth::ImageLayerVector imageLayers;
+		_map->getImageLayers(imageLayers);
+		for (osgEarth::ImageLayerVector::iterator it = imageLayers.begin(); it != imageLayers.end(); ++it)
 		{
-			_map = mapNode->getMap();
-
-			if (_props.visibleImageLayers().isSet())
-			{
-				std::vector<std::string> visibleLayers = Godzi::csvToVector(_props.visibleImageLayers().get());
-
-				osgEarth::ImageLayerVector imageLayers;
-				_map->getImageLayers(imageLayers);
-				for (osgEarth::ImageLayerVector::iterator it = imageLayers.begin(); it != imageLayers.end(); ++it)
-				{
-					(*it)->setEnabled(std::find(visibleLayers.begin(), visibleLayers.end(), (*it)->getName()) != visibleLayers.end());
-				}
-			}
-
-			return true;
+			(*it)->setEnabled(std::find(visibleLayers.begin(), visibleLayers.end(), (*it)->getName()) != visibleLayers.end());
 		}
-
-		return false;
+	}
 }
 
 void
@@ -244,7 +236,7 @@ Project::updateVisibleLayers()
 bool
 NewProjectAction::doAction( void* sender, Application* app )
 {
-		app->setProject( new Godzi::Project(app->getBaseMap(), app->getLocalMap()) );
+		app->setProject(new Godzi::Project(_map.get()));
     return true;
 }
 
@@ -258,9 +250,16 @@ OpenProjectAction::doAction( void* sender, Application* app )
     if ( doc.valid() )
     {
 				Config conf = doc->getConfig().child( "godzi_project" );
-				Project* project = new Project( app->getBaseMap(), app->getLocalMap(), conf );
+
+				osgEarth::MapNode* mapNode = 0L;
+				ProjectProperties props = ProjectProperties( conf.child( "properties" ) );
+				if (props.map().isSet())
+					mapNode = Godzi::readEarthFile(props.map().get());
+
+				Project* project = new Project( mapNode ? mapNode->getMap() : _defaultMap.get(), conf );
         app->setProject( project, _location );
-        return true;
+
+				return true;
     }
     else
     {

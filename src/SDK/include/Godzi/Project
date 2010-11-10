@@ -73,7 +73,7 @@ namespace Godzi
     Q_OBJECT
     
     public:
-				Project( const std::string& baseMap="", const std::string& localMap="", const Config& conf=Config() );
+				Project(osgEarth::Map* map=0L, const Config& conf=Config(), const std::string& mapLocation="");
 
         /** serializes the project to a Config object */
         Config toConfig();
@@ -105,7 +105,7 @@ namespace Godzi
         ProjectProperties _props;
         std::vector<osg::ref_ptr<Godzi::DataSource> > _sources;
         
-        bool loadMap( const std::string& map );
+        void setVisibleLayers();
 				void updateVisibleLayers();
     };
 
@@ -115,10 +115,13 @@ namespace Godzi
     class GODZI_EXPORT NewProjectAction : public Action
     {
     public:
-        NewProjectAction() { }
+				NewProjectAction(osgEarth::Map* defaultMap=0L): _map(defaultMap) { }
 
         bool doAction( void* sender, Application* app );
         bool isCheckPoint() { return true; }
+
+		protected:
+			osg::ref_ptr<osgEarth::Map> _map;
     };
 
     /**
@@ -128,13 +131,14 @@ namespace Godzi
     class GODZI_EXPORT OpenProjectAction : public Action
     {
     public:
-        OpenProjectAction( const std::string& location ) : _location(location) { }
+        OpenProjectAction( const std::string& location, osgEarth::Map* defaultMap=0L ) : _location(location), _defaultMap(defaultMap) { }
 
         bool doAction( void* sender, Application* app );
         bool isCheckpoint() { return true; }
 
     protected:
         std::string _location;
+				osg::ref_ptr<osgEarth::Map> _defaultMap;
     };
 
     /**

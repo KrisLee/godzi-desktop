@@ -24,8 +24,7 @@ using namespace Godzi;
 
 DataSourceFactoryManager* const Application::dataSourceFactoryManager = DataSourceFactoryManager::create();
 
-Application::Application( const std::string& baseMap, const std::string& localMap )
-: _baseMap(baseMap), _localMap(localMap)
+Application::Application()
 {
 		_actionMgr = ActionManager::create(this);
 

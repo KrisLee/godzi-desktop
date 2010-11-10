@@ -36,7 +36,7 @@ namespace Godzi
     Q_OBJECT
 			
     public:
-				Application( const std::string& baseMap ="", const std::string& localMap="" );
+				Application();
 
 				static DataSourceFactoryManager* const dataSourceFactoryManager;
 
@@ -64,24 +64,16 @@ namespace Godzi
 
         /** Sets the project to "clean" (no unsaved changes) */
         void setProjectClean();
-        
-        const std::string& getBaseMap() const {
-						return _baseMap; }
-
-				const std::string& getLocalMap() const {
-						return _localMap; }
 						
 		signals:
 			void projectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
 		
     protected:
-        osg::ref_ptr<Project>     _project;
-        osgEarth::Revision        _projectCheckpoint;
-        std::string               _projectLocation;
-        std::string						    _baseMap;
-				std::string               _localMap;
+        osg::ref_ptr<Project>        _project;
+        osgEarth::Revision           _projectCheckpoint;
+        std::string                  _projectLocation;
 
-        ActionManager*            _actionMgr;
+        ActionManager*               _actionMgr;
     };
 
 } // namespace Godzi

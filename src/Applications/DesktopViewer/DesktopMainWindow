@@ -35,7 +35,7 @@ class DesktopMainWindow : public QMainWindow, public Godzi::ActionCallback
 	Q_OBJECT
 	
 	public:
-		DesktopMainWindow(Godzi::Application* app);
+		DesktopMainWindow(Godzi::Application* app, const std::string& defaultMap="");
 		
 		void operator()( void* sender, Godzi::Action* action );
 		
@@ -58,12 +58,14 @@ class DesktopMainWindow : public QMainWindow, public Godzi::ActionCallback
 		void createToolbars();
 		void createDockWindows();
 		void updateStatusBar(const QString &message);
+		osgEarth::Map* loadDefaultMap();
 		void loadScene(const std::string& filename);
 		void loadScene(osg::Node* n);
 		bool checkSave();
 	
 		Godzi::UI::ViewerWidget* _osgViewer;
 		osg::ref_ptr<Godzi::Application> _app;
+		std::string _defaultMap;
 		QAction *_newProjectAction;
 		QAction *_openProjectAction;
 		QAction *_saveProjectAction;
