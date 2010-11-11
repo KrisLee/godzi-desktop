@@ -73,30 +73,30 @@ void DataSourceManager::onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource> 
 
 void DataSourceManager::onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source)
 {
-	if (!source.valid())
+	if (!source.valid() || !source->id().isSet())
 		return;
 
-	std::map<std::string, osg::ref_ptr<osgEarth::ImageLayer> >::iterator it = _layerMap.find(source->getLocation());
+	std::map<int, osg::ref_ptr<osgEarth::ImageLayer> >::iterator it = _layerMap.find(source->id().get());
 	if (it != _layerMap.end())
 	{
-		_app->getProject()->map()->removeImageLayer(_layerMap[source->getLocation()]);
+		_app->getProject()->map()->removeImageLayer(_layerMap[source->id().get()]);
 		_layerMap.erase(it);
 	}
 
-	std::map<std::string, osg::ref_ptr<osgEarth::ModelLayer> >::iterator itModel = _layerModel.find(source->getLocation());
+	std::map<int, osg::ref_ptr<osgEarth::ModelLayer> >::iterator itModel = _layerModel.find(source->id().get());
 	if (itModel != _layerModel.end())
 	{
-		_app->getProject()->map()->removeModelLayer(_layerModel[source->getLocation()]);
+		_app->getProject()->map()->removeModelLayer(_layerModel[source->id().get()]);
 		_layerModel.erase(itModel);
 	}
 }
 
 void DataSourceManager::onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource> source, int position)
 {
-	if (!source.valid() || position < 0)
+	if (!source.valid() || !source->id().isSet() || position < 0)
 		return;
 
-	osgEarth::ImageLayer* layer = _layerMap[source->getLocation()];
+	osgEarth::ImageLayer* layer = _layerMap[source->id().get()];
 	if (layer)
 		_app->getProject()->map()->moveImageLayer(layer, position);
 
@@ -104,24 +104,24 @@ void DataSourceManager::onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource> 
 
 void DataSourceManager::onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource> source)
 {
-	if (!source.valid())
+	if (!source.valid() || !source->id().isSet())
 		return;
 
-	std::map<std::string, osg::ref_ptr<osgEarth::ImageLayer> >::iterator it = _layerMap.find(source->getLocation());
+	std::map<int, osg::ref_ptr<osgEarth::ImageLayer> >::iterator it = _layerMap.find(source->id().get());
 
 	if (it != _layerMap.end())
 	{
-		_app->getProject()->map()->removeImageLayer(_layerMap[source->getLocation()]);
+		_app->getProject()->map()->removeImageLayer(_layerMap[source->id().get()]);
 		_layerMap.erase(it);
 	}
 
 	createImageLayer(source);
 
-	std::map<std::string, osg::ref_ptr<osgEarth::ModelLayer> >::iterator itModel = _layerModel.find(source->getLocation());
+	std::map<int, osg::ref_ptr<osgEarth::ModelLayer> >::iterator itModel = _layerModel.find(source->id().get());
 
 	if (itModel != _layerModel.end())
 	{
-      _app->getProject()->map()->removeModelLayer(_layerModel[source->getLocation()]);
+      _app->getProject()->map()->removeModelLayer(_layerModel[source->id().get()]);
       _layerModel.erase(itModel);
 	}
 
@@ -130,7 +130,7 @@ void DataSourceManager::onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource
 
 void DataSourceManager::processDataSource(osg::ref_ptr<const Godzi::DataSource> source)
 {
-	if (!source.valid())
+	if (!source.valid() || !source->id().isSet())
 		return;
 
 	createImageLayer(source);
@@ -142,7 +142,7 @@ osgEarth::ImageLayer* DataSourceManager::createImageLayer(osg::ref_ptr<const God
 	osgEarth::ImageLayer* mapLayer = source->createImageLayer();
 	if (mapLayer)
 	{
-		_layerMap[source->getLocation()] = mapLayer;
+		_layerMap[source->id().get()] = mapLayer;
 
 		if (source->visible())
 			_app->getProject()->map()->addImageLayer(mapLayer);
@@ -156,7 +156,7 @@ osgEarth::ModelLayer* DataSourceManager::createModelLayer(osg::ref_ptr<const God
 	osgEarth::ModelLayer* layer = source->createModelLayer();
 	if (layer)
 	{
-		_layerModel[source->getLocation()] = layer;
+		_layerModel[source->id().get()] = layer;
 
 		if (source->visible())
 			_app->getProject()->map()->addModelLayer(layer);

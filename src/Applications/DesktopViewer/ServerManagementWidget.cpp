@@ -273,7 +273,7 @@ int ServerManagementWidget::findDataSourceTreeItem(osg::ref_ptr<const Godzi::Dat
 	for (int i=0; i < _sourceTree->topLevelItemCount(); i++)
 	{
 		CustomDataSourceTreeItem* item = dynamic_cast<CustomDataSourceTreeItem*>(_sourceTree->topLevelItem(i));
-		if (item && item->getSource()->getLocation() == source->getLocation())
+		if (item && item->getSource()->id().get() == source->id().get())
 		{
 			index = i;
 

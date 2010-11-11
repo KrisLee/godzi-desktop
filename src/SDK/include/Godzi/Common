@@ -93,6 +93,16 @@ namespace Godzi
 
 			return values;
 		}
+
+		inline
+		std::string vectorToCSV(const std::vector<std::string>& values)
+		{
+			std::string csv = "";
+			for (std::vector<std::string>::const_iterator it = values.begin(); it != values.end(); ++it)
+				csv += csv.length() == 0 ? *it : "," + *it;
+
+			return csv;
+		}
 }
 
 

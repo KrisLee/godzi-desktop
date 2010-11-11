@@ -43,8 +43,8 @@ class DataSourceManager : public QObject//, public Godzi::ActionCallback
 		
 	private:
 		osg::ref_ptr<Godzi::Application> _app;
-		std::map<std::string, osg::ref_ptr<osgEarth::ImageLayer> > _layerMap;
-		std::map<std::string, osg::ref_ptr<osgEarth::ModelLayer> > _layerModel;
+		std::map<int, osg::ref_ptr<osgEarth::ImageLayer> > _layerMap;
+		std::map<int, osg::ref_ptr<osgEarth::ModelLayer> > _layerModel;
 		
 		void processDataSource(osg::ref_ptr<const Godzi::DataSource> source);
 		osgEarth::ImageLayer* createImageLayer(osg::ref_ptr<const Godzi::DataSource> source);

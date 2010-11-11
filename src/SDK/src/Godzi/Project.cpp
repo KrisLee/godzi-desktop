@@ -61,7 +61,7 @@ ProjectProperties::toConfig() const
 //---------------------------------------------------------------------------
 
 Project::Project(osgEarth::Map* map, const Config& conf, const std::string& mapLocation)
-: _map(map)
+: _currentUID(0), _map(map)
 {
 		_props = ProjectProperties( conf.child( "properties" ) );
 		if (!mapLocation.empty())
@@ -81,7 +81,10 @@ Project::Project(osgEarth::Map* map, const Config& conf, const std::string& mapL
 			{
 				DataSource* source = factory->createDataSource(*it);
 				if (source)
+				{
+					source->setId(getUID());
 					_sources.push_back(source);
+				}
 			}
 			else
 			{
@@ -111,6 +114,7 @@ Project::addDataSource(Godzi::DataSource* source)
 	if (!source)
 		return;
 
+	source->setId(getUID());
 	_sources.push_back(source);
 
 	dirty();
@@ -123,7 +127,7 @@ Project::removeDataSource(Godzi::DataSource* source)
 	std::vector<osg::ref_ptr<Godzi::DataSource>>::iterator pos;
 	for (pos = _sources.begin(); pos != _sources.end(); ++pos)
 	{
-		if ((*pos)->getLocation() == source->getLocation())
+		if ((*pos)->id().get() == source->id().get())
 			break;
 	}
 	if (pos != _sources.end())
@@ -136,20 +140,23 @@ Project::removeDataSource(Godzi::DataSource* source)
 bool
 Project::updateDataSource(Godzi::DataSource* source, bool dirtyProject, Godzi::DataSource** out_old)
 {
-	for (int i=0; i < _sources.size(); i++)
+	if (source->id().isSet())
 	{
-		if (_sources[i].get()->getLocation().compare(source->getLocation()) == 0)
+		for (int i=0; i < _sources.size(); i++)
 		{
-			if (out_old)
-				*out_old = _sources[i].get();
+			if (_sources[i].get()->id().get() == source->id().get())
+			{
+				if (out_old)
+					*out_old = _sources[i].get();
 
-			_sources[i] = source;
+				_sources[i] = source;
 
-			if (dirtyProject)
-				dirty();
-			emit dataSourceUpdated(source);
+				if (dirtyProject)
+					dirty();
+				emit dataSourceUpdated(source);
 
-			return true;
+				return true;
+			}
 		}
 	}
 
@@ -165,7 +172,7 @@ Project::moveDataSource(Godzi::DataSource* source, int position)
 	int found = -1;
 	for (int i=0; i < _sources.size(); i++)
 	{
-		if (_sources[i].get()->getLocation().compare(source->getLocation()) == 0)
+		if (_sources[i].get()->id().get() == source->id().get())
 		{
 			if (i == position)
 				return;
@@ -185,6 +192,12 @@ Project::moveDataSource(Godzi::DataSource* source, int position)
 
 	dirty();
 	emit dataSourceMoved(source, position);
+}
+
+int
+Project::getUID()
+{
+	return _currentUID++;
 }
 
 void

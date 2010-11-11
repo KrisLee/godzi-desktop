@@ -73,7 +73,19 @@ WMSSource::WMSSource(const Config& conf)
 : DataSource(conf)
 {
 	_opt = osgEarth::Drivers::WMSOptions(osgEarth::TileSourceOptions(osgEarth::ConfigOptions(conf.child("options"))));
-	conf.getIfSet("fullUrl", _fullUrl);
+	conf.getIfSet("fullurl", _fullUrl);
+
+	osgEarth::optional<std::string> availableLayers;
+	if (conf.getIfSet("availablelayers", availableLayers))
+		_availableLayers = Godzi::csvToVector(availableLayers.get());
+
+	osgEarth::optional<std::string> displayNames;
+	if (conf.getIfSet("displaynames", displayNames))
+	{
+		std::vector<std::string> displayNamesVect = Godzi::csvToVector(displayNames.get());
+		for (int i=0; i < _availableLayers.size() && i < displayNamesVect.size(); i++)
+			_displayNames[_availableLayers[i]] = displayNamesVect[i];
+	}
 }
 
 Godzi::Config WMSSource::toConfig() const
@@ -82,6 +94,12 @@ Godzi::Config WMSSource::toConfig() const
 	conf.add("type", TYPE_WMS);
 	conf.add("options", _opt.getConfig());
 	conf.addIfSet("fullUrl", _fullUrl);
+	conf.add("availableLayers", Godzi::vectorToCSV(_availableLayers));
+
+	std::string displayNames = "";
+	for (std::vector<std::string>::const_iterator it = _availableLayers.begin(); it != _availableLayers.end(); ++it)
+		displayNames += displayNames.length() == 0 ? layerDisplayName(*it) : "," + layerDisplayName(*it);
+	conf.add("displayNames", displayNames);
 
   return conf;
 }
@@ -131,6 +149,9 @@ DataSource* WMSSource::clone() const
 
 	if (_name.isSet())
 		c->name() = _name;
+
+	if (_id.isSet())
+		c->setId(_id.get());
 
 	c->setError(_error);
 	c->setErrorMsg(_errorMsg);
@@ -237,6 +258,9 @@ DataSource* TMSSource::clone() const
 	TMSSource* c = new TMSSource(cOpt);
 	if (_name.isSet())
 		c->name() = _name;
+
+	if (_id.isSet())
+		c->setId(_id.get());
 	
 	c->setError(_error);
 	c->setErrorMsg(_errorMsg);
@@ -344,6 +368,9 @@ DataSource* KMLSource::clone() const
 	KMLSource* c = new KMLSource(cOpt, true, _fs);
 	if (_name.isSet())
 		c->name() = _name;
+
+	if (_id.isSet())
+		c->setId(_id.get());
 	
 	c->setError(_error);
 	c->setErrorMsg(_errorMsg);

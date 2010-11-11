@@ -1,4 +1,4 @@
-/* --*-c++-*-- */
+ /* --*-c++-*-- */
 /**
  * Godzi
  * Copyright 2010 Pelican Mapping
@@ -55,6 +55,9 @@ namespace Godzi
 		
 		osgEarth::optional<std::string>& name() { return _name; }
     const osgEarth::optional<std::string>& name() const { return _name; }
+
+		void setId(int id) { _id = id; }
+		const osgEarth::optional<int> id() const { return _id; }
     
     void setVisible( bool value ) { _visible = value; }
     bool visible() const { return _visible; }
@@ -74,9 +77,10 @@ namespace Godzi
     void setErrorMsg(const std::string& msg) { _errorMsg = msg; }
 
 	protected:
-		DataSource(bool visible) : _visible(visible), _error(false), _errorMsg("") {};
+		DataSource(bool visible=true) : _visible(visible), _error(false), _errorMsg("") {};
 		DataSource(const Config& conf);
 		osgEarth::optional<std::string> _name;
+		osgEarth::optional<int> _id;
 		bool _visible;
 		bool _error;
 		std::string _errorMsg;
