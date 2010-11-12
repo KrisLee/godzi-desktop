@@ -70,6 +70,10 @@ void WMSEditDialog::updateUi()
 {
 	_ui.locationLineEdit->setText(QString::fromStdString(_source->getLocation()));
 
+	_ui.nameLabel->setEnabled(_active);
+	_ui.nameLineEdit->setEnabled(_active);
+	_ui.nameLineEdit->setText(_source->name().isSet() ? QString::fromStdString(_source->name().get()) : "");
+
 	_ui.formatCheckBox->setEnabled(_active);
 	_ui.formatComboBox->setEnabled(_active && _ui.formatCheckBox->isChecked());
 
@@ -156,6 +160,7 @@ void WMSEditDialog::updateSourceOptions(bool urlChanged)
 	}
 
 	_source->setOptions(opt);
+	_ui.nameLineEdit->text().isEmpty() ? _source->name().unset() : _source->name() = _ui.nameLineEdit->text().toStdString();
 
 	if (!opt.layers().isSet())
 		_source->setActiveLayers(activeLayers);
