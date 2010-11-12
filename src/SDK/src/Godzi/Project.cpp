@@ -82,7 +82,9 @@ Project::Project(osgEarth::Map* map, const Config& conf, const std::string& mapL
 				DataSource* source = factory->createDataSource(*it);
 				if (source)
 				{
-					source->setId(getUID());
+					if (!source->id().isSet())
+						source->setId(getUID());
+
 					_sources.push_back(source);
 				}
 			}
@@ -114,7 +116,9 @@ Project::addDataSource(Godzi::DataSource* source)
 	if (!source)
 		return;
 
-	source->setId(getUID());
+	if (!source->id().isSet())
+		source->setId(getUID());
+
 	_sources.push_back(source);
 
 	dirty();
