@@ -236,11 +236,6 @@ const std::string& TMSSource::getLocation() const
 	return _opt.url().get();
 }
 
-const osgEarth::DriverConfigOptions& TMSSource::getOptions() const
-{
-	return _opt;
-}
-
 osgEarth::ImageLayer* TMSSource::createImageLayer() const
 {
 	std::string name = _name.isSet() ? _name.get() : "TMS Source";
@@ -316,12 +311,6 @@ Godzi::Config KMLSource::toConfig() const
 const std::string& KMLSource::getLocation() const
 {
 	return _opt.url().get();
-}
-
-
-const osgEarth::DriverConfigOptions& KMLSource::getOptions() const
-{
-	return _opt;
 }
 
 const std::vector<std::string> KMLSource::getAvailableLayers() const
