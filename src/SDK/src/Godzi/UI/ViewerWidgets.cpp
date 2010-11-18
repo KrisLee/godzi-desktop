@@ -105,7 +105,7 @@ ViewerWidget::createContext()
     _viewer->addEventHandler( new osgViewer::StatsHandler() );
     _viewer->addEventHandler( new osgGA::StateSetManipulator() );
     _viewer->addEventHandler( new osgViewer::ThreadingHandler() );
-    _viewer->setCameraManipulator( new osgEarthUtil::EarthManipulator() );
+		_viewer->setCameraManipulator( new osgEarth::Util::EarthManipulator() );
 
     _viewer->setKeyEventSetsDone( 0 );
     _viewer->setQuitEventSetsDone( false );

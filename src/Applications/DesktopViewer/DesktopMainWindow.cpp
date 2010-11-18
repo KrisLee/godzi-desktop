@@ -163,7 +163,7 @@ void DesktopMainWindow::loadScene(osg::Node* n)
 	{
 		//n->getOrCreateStateSet()->setMode(GL_LIGHTING, 0);
 		_osgViewer->getView()->setSceneData(n);
-		_osgViewer->getView()->setCameraManipulator( new osgEarthUtil::EarthManipulator );
+		_osgViewer->getView()->setCameraManipulator( new osgEarth::Util::EarthManipulator );
 	}
 }
 

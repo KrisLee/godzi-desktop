@@ -51,7 +51,7 @@ class WMSEditDialog : public QDialog
 		void updateUi();
 		void updateSourceOptions(bool urlChanged);
 		void parseWMSOptions(const std::string& url, osgEarth::Drivers::WMSOptions& opt);
-		void getLayerNames(osgEarthUtil::WMSLayer::LayerList& layers, std::vector<std::string>& names, std::map<std::string, std::string>& displayNames);
+		void getLayerNames(osgEarth::Util::WMSLayer::LayerList& layers, std::vector<std::string>& names, std::map<std::string, std::string>& displayNames);
 };
 
 

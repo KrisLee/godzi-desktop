@@ -199,7 +199,7 @@ void WMSEditDialog::doQuery()
 	std::string capUrl = url + sep + "SERVICE=WMS" + "&REQUEST=GetCapabilities";
 
 	//Try to read the WMS capabilities
-	osg::ref_ptr<osgEarthUtil::WMSCapabilities> capabilities = osgEarthUtil::WMSCapabilitiesReader::read(capUrl, 0L);
+	osg::ref_ptr<osgEarth::Util::WMSCapabilities> capabilities = osgEarth::Util::WMSCapabilitiesReader::read(capUrl, 0L);
 	if (capabilities.valid())
 	{
 		_active = true;
@@ -220,8 +220,8 @@ void WMSEditDialog::doQuery()
 		_source->setLayerDisplayNames(displayNames);
 
 		_availableFormats.clear();
-		osgEarthUtil::WMSCapabilities::FormatList formats = capabilities->getFormats();
-		for (osgEarthUtil::WMSCapabilities::FormatList::const_iterator it = formats.begin(); it != formats.end(); ++it)
+		osgEarth::Util::WMSCapabilities::FormatList formats = capabilities->getFormats();
+		for (osgEarth::Util::WMSCapabilities::FormatList::const_iterator it = formats.begin(); it != formats.end(); ++it)
 		{
 			std::string format = *it;
 
@@ -255,7 +255,7 @@ void WMSEditDialog::toggleOptions()
 	_ui.formatComboBox->setEnabled(_ui.formatCheckBox->isChecked());
 }
 
-void WMSEditDialog::getLayerNames(osgEarthUtil::WMSLayer::LayerList& layers, std::vector<std::string>& names, std::map<std::string, std::string>& displayNames)
+void WMSEditDialog::getLayerNames(osgEarth::Util::WMSLayer::LayerList& layers, std::vector<std::string>& names, std::map<std::string, std::string>& displayNames)
 {
 	for (int i=0; i < layers.size(); i++)
 	{
