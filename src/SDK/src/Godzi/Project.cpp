@@ -198,7 +198,7 @@ Project::moveDataSource(Godzi::DataSource* source, int position)
 	emit dataSourceMoved(source, position);
 }
 
-int
+unsigned int
 Project::getUID()
 {
 	return _currentUID++;

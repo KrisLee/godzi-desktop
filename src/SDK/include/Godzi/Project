@@ -101,12 +101,12 @@ namespace Godzi
 			void dataSourceUpdated(osg::ref_ptr<const Godzi::DataSource> source);
 
     protected:
-        int _currentUID;
+        unsigned int _currentUID;
         osg::ref_ptr<osgEarth::Map> _map;
         ProjectProperties _props;
         std::vector<osg::ref_ptr<Godzi::DataSource> > _sources;
         
-        int getUID();
+        unsigned int getUID();
         void setVisibleLayers();
 				void updateVisibleLayers();
     };

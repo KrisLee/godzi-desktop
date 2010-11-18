@@ -42,11 +42,25 @@ class DataSourceManager : public QObject//, public Godzi::ActionCallback
 		void onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource> source);
 		
 	private:
+		struct SourcedLayers
+		{
+			unsigned int id;
+			bool valid;
+			osg::ref_ptr<osgEarth::ImageLayer> imageLayer;
+			osg::ref_ptr<osgEarth::ModelLayer> modelLayer;
+
+			SourcedLayers() : id(0), valid(false), imageLayer(0), modelLayer(0) {}
+			SourcedLayers(unsigned int lyrId, osgEarth::ImageLayer* imageLyr, osgEarth::ModelLayer* modelLyr)
+				: id(lyrId), valid(true), imageLayer(imageLyr), modelLayer(modelLyr) {}
+		};
+
 		osg::ref_ptr<Godzi::Application> _app;
-		std::map<int, osg::ref_ptr<osgEarth::ImageLayer> > _layerMap;
-		std::map<int, osg::ref_ptr<osgEarth::ModelLayer> > _layerModel;
+		std::vector<SourcedLayers> _sourceLayers;
+		int _baseLayerOffset;
 		
-		void processDataSource(osg::ref_ptr<const Godzi::DataSource> source);
-		osgEarth::ImageLayer* createImageLayer(osg::ref_ptr<const Godzi::DataSource> source);
-		osgEarth::ModelLayer* createModelLayer(osg::ref_ptr<const Godzi::DataSource> source);
+		void addDataSource(osg::ref_ptr<const Godzi::DataSource> source, int index=-1);
+		int removeDataSource(osg::ref_ptr<const Godzi::DataSource> source);
+		osgEarth::ImageLayer* createImageLayer(osg::ref_ptr<const Godzi::DataSource> source, int index=-1);
+		osgEarth::ModelLayer* createModelLayer(osg::ref_ptr<const Godzi::DataSource> source, int index=-1);
+		int findSourceLayersIndex(unsigned int id);
 };
