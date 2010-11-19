@@ -54,8 +54,6 @@ main( int argc, char** argv )
     top.resize( 800, 600 );
     top.show();
 
-		DataSourceManager manager(app);
-
 		app->actionManager()->doAction(NULL, new Godzi::NewProjectAction(node ? node->getMap() : 0L));
 
     qtApp.connect( &qtApp, SIGNAL(lastWindowClosed()), &qtApp, SLOT(quit()) );

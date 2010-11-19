@@ -8,7 +8,6 @@ set(PROJECT_FILES
     WMSEditDialog.cpp
     AboutDialog.cpp
     ServerManagementWidget.cpp
-    DataSourceManager.cpp
     WMSOptionsWidget.cpp
     MapLayerCatalogWidget.cpp
     GodziQtApplication
@@ -34,7 +33,6 @@ set (GODZI_DESKTOP_MOC_HDRS
     WMSEditDialog
     AboutDialog
     ServerManagementWidget
-    DataSourceManager
     WMSOptionsWidget
     MapLayerCatalogWidget
 )

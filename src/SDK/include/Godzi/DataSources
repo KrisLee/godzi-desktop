@@ -84,6 +84,8 @@ namespace Godzi
 		
 		static const std::vector<std::string> NO_LAYERS;
 	};
+
+	typedef std::vector<osg::ref_ptr<DataSource>> DataSourceVector;
 	
 	/* --------------------------------------------- */
 	
@@ -249,6 +251,20 @@ namespace Godzi
 
 	protected:
 		osg::ref_ptr<DataSource> _source;
+	};
+
+	class GODZI_EXPORT MoveDataSourceAction : public ReversibleAction
+	{
+	public:
+		MoveDataSourceAction(osg::ref_ptr<Godzi::DataSource> source, int newIndex) : _source(source), _newIndex(newIndex) { }
+
+		bool doAction( void* sender, Application* app );
+		bool undoAction( void* sender, Application* app );
+
+	protected:
+		osg::ref_ptr<Godzi::DataSource> _source;
+		int _newIndex;
+		int _oldIndex;
 	};
 	
 	//class GODZI_EXPORT SelectDataSourceAction : public Action

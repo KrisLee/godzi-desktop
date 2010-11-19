@@ -158,7 +158,9 @@ void ServerManagementWidget::onProjectChanged(osg::ref_ptr<Godzi::Project> oldPr
 		connect(p, SIGNAL(dataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)), this, SLOT(onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)));
 		connect(p, SIGNAL(dataSourceMoved(osg::ref_ptr<const Godzi::DataSource>, int)), this, SLOT(onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource>, int)));
 
-		for (std::vector<osg::ref_ptr<Godzi::DataSource>>::const_iterator it = p->sources().begin(); it != p->sources().end(); ++it)
+		Godzi::DataSourceVector sources;
+		p->getSources(sources);
+		for (Godzi::DataSourceVector::const_iterator it = sources.begin(); it != sources.end(); ++it)
 			processDataSource(*it);
 	}
 

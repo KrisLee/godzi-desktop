@@ -533,6 +533,26 @@ bool RemoveDataSourceAction::undoAction(void *sender, Application *app)
 
 /* --------------------------------------------- */
 
+bool MoveDataSourceAction::doAction(void *sender, Application *app)
+{
+	if (!_source || _newIndex < 0)
+		return false;
+
+	_oldIndex = app->getProject()->moveDataSource(_source.get(), _newIndex);
+	return _oldIndex < 0 ? false : true;
+}
+
+bool MoveDataSourceAction::undoAction(void *sender, Application *app)
+{
+	if (!_source || _oldIndex < 0)
+		return false;
+
+	int found = app->getProject()->moveDataSource(_source.get(), _oldIndex);
+	return found < 0 ? false : true;
+}
+
+/* --------------------------------------------- */
+
 //bool SelectDataSourceAction::doAction(void *sender, Application *app)
 //{
 //	if (!_source)

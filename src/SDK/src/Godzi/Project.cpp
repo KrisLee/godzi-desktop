@@ -60,16 +60,21 @@ ProjectProperties::toConfig() const
 
 //---------------------------------------------------------------------------
 
-Project::Project(osgEarth::Map* map, const Config& conf, const std::string& mapLocation)
-: _currentUID(0), _map(map)
+Project::Project(osgEarth::Map* defaultMap, const Config& conf)
+: _currentUID(0), _map(defaultMap)
 {
 		_props = ProjectProperties( conf.child( "properties" ) );
-		if (!mapLocation.empty())
-			_props.map() = mapLocation;
+		if (_props.map().isSet())
+		{
+			osgEarth::MapNode* mapNode = Godzi::readEarthFile(_props.map().get());
+			if (mapNode)
+				_map = mapNode->getMap();
+		}
 
-		if (!map)
+		if (!_map.valid())
 			_map = new osgEarth::Map();
 
+		_baseLayerOffset = _map->getNumImageLayers();
 		setVisibleLayers();
 
 		osgEarth::ConfigSet sources = conf.children("datasource");
@@ -85,7 +90,7 @@ Project::Project(osgEarth::Map* map, const Config& conf, const std::string& mapL
 					if (!source->id().isSet())
 						source->setId(getUID());
 
-					_sources.push_back(source);
+					addSource(source);
 				}
 			}
 			else
@@ -104,8 +109,10 @@ Project::toConfig()
 		updateVisibleLayers();
 
     conf.add( "properties", _props.toConfig() );
-		for (int i=0; i < _sources.size(); i++)
-			conf.add(_sources[i]->toConfig());
+
+		for (int i=0; i < _sourceLayers.size(); i++)
+			if (_sourceLayers[i].valid())
+				conf.add(_sourceLayers[i].source->toConfig());
 
     return conf;
 }
@@ -119,83 +126,95 @@ Project::addDataSource(Godzi::DataSource* source)
 	if (!source->id().isSet())
 		source->setId(getUID());
 
-	_sources.push_back(source);
-
+	addSource(source);
+	
 	dirty();
-	emit dataSourceAdded(source, _sources.size() - 1);
+	emit dataSourceAdded(source, _sourceLayers.size() - 1);
 }
 
-void
+int
 Project::removeDataSource(Godzi::DataSource* source)
 {
-	std::vector<osg::ref_ptr<Godzi::DataSource>>::iterator pos;
-	for (pos = _sources.begin(); pos != _sources.end(); ++pos)
+	int index = removeSource(source);
+	if (index >= 0)
 	{
-		if ((*pos)->id().get() == source->id().get())
-			break;
+		dirty();
+		emit dataSourceRemoved(source);
 	}
-	if (pos != _sources.end())
-		_sources.erase(pos);
 
-	dirty();
-	emit dataSourceRemoved(source);
+	return index;
 }
 
 bool
 Project::updateDataSource(Godzi::DataSource* source, bool dirtyProject, Godzi::DataSource** out_old)
 {
-	if (source->id().isSet())
+	if (!source || !source->id().isSet())
+		return false;
+
+	int layerIndex = removeSource(source, out_old);
+	if (layerIndex >= 0)
 	{
-		for (int i=0; i < _sources.size(); i++)
-		{
-			if (_sources[i].get()->id().get() == source->id().get())
-			{
-				if (out_old)
-					*out_old = _sources[i].get();
+		addSource(source, layerIndex);
 
-				_sources[i] = source;
+		if (dirtyProject)
+			dirty();
 
-				if (dirtyProject)
-					dirty();
-				emit dataSourceUpdated(source);
+		emit dataSourceUpdated(source);
 
-				return true;
-			}
-		}
+		return true;
 	}
 
 	return false;
 }
 
-void
+int
 Project::moveDataSource(Godzi::DataSource* source, int position)
 {
-	if (position < 0)
-		return;
+	if (!source || !source->id().isSet() || position < 0)
+		return -1;
 
-	int found = -1;
-	for (int i=0; i < _sources.size(); i++)
+	int layerIndex = findSourceLayersIndex(source->id().get());
+	if (layerIndex >= 0 && layerIndex != position)
 	{
-		if (_sources[i].get()->id().get() == source->id().get())
-		{
-			if (i == position)
-				return;
-			
-			found = i;
-			break;
-		}
+		SourcedLayers layers = _sourceLayers[layerIndex];
+		osgEarth::ImageLayer* imageLayer = layers.imageLayer.get();
+		osgEarth::ModelLayer* modelLayer = layers.modelLayer.get();
+
+		int mapIndex = position + _baseLayerOffset;
+
+		if (imageLayer)
+			_map->moveImageLayer(imageLayer, mapIndex);
+
+		if (modelLayer)
+			_map->moveModelLayer(modelLayer, mapIndex);
+
+		_sourceLayers.erase(_sourceLayers.begin() + layerIndex);
+
+		if (_sourceLayers.size() <= position)
+			_sourceLayers.resize(position + 1);
+
+		if (!_sourceLayers[position].valid())
+			_sourceLayers[position] = layers;
+		else
+			_sourceLayers.insert(_sourceLayers.begin() + position, layers);
+
+		dirty();
+		emit dataSourceMoved(source, position);
 	}
 
-	if (found != -1)
-		_sources.erase(_sources.begin() + found);
+	return layerIndex;
+}
 
-	if (position > _sources.size())
-		_sources.push_back(source);
-	else
-		_sources.insert(_sources.begin() + position, source);
+void
+Project::getSources(Godzi::DataSourceVector& out_list) const
+{
+	out_list.reserve(_sourceLayers.size());
 
-	dirty();
-	emit dataSourceMoved(source, position);
+	for (std::vector<SourcedLayers>::const_iterator it = _sourceLayers.begin(); it != _sourceLayers.end(); ++it)
+	{
+		if (it->valid())
+			out_list.push_back(it->source.get());
+	}
 }
 
 unsigned int
@@ -203,6 +222,15 @@ Project::getUID()
 {
 	return _currentUID++;
 }
+
+//void
+//Project::setMap(osgEarth::Map* map)
+//{
+//	if (!map)
+//		return;
+//
+//	osg::ref_ptr<osgEarth::Map> oldMap = _map;
+//}
 
 void
 Project::setVisibleLayers()
@@ -248,6 +276,103 @@ Project::updateVisibleLayers()
 		_props.visibleModelLayers() = visibleModels;
 }
 
+void
+Project::addSource(Godzi::DataSource* source, int index)
+{
+	if (!source)
+		return;
+
+	osgEarth::ImageLayer* imageLayer = createImageLayer(source, index);
+	osgEarth::ModelLayer* modelLayer = createModelLayer(source, index);
+
+	SourcedLayers layers(source, imageLayer, modelLayer);
+	if (index >= 0)
+	{
+		if (_sourceLayers.size() <= index)
+			_sourceLayers.resize(index + 1);
+
+		if (!_sourceLayers[index].valid())
+			_sourceLayers[index] = layers;
+		else
+			_sourceLayers.insert(_sourceLayers.begin() + index, layers);
+	}
+	else
+	{
+		_sourceLayers.push_back(layers);
+	}
+}
+
+int
+Project::removeSource(Godzi::DataSource* source, Godzi::DataSource** out_removed)
+{
+	if (!source || !source->id().isSet())
+		return -1;
+
+	int layerIndex = findSourceLayersIndex(source->id().get());
+	if (layerIndex >= 0)
+	{
+		SourcedLayers layers = _sourceLayers[layerIndex];
+		osgEarth::ImageLayer* imageLayer = layers.imageLayer.get();
+		osgEarth::ModelLayer* modelLayer = layers.modelLayer.get();
+
+		if (imageLayer)
+			_map->removeImageLayer(imageLayer);
+
+		if (modelLayer)
+			_map->removeModelLayer(modelLayer);
+
+		if (out_removed)
+			*out_removed = layers.source.get();
+
+		_sourceLayers.erase(_sourceLayers.begin() + layerIndex);
+	}
+
+	return layerIndex;
+}
+
+
+osgEarth::ImageLayer*
+Project::createImageLayer(osg::ref_ptr<const Godzi::DataSource> source, int index)
+{
+	osgEarth::ImageLayer* layer = source->createImageLayer();
+	if (layer && source->visible())
+	{
+		int mapIndex = index + _baseLayerOffset;
+		if (index >= 0 && mapIndex < _map->getNumImageLayers())
+			_map->insertImageLayer(layer, mapIndex);
+		else
+			_map->addImageLayer(layer);
+	}
+
+	return layer;
+}
+
+osgEarth::ModelLayer*
+Project::createModelLayer(osg::ref_ptr<const Godzi::DataSource> source, int index)
+{
+	osgEarth::ModelLayer* layer = source->createModelLayer();
+	if (layer && source->visible())
+	{
+		int mapIndex = index + _baseLayerOffset;
+		if (index >= 0 && mapIndex < _map->getNumModelLayers())
+			_map->insertModelLayer(layer, mapIndex);
+		else
+			_map->addModelLayer(layer);
+	}
+
+	return layer;
+}
+
+int
+Project::findSourceLayersIndex(unsigned int id)
+{
+	for (int i=0; i < _sourceLayers.size(); i++)
+		if (_sourceLayers[i].valid() && _sourceLayers[i].id() == id)
+			return i;
+
+	return -1;
+}
+
 //---------------------------------------------------------------------------
 
 bool
@@ -267,14 +392,7 @@ OpenProjectAction::doAction( void* sender, Application* app )
     if ( doc.valid() )
     {
 				Config conf = doc->getConfig().child( "godzi_project" );
-
-				osgEarth::MapNode* mapNode = 0L;
-				ProjectProperties props = ProjectProperties( conf.child( "properties" ) );
-				if (props.map().isSet())
-					mapNode = Godzi::readEarthFile(props.map().get());
-
-				Project* project = new Project( mapNode ? mapNode->getMap() : _defaultMap.get(), conf );
-        app->setProject( project, _location );
+				app->setProject(new Godzi::Project(_defaultMap.get(), conf), _location);
 
 				return true;
     }

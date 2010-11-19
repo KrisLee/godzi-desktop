@@ -73,7 +73,7 @@ namespace Godzi
     Q_OBJECT
     
     public:
-				Project(osgEarth::Map* map=0L, const Config& conf=Config(), const std::string& mapLocation="");
+				Project(osgEarth::Map* defaultMap=0L, const Config& conf=Config());
 
         /** serializes the project to a Config object */
         Config toConfig();
@@ -82,11 +82,11 @@ namespace Godzi
         void setProperties( const ProjectProperties& props ) { _props = props; }
         
         void addDataSource(Godzi::DataSource* source);
-        void removeDataSource(Godzi::DataSource* source);
+        int removeDataSource(Godzi::DataSource* source);
         bool updateDataSource(Godzi::DataSource* source, bool dirtyProject=true, Godzi::DataSource** out_old = 0);
-        void moveDataSource(Godzi::DataSource* source, int position);
+        int moveDataSource(Godzi::DataSource* source, int position);
         
-        const std::vector<osg::ref_ptr<Godzi::DataSource>>& sources() const { return _sources; }
+				void getSources(Godzi::DataSourceVector& out_list) const;
 
         /** The map model */
         osgEarth::Map* map() { return _map.get(); }
@@ -101,14 +101,34 @@ namespace Godzi
 			void dataSourceUpdated(osg::ref_ptr<const Godzi::DataSource> source);
 
     protected:
+				struct SourcedLayers
+				{
+						osg::ref_ptr<Godzi::DataSource> source;
+						osg::ref_ptr<osgEarth::ImageLayer> imageLayer;
+						osg::ref_ptr<osgEarth::ModelLayer> modelLayer;
+
+						SourcedLayers() : source(0L), imageLayer(0), modelLayer(0) {}
+						SourcedLayers(Godzi::DataSource* src, osgEarth::ImageLayer* imageLyr, osgEarth::ModelLayer* modelLyr)
+								: source(src), imageLayer(imageLyr), modelLayer(modelLyr) {}
+
+						bool valid() const { return source.valid(); }
+						unsigned int id() { return valid() ? source->id().get() : 0; }
+				};
+
         unsigned int _currentUID;
         osg::ref_ptr<osgEarth::Map> _map;
         ProjectProperties _props;
-        std::vector<osg::ref_ptr<Godzi::DataSource> > _sources;
+				std::vector<SourcedLayers> _sourceLayers;
+				int _baseLayerOffset;
         
         unsigned int getUID();
         void setVisibleLayers();
 				void updateVisibleLayers();
+				void addSource(Godzi::DataSource* source, int index=-1);
+				int removeSource(Godzi::DataSource* source, Godzi::DataSource** out_removed=0L);
+				osgEarth::ImageLayer* createImageLayer(osg::ref_ptr<const Godzi::DataSource> source, int index=-1);
+				osgEarth::ModelLayer* createModelLayer(osg::ref_ptr<const Godzi::DataSource> source, int index=-1);
+				int findSourceLayersIndex(unsigned int id);
     };
 
     /**
