@@ -11,5 +11,7 @@
         <file>images/pmicon32.png</file>
         <file>images/box.png</file>
         <file>images/edit.png</file>
+        <file>images/gear.png</file>
+        <file>images/tools.png</file>
     </qresource>
 </RCC>

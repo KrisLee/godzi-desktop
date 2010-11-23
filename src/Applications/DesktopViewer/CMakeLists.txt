@@ -7,6 +7,7 @@ set(PROJECT_FILES
     OpenFileDialog.cpp
     WMSEditDialog.cpp
     AboutDialog.cpp
+    AppSettingsDialog.cpp
     ServerManagementWidget.cpp
     WMSOptionsWidget.cpp
     MapLayerCatalogWidget.cpp
@@ -23,6 +24,7 @@ set(GODZI_DESKTOP_UIS
     ui/OpenFileDialog.ui
     ui/WMSEditDialog.ui
     ui/AboutDialog.ui
+    ui/AppSettingsDialog.ui
     ui/WMSOptionsWidget.ui
 )
 
@@ -32,6 +34,7 @@ set (GODZI_DESKTOP_MOC_HDRS
     OpenFileDialog
     WMSEditDialog
     AboutDialog
+    AppSettingsDialog
     ServerManagementWidget
     WMSOptionsWidget
     MapLayerCatalogWidget

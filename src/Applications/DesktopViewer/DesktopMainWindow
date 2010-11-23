@@ -35,7 +35,7 @@ class DesktopMainWindow : public QMainWindow, public Godzi::ActionCallback
 	Q_OBJECT
 	
 	public:
-		DesktopMainWindow(Godzi::Application* app, const std::string& defaultMap="");
+		DesktopMainWindow(Godzi::Application* app, const std::string& configPath="", const std::string& defaultMap="");
 		
 		void operator()( void* sender, Godzi::Action* action );
 		
@@ -45,6 +45,7 @@ class DesktopMainWindow : public QMainWindow, public Godzi::ActionCallback
 		bool saveProject();
 		//void loadMap();
 		void undo();
+		void editSettings();
 		void showAbout();
 		void onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
 		
@@ -62,15 +63,18 @@ class DesktopMainWindow : public QMainWindow, public Godzi::ActionCallback
 		void loadScene(const std::string& filename);
 		void loadScene(osg::Node* n);
 		bool checkSave();
+		bool saveSettings();
 	
 		Godzi::UI::ViewerWidget* _osgViewer;
 		osg::ref_ptr<Godzi::Application> _app;
+		std::string _configPath;
 		std::string _defaultMap;
 		QAction *_newProjectAction;
 		QAction *_openProjectAction;
 		QAction *_saveProjectAction;
 		QAction *_exitAction;
 		QAction *_undoAction;
+		QAction *_settingsAction;
 		QAction *_aboutAction;
 		QMenu *_fileMenu;
 		QMenu *_editMenu;

@@ -124,7 +124,8 @@ osgEarth::ImageLayer* WMSSource::createImageLayer() const
 {
 	if (getActiveLayers().size() > 0)
 	{
-		std::string name = _name.isSet() ? _name.get() : "WMS Source";
+		//std::string name = _name.isSet() ? _name.get() : "WMS Source";
+		std::string name = (_opt.url().isSet() ? _opt.url().get() : "WMS") + "__" + (_opt.layers().isSet() ? _opt.layers().get() : "nolayers");
 		return new osgEarth::ImageLayer(name, _opt);
 	}
 	else
@@ -238,7 +239,7 @@ const std::string& TMSSource::getLocation() const
 
 osgEarth::ImageLayer* TMSSource::createImageLayer() const
 {
-	std::string name = _name.isSet() ? _name.get() : "TMS Source";
+	std::string name = getLocation();
 	return new osgEarth::ImageLayer(name, _opt);
 }
 

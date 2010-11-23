@@ -22,6 +22,7 @@
 #define GODZI_APPLICATION 1
 
 #include <QObject>
+//#include <osgEarthDrivers/cache_sqlite3/Sqlite3CacheOptions>
 #include <Godzi/Common>
 #include <Godzi/Project>
 #include <Godzi/DataSources>
@@ -36,7 +37,11 @@ namespace Godzi
     Q_OBJECT
 			
     public:
-				Application();
+				Application(std::string defaultCachePath="", unsigned int defaultCacheMax=300, const Godzi::Config& conf=Godzi::Config());
+				Application(const Godzi::Config& conf);
+
+				/** serializes the app settings to a Config object */
+        Config toConfig();
 
 				static DataSourceFactoryManager* const dataSourceFactoryManager;
 
@@ -52,12 +57,25 @@ namespace Godzi
         void setProject( Project* project, const std::string& projectLocation ="" );
 
         /** Sets the location where this project should be saved. */
-        void setProjectLocation( const std::string& value ) {
-            _projectLocation = value; }
+        void setProjectLocation( const std::string& value ) { _projectLocation = value; }
 
         /** The location from which this project was loaded or where it should be saved. */
-        const std::string& getProjectLocation() const { 
-            return _projectLocation; }
+        const std::string& getProjectLocation() const { return _projectLocation; }
+
+				bool getCacheEnabled() const { return _mapCacheEnabled; }
+				void setCacheEnabled(bool enabled);
+
+				const std::string& getCachePath() const { return _mapCacheOpt.path().isSet() ? _mapCacheOpt.path().get() : ""; }
+				//void setCachePath( const std::string& path ) { _mapCacheOpt.path() = path; }
+
+				unsigned int getCacheMax() const { return _mapCacheOpt.maxSize().isSet() ? _mapCacheOpt.maxSize().get() : 0; }
+				//void setCacheMax(unsigned int max) { _mapCacheOpt.maxSize() = max; }
+
+				void setCache( const std::string& path, unsigned int max);
+
+				/** The active cache options */
+				//const osgEarth::Drivers::Sqlite3CacheOptions& getCacheOptions() const {
+				//	return _mapCacheOpt; }
 
         /** Whether the project is "dirty" (has unsaved changes) */
         bool isProjectDirty() const;
@@ -69,11 +87,19 @@ namespace Godzi
 			void projectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
 		
     protected:
-        osg::ref_ptr<Project>        _project;
-        osgEarth::Revision           _projectCheckpoint;
-        std::string                  _projectLocation;
+        osg::ref_ptr<Project>                   _project;
+        osgEarth::Revision                      _projectCheckpoint;
+        std::string                             _projectLocation;
+				std::string                             _defaultCachePath;
+				unsigned int                            _defaultCacheMax;
+				bool                                    _mapCacheEnabled;
+				//osgEarth::Drivers::Sqlite3CacheOptions  _mapCacheOpt;
+				osgEarth::Cache*                        _mapCache;
 
-        ActionManager*               _actionMgr;
+        ActionManager*                          _actionMgr;
+
+				void initApp(const Godzi::Config& conf);
+				void initMapCache(const Godzi::Config& cacheConf);
     };
 
 } // namespace Godzi

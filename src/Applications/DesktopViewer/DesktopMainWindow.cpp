@@ -22,18 +22,20 @@
 #include <QtGui>
 #include <QString>
 #include <osgViewer/View>
+#include <osgEarth/XmlUtils>
 #include <Godzi/UI/ViewerWidgets>
 #include <Godzi/Earth>
 #include <Godzi/Application>
 #include <Godzi/Project>
 #include <Godzi/Actions>
 #include "OpenFileDialog"
+#include "AppSettingsDialog"
 #include "AboutDialog"
 #include "MapLayerCatalogWidget"
 #include "DesktopMainWindow"
 
-DesktopMainWindow::DesktopMainWindow(Godzi::Application* app, const std::string& defaultMap)
-: _app(app), _defaultMap(defaultMap)
+DesktopMainWindow::DesktopMainWindow(Godzi::Application* app, const std::string& configPath, const std::string& defaultMap)
+: _app(app), _configPath(configPath), _defaultMap(defaultMap)
 {
 	initUi();
 	_app->actionManager()->addAfterActionCallback(this);
@@ -79,6 +81,9 @@ void DesktopMainWindow::createActions()
 	_undoAction = new QAction(QIcon(":/resources/images/undo.png"), tr("&Undo"), this);
 	connect(_undoAction, SIGNAL(triggered()), this, SLOT(undo()));
 
+	_settingsAction = new QAction(QIcon(":/resources/images/gear.png"), tr("&Options"), this);
+	connect(_settingsAction, SIGNAL(triggered()), this, SLOT(editSettings()));
+
 	_aboutAction = new QAction(QIcon(":/resources/images/info.png"), tr("&About"), this);
 	_aboutAction->setStatusTip(tr("About Godzi"));
 	connect(_aboutAction, SIGNAL(triggered()), this, SLOT(showAbout()));
@@ -96,6 +101,8 @@ void DesktopMainWindow::createMenus()
 
 	_editMenu = menuBar()->addMenu(tr("&Edit"));
 	_editMenu->addAction(_undoAction);
+	_editMenu->addSeparator();
+	_editMenu->addAction(_settingsAction);
 
 	_viewMenu = menuBar()->addMenu(tr("&View"));
 
@@ -111,6 +118,8 @@ void DesktopMainWindow::createToolbars()
 	_fileToolbar->addAction(_saveProjectAction);
 	_fileToolbar->addSeparator();
 	_fileToolbar->addAction(_undoAction);
+	//_fileToolbar->addSeparator();
+	//_fileToolbar->addAction(_settingsAction);
 
 	_viewMenu->addAction(_fileToolbar->toggleViewAction());
 }
@@ -185,10 +194,40 @@ bool DesktopMainWindow::checkSave()
 	return true;
 }
 
+bool DesktopMainWindow::saveSettings()
+{
+	 if (_configPath.empty())
+		 return false;
+
+	 Godzi::Config conf("godzi_desktop");
+	 
+	 
+	 //TODO: write app settings like QMainWindow state and geometry
+
+
+	 conf.addChild(_app->toConfig());
+
+	 osg::ref_ptr<osgEarth::XmlDocument> doc = new osgEarth::XmlDocument( conf );
+	 if ( doc.valid() )
+	 {
+		 std::ofstream output( _configPath.c_str() );
+		 if ( output.is_open() )
+		 {
+			 doc->store( output );
+			 return true;
+		 }
+	 }
+
+	 return false;
+}
+
 void DesktopMainWindow::closeEvent(QCloseEvent *event)
  {
 	 if (checkSave())
+	 {
+		 saveSettings();
 		 event->accept();
+	 }
 	 else
 		 event->ignore();
  }
@@ -249,6 +288,20 @@ bool DesktopMainWindow::saveProject()
 void DesktopMainWindow::undo()
 {
 	_app->actionManager()->undoAction();
+}
+
+void DesktopMainWindow::editSettings()
+{
+	AppSettingsDialog settingsDialog(_app.get());
+	if (settingsDialog.exec() == QDialog::Accepted)
+	{
+		_app->setCacheEnabled(settingsDialog.getCacheEnabled());
+
+		if (settingsDialog.getCacheEnabled())
+		{
+			_app->setCache(settingsDialog.getCachePath(), settingsDialog.getCacheMax());
+		}
+	}
 }
 
 void DesktopMainWindow::showAbout()

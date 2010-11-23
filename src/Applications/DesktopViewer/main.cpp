@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 #include <QtGui/QApplication>
+#include <osgEarth/XmlUtils>
 #include <Godzi/Earth>
 #include <Godzi/Application>
 #include <Godzi/Project>
@@ -28,6 +29,8 @@
 
 #define EARTH_FILE "http://demo.pelicanmapping.com/rmweb/maps/godzi.earth"
 #define LOCAL_EARTH_FILE "data/local_default.earth"
+#define GODZI_CONFIG_FILE "godzi.config"
+#define GODZI_CACHE_FILE "godzi.cache"
 
 int
 main( int argc, char** argv )
@@ -35,7 +38,24 @@ main( int argc, char** argv )
     //QApplication qtApp( argc, argv );
 		GodziQtApplication qtApp(argc, argv);
 
-		osg::ref_ptr<Godzi::Application> app = new Godzi::Application();
+		// Check for user home directory
+		QDir homedir(QDir::homePath() + QDir::separator() + "Godzi");
+		if (!homedir.exists())
+			QDir::home().mkdir("Godzi");
+
+		std::string homepath = "";
+		if (homedir.exists())
+			homepath = homedir.absolutePath().append(QDir::separator()).toStdString();
+
+		// Attempt to read the app settings file
+		std::string configPath = homepath + GODZI_CONFIG_FILE;
+		Godzi::Config conf;
+		std::ifstream input( configPath.c_str() );
+    osg::ref_ptr<osgEarth::XmlDocument> doc = osgEarth::XmlDocument::load( input );
+    if ( doc.valid() )
+				conf = doc->getConfig().child( "godzi_desktop" );
+
+		osg::ref_ptr<Godzi::Application> app = new Godzi::Application(homepath + GODZI_CACHE_FILE, 300, conf.child("godzi_app"));
 
 		std::string defaultMap = "";
 		osgEarth::MapNode* node = Godzi::readEarthFile(EARTH_FILE);
@@ -50,7 +70,7 @@ main( int argc, char** argv )
 				defaultMap = LOCAL_EARTH_FILE;
 		}
 
-		DesktopMainWindow top(app, defaultMap);
+		DesktopMainWindow top(app, configPath,  defaultMap);
     top.resize( 800, 600 );
     top.show();
 

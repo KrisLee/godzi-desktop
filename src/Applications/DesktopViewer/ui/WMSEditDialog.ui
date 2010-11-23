@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>WMS Source</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../AppImages.qrc">
+    <normaloff>:/resources/images/globe.png</normaloff>:/resources/images/globe.png</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
@@ -207,7 +211,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../AppImages.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>okButton</sender>
