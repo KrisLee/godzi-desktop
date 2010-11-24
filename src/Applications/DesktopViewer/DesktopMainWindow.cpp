@@ -292,15 +292,17 @@ void DesktopMainWindow::undo()
 
 void DesktopMainWindow::editSettings()
 {
-	AppSettingsDialog settingsDialog(_app.get());
+	AppSettingsDialog settingsDialog(_app->getCacheEnabled(), _app->getCachePath());
 	if (settingsDialog.exec() == QDialog::Accepted)
 	{
-		_app->setCacheEnabled(settingsDialog.getCacheEnabled());
+		osgEarth::TMSCacheOptions tmsOpt = osgEarth::TMSCacheOptions();
+		//tmsOpt.setDriver("tms");
+		QDir cachePath(QString::fromStdString(settingsDialog.getCachePath()) + QDir::separator() + "godzi.cache");
+		tmsOpt.setPath(cachePath.absolutePath().toStdString());
 
-		if (settingsDialog.getCacheEnabled())
-		{
-			_app->setCache(settingsDialog.getCachePath(), settingsDialog.getCacheMax());
-		}
+		_app->setCache(tmsOpt);
+
+		_app->setCacheEnabled(settingsDialog.getCacheEnabled());
 	}
 }
 

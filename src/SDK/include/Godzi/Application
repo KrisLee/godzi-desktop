@@ -37,8 +37,8 @@ namespace Godzi
     Q_OBJECT
 			
     public:
-				Application(std::string defaultCachePath="", unsigned int defaultCacheMax=300, const Godzi::Config& conf=Godzi::Config());
-				Application(const Godzi::Config& conf);
+				Application(const osgEarth::CacheOptions& cacheOpt, const Godzi::Config& conf=Godzi::Config());
+				Application(const Godzi::Config& conf=Godzi::Config());
 
 				/** serializes the app settings to a Config object */
         Config toConfig();
@@ -65,13 +65,9 @@ namespace Godzi
 				bool getCacheEnabled() const { return _mapCacheEnabled; }
 				void setCacheEnabled(bool enabled);
 
-				const std::string& getCachePath() const { return _mapCacheOpt.path().isSet() ? _mapCacheOpt.path().get() : ""; }
-				//void setCachePath( const std::string& path ) { _mapCacheOpt.path() = path; }
+				std::string getCachePath() const;
 
-				unsigned int getCacheMax() const { return _mapCacheOpt.maxSize().isSet() ? _mapCacheOpt.maxSize().get() : 0; }
-				//void setCacheMax(unsigned int max) { _mapCacheOpt.maxSize() = max; }
-
-				void setCache( const std::string& path, unsigned int max);
+				void setCache(const osgEarth::CacheOptions& cacheOpt);
 
 				/** The active cache options */
 				//const osgEarth::Drivers::Sqlite3CacheOptions& getCacheOptions() const {
@@ -90,16 +86,13 @@ namespace Godzi
         osg::ref_ptr<Project>                   _project;
         osgEarth::Revision                      _projectCheckpoint;
         std::string                             _projectLocation;
-				std::string                             _defaultCachePath;
-				unsigned int                            _defaultCacheMax;
 				bool                                    _mapCacheEnabled;
-				//osgEarth::Drivers::Sqlite3CacheOptions  _mapCacheOpt;
 				osgEarth::Cache*                        _mapCache;
 
         ActionManager*                          _actionMgr;
 
 				void initApp(const Godzi::Config& conf);
-				void initMapCache(const Godzi::Config& cacheConf);
+				void initMapCache(const Godzi::Config& cacheConf, const osgEarth::CacheOptions& cacheOpt);
     };
 
 } // namespace Godzi

@@ -1,0 +1,21 @@
+<map name="godzi-default-basemap" type="geocentric" version="2">
+  <image name="godzi.readymap.live.img" driver="tms">
+    <url>http://live.pelicanmapping.com/readymap/tiles/1.0.0/22/</url>
+  </image>
+  <image name="godzi.readymap.live.osm" driver="tms">
+    <url>http://live.pelicanmapping.com/readymap/tiles/1.0.0/35/</url>
+  </image>
+  <elevation name="godzi.readymap.live.elev" driver="tms">
+    <url>http://live.pelicanmapping.com/readymap/tiles/1.0.0/9/</url>
+  </elevation>
+  <options>
+    <cache type="tms" cache_only="true">
+     <path>./default_cache</path>
+    </cache>
+    <terrain>
+      <lighting>false</lighting>
+      <compositor>multitexture</compositor>
+      <lod_blending>true</lod_blending>
+    </terrain>
+  </options>
+</map>

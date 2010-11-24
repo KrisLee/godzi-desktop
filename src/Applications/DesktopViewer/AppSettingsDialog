@@ -30,11 +30,11 @@ class AppSettingsDialog : public QDialog
 	Q_OBJECT
 
 	public:
-		AppSettingsDialog(Godzi::Application* app);
+		AppSettingsDialog(bool cacheEnabled, const std::string& cachePath);
 
 		bool getCacheEnabled() const { return _ui.cacheEnabledCheckBox->isChecked(); }
 		std::string getCachePath() const { return _ui.cachePathLineEdit->text().toStdString(); }
-		int getCacheMax() const { return _ui.cacheMaxSpinBox->value(); }
+		//int getCacheMax() const { return _ui.cacheMaxSpinBox->value(); }
 
 	private slots:
 		void showBrowse();
@@ -43,7 +43,7 @@ class AppSettingsDialog : public QDialog
 	private:		
 		Ui::AppSettingsDialog _ui;
 
-		void initUi(Godzi::Application* app);
+		void initUi(bool cacheEnabled, const std::string& cachePath);
 };
 
 #endif // APP_SETTINGS_DIALOG

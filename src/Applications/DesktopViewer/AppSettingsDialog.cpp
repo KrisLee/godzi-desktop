@@ -22,18 +22,24 @@
 #include <QFileDialog>
 #include "AppSettingsDialog"
 
-AppSettingsDialog::AppSettingsDialog(Godzi::Application* app)
+AppSettingsDialog::AppSettingsDialog(bool cacheEnabled, const std::string& cachePath)
 {
-	initUi(app);
+	initUi(cacheEnabled, cachePath);
 }
 
-void AppSettingsDialog::initUi(Godzi::Application* app)
+void AppSettingsDialog::initUi(bool cacheEnabled, const std::string& cachePath)
 {
 	_ui.setupUi(this);
 
-	_ui.cacheEnabledCheckBox->setChecked(app->getCacheEnabled());
-	_ui.cachePathLineEdit->setText(QString::fromStdString(app->getCachePath()));
-	_ui.cacheMaxSpinBox->setValue(app->getCacheMax());
+	_ui.cacheEnabledCheckBox->setChecked(cacheEnabled);
+
+	if (!cachePath.empty())
+	{
+		std::string tempStr(cachePath);
+		_ui.cachePathLineEdit->setText(QString::fromStdString(tempStr));
+	}
+
+	//_ui.cacheMaxSpinBox->setValue(cacheMax);
 
 	QObject::connect(_ui.cacheBrowseButton, SIGNAL(clicked()), this, SLOT(showBrowse()));
 	QObject::connect(_ui.cacheEnabledCheckBox, SIGNAL(toggled(bool)), this, SLOT(updateCacheStates()));
@@ -47,13 +53,13 @@ void AppSettingsDialog::updateCacheStates()
 	_ui.cachePathLabel->setEnabled(cacheEnabled);
 	_ui.cachePathLineEdit->setEnabled(cacheEnabled);
 	_ui.cacheBrowseButton->setEnabled(cacheEnabled);
-	_ui.cacheMaxLabel->setEnabled(cacheEnabled);
-	_ui.cacheMaxSpinBox->setEnabled(cacheEnabled);
+	//_ui.cacheMaxLabel->setEnabled(cacheEnabled);
+	//_ui.cacheMaxSpinBox->setEnabled(cacheEnabled);
 }
 
 void AppSettingsDialog::showBrowse()
 {
-	QString cachePath = QFileDialog::getSaveFileName(this);
+	QString cachePath = QFileDialog::getExistingDirectory(this);
 
 	if (!cachePath.isNull())
 		_ui.cachePathLineEdit->setText(cachePath);

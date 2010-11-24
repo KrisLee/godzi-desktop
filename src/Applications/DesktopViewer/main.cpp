@@ -28,7 +28,7 @@
 #include "DesktopMainWindow"
 
 #define EARTH_FILE "http://demo.pelicanmapping.com/rmweb/maps/godzi.earth"
-#define LOCAL_EARTH_FILE "data/local_default.earth"
+#define LOCAL_EARTH_FILE "./data/default.earth"
 #define GODZI_CONFIG_FILE "godzi.config"
 #define GODZI_CACHE_FILE "godzi.cache"
 
@@ -55,8 +55,18 @@ main( int argc, char** argv )
     if ( doc.valid() )
 				conf = doc->getConfig().child( "godzi_desktop" );
 
-		osg::ref_ptr<Godzi::Application> app = new Godzi::Application(homepath + GODZI_CACHE_FILE, 300, conf.child("godzi_app"));
+		// Initialize cache
+		Godzi::Config appConf = conf.child("godzi_app");
+		Godzi::Config cacheOptConf = appConf.child("cache_config").child("cache_opt");
+		osgEarth::TMSCacheOptions cacheOpt;
+		osgEarth::optional<std::string> cachePath;
+		cacheOpt.setPath(cacheOptConf.getIfSet("path", cachePath) && !cachePath.get().empty() ? cachePath.get() : homepath + GODZI_CACHE_FILE);
 
+
+		osg::ref_ptr<Godzi::Application> app = new Godzi::Application(cacheOpt, appConf);
+
+
+		// Attempt to initialize remote map file and use local if unsuccesful
 		std::string defaultMap = "";
 		osgEarth::MapNode* node = Godzi::readEarthFile(EARTH_FILE);
 		if (node)
@@ -69,6 +79,7 @@ main( int argc, char** argv )
 			if (node)
 				defaultMap = LOCAL_EARTH_FILE;
 		}
+
 
 		DesktopMainWindow top(app, configPath,  defaultMap);
     top.resize( 800, 600 );
