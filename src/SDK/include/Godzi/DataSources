@@ -266,6 +266,25 @@ namespace Godzi
 		int _newIndex;
 		int _oldIndex;
 	};
+
+	class GODZI_EXPORT ToggleDataSourceAction : public ReversibleAction
+	{
+	public:
+		ToggleDataSourceAction(unsigned int id, bool visible) : _id(id), _visible(visible), _changed(false) { }
+		ToggleDataSourceAction(Godzi::DataSource* source, bool visible) : _visible(visible), _changed(false) { if (source && source->id().isSet()) _id = source->id().get();  }
+
+		bool doAction(void* sender, Application* app);
+		bool undoAction( void* sender, Application* app );
+
+		osgEarth::optional<unsigned int> id() { return _id; };
+
+		bool visible() { return _visible; };
+
+	protected:
+		osgEarth::optional<unsigned int> _id;
+		bool _visible;
+		bool _changed;
+	};
 	
 	//class GODZI_EXPORT SelectDataSourceAction : public Action
 	//{

@@ -554,6 +554,26 @@ bool MoveDataSourceAction::undoAction(void *sender, Application *app)
 
 /* --------------------------------------------- */
 
+bool ToggleDataSourceAction::doAction(void *sender, Application *app)
+{
+	if (!_id.isSet())
+		return false;
+
+	_changed = app->getProject()->toggleDataSource(_id.get(), _visible);
+	return _changed;
+}
+
+bool ToggleDataSourceAction::undoAction(void *sender, Application *app)
+{
+	if (!_changed || !_id.isSet())
+		return false;
+
+	app->getProject()->toggleDataSource(_id.get(), !_visible);
+	return true;
+}
+
+/* --------------------------------------------- */
+
 //bool SelectDataSourceAction::doAction(void *sender, Application *app)
 //{
 //	if (!_source)

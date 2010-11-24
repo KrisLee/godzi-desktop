@@ -85,6 +85,7 @@ namespace Godzi
         int removeDataSource(Godzi::DataSource* source);
         bool updateDataSource(Godzi::DataSource* source, bool dirtyProject=true, Godzi::DataSource** out_old = 0);
         int moveDataSource(Godzi::DataSource* source, int position);
+				bool toggleDataSource(unsigned int id, bool visible);
         
 				void getSources(Godzi::DataSourceVector& out_list) const;
 
@@ -98,6 +99,7 @@ namespace Godzi
 			void dataSourceAdded(osg::ref_ptr<const Godzi::DataSource> source, int position);
 			void dataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source);
 			void dataSourceMoved(osg::ref_ptr<const Godzi::DataSource> source, int position);
+			void dataSourceToggled(unsigned int id, bool visible);
 			void dataSourceUpdated(osg::ref_ptr<const Godzi::DataSource> source);
 
     protected:

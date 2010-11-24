@@ -20,6 +20,7 @@
  */
 
 #include <Godzi/Common>
+#include <Godzi/DataSources>
 #include <Godzi/Project>
 #include <Godzi/Application>
 #include <Godzi/Earth>
@@ -203,6 +204,36 @@ Project::moveDataSource(Godzi::DataSource* source, int position)
 	}
 
 	return layerIndex;
+}
+
+bool
+Project::toggleDataSource(unsigned int id, bool visible)
+{
+	int layerIndex = findSourceLayersIndex(id);
+	if (layerIndex >= 0)
+	{
+		SourcedLayers layers = _sourceLayers[layerIndex];
+		
+		if (layers.source->visible() == visible)
+			return false;
+
+		layers.source->setVisible(visible);
+
+		osgEarth::ImageLayer* imageLayer = layers.imageLayer.get();
+		if (imageLayer)
+			imageLayer->setEnabled(visible);
+
+		osgEarth::ModelLayer* modelLayer = layers.modelLayer.get();
+		if (modelLayer)
+			modelLayer->setEnabled(visible);
+		
+		dirty();
+		emit dataSourceToggled(id, visible);
+
+		return true;
+	}
+
+	return false;
 }
 
 void

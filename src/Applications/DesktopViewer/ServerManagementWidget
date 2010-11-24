@@ -63,6 +63,7 @@ class ServerManagementWidget : public QWidget
 		void onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource> source);
 		void onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source);
 		void onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource> source, int position);
+		void onDataSourceToggled(unsigned int id, bool visible);
 
 	private:
 	  osg::ref_ptr<Godzi::Application> _app;
@@ -80,6 +81,7 @@ class ServerManagementWidget : public QWidget
 		QTreeWidgetItem* createDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source);
 		void updateDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source, CustomDataSourceTreeItem* item);
 		int findDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source, CustomDataSourceTreeItem** out_item = 0);
+		int findDataSourceTreeItem(unsigned int id, CustomDataSourceTreeItem** out_item = 0);
 		CustomDataSourceTreeItem* findParentSourceItem(QTreeWidgetItem* item);
 		void updateVisibilitiesFromTree(CustomDataSourceTreeItem* item);
 		void addTMSSource();

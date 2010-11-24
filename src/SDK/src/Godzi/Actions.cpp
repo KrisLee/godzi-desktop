@@ -26,7 +26,7 @@ using namespace Godzi;
 //---------------------------------------------------------------------------
 
 Action::Action() :
-_canceled( false )
+_canceled( false ), _checkpoint(true)
 {
     //nop
 }
@@ -36,7 +36,7 @@ _canceled( false )
 ReversibleAction::ReversibleAction() :
 Action()
 {
-    //nop
+    _checkpoint = false;
 }
 
 //---------------------------------------------------------------------------
@@ -137,19 +137,19 @@ ActionManagerImpl::undoAction()
     if ( !canUndo() )
         return false;
 
-    osg::ref_ptr<ReversibleAction> action = static_cast<ReversibleAction*>( _undoStack.front().get() );
-    _undoStack.pop_front();
+		osg::ref_ptr<ReversibleAction> action = static_cast<ReversibleAction*>( _undoStack.back().get() );
+		_undoStack.pop_back();
 
-    bool undoSucceeded = action->undoAction( this, _app.get() );
+		bool undoSucceeded = action->undoAction( this, _app.get() );
 
-    // if the undo failed, we are probably in some undefined application state, so
+		// if the undo failed, we are probably in some undefined application state, so
     // clear out the undo stack just to be safe.
     if ( !undoSucceeded )
     {
         clearUndoActions();
     }
 
-    return undoSucceeded;
+		return undoSucceeded;
 }
 
 bool

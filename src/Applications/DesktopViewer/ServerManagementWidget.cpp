@@ -111,8 +111,14 @@ void ServerManagementWidget::onCurrentItemChanged(QTreeWidgetItem* current, QTre
 void ServerManagementWidget::onTreeItemChanged(QTreeWidgetItem* item, int col)
 {
 	CustomDataSourceTreeItem* sourceItem = findParentSourceItem(item);
+
 	if (sourceItem)
-		updateVisibilitiesFromTree(sourceItem);
+	{
+		if (sourceItem == item)
+			_app->actionManager()->doAction(this, new Godzi::ToggleDataSourceAction(sourceItem->getSource(), sourceItem->checkState(0) == Qt::Checked));
+		else
+			updateVisibilitiesFromTree(sourceItem);
+	}
 }
 
 void ServerManagementWidget::addSource()
@@ -157,6 +163,7 @@ void ServerManagementWidget::onProjectChanged(osg::ref_ptr<Godzi::Project> oldPr
 		connect(p, SIGNAL(dataSourceUpdated(osg::ref_ptr<const Godzi::DataSource>)), this, SLOT(onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource>)));
 		connect(p, SIGNAL(dataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)), this, SLOT(onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource>)));
 		connect(p, SIGNAL(dataSourceMoved(osg::ref_ptr<const Godzi::DataSource>, int)), this, SLOT(onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource>, int)));
+		connect(p, SIGNAL(dataSourceToggled(unsigned int, bool)), this, SLOT(onDataSourceToggled(unsigned int, bool)));
 
 		Godzi::DataSourceVector sources;
 		p->getSources(sources);
@@ -203,6 +210,14 @@ void ServerManagementWidget::onDataSourceMoved(osg::ref_ptr<const Godzi::DataSou
 		else
 			_sourceTree->insertTopLevelItem(position, item);
 	}
+}
+
+void ServerManagementWidget::onDataSourceToggled(unsigned int id, bool visible)
+{
+	CustomDataSourceTreeItem* item;
+	findDataSourceTreeItem(id, &item);
+	if (item && (item->checkState(0) == Qt::Checked) != visible)
+		item->setCheckState(0, visible ? Qt::Checked : Qt::Unchecked);
 }
 
 void ServerManagementWidget::processDataSource(osg::ref_ptr<const Godzi::DataSource> source, int position)
@@ -271,11 +286,19 @@ void ServerManagementWidget::updateDataSourceTreeItem(osg::ref_ptr<const Godzi::
 
 int ServerManagementWidget::findDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source, CustomDataSourceTreeItem** out_item)
 {
+	if (!source.valid() || !source->id().isSet())
+		return -1;
+
+	return findDataSourceTreeItem(source->id().get(), out_item);
+}
+
+int ServerManagementWidget::findDataSourceTreeItem(unsigned int id, CustomDataSourceTreeItem** out_item)
+{
 	int index = -1;
 	for (int i=0; i < _sourceTree->topLevelItemCount(); i++)
 	{
 		CustomDataSourceTreeItem* item = dynamic_cast<CustomDataSourceTreeItem*>(_sourceTree->topLevelItem(i));
-		if (item && item->getSource()->id().get() == source->id().get())
+		if (item && item->getSource()->id().get() == id)
 		{
 			index = i;
 
