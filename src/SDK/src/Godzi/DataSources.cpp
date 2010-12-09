@@ -248,7 +248,8 @@ DataSource* TMSSource::clone() const
 	// [jas] Following shouldn't be necessary, but the TMSOptions copy
 	// constructor does not appear to be working correctly.
 	osgEarth::Drivers::TMSOptions cOpt;
-	cOpt.url() = _opt.url();
+	if (_opt.url().isSet())
+		cOpt.url() = _opt.url().get();
 
 	//TMSSource* c = new TMSSource(new osgEarth::Drivers::TMSOptions(_opt));
 	TMSSource* c = new TMSSource(cOpt);
@@ -269,8 +270,8 @@ DataSource* TMSSource::clone() const
 KMLSource::KMLSource(const Godzi::Features::KMLFeatureSourceOptions& opt, bool visible)
 : DataSource(visible)
 {
-	osgEarth::Config config = opt.getConfig();
-	_opt = Godzi::Features::KMLFeatureSourceOptions((osgEarth::TileSourceOptions)config);
+	osgEarth::Config config = opt.toConfig();
+	_opt = Godzi::Features::KMLFeatureSourceOptions(osgEarth::ConfigOptions(config));
 
 	_fs = new Godzi::Features::KMLFeatureSource(_opt);
 	_fs->initialize();
@@ -279,8 +280,8 @@ KMLSource::KMLSource(const Godzi::Features::KMLFeatureSourceOptions& opt, bool v
 KMLSource::KMLSource(const Godzi::Features::KMLFeatureSourceOptions& opt, bool visible, Godzi::Features::KMLFeatureSource* source)
 : DataSource(visible), _fs(source)
 {
-	osgEarth::Config config = opt.getConfig();
-	_opt = Godzi::Features::KMLFeatureSourceOptions((osgEarth::TileSourceOptions)config);
+	osgEarth::Config config = opt.toConfig();
+	_opt = Godzi::Features::KMLFeatureSourceOptions(osgEarth::ConfigOptions(config));
 
 	if (!source)
 	{
@@ -292,10 +293,10 @@ KMLSource::KMLSource(const Godzi::Features::KMLFeatureSourceOptions& opt, bool v
 KMLSource::KMLSource(const Config& conf)
 : DataSource(conf)
 {
-	_opt = Godzi::Features::KMLFeatureSourceOptions(osgEarth::DriverConfigOptions(osgEarth::ConfigOptions(conf.child("options"))));
+	_opt = Godzi::Features::KMLFeatureSourceOptions(osgEarth::ConfigOptions(conf.child("options")));
 
-	//_fs = new Godzi::Features::KMLFeatureSource(_opt);
-	//_fs->initialize();
+	_fs = new Godzi::Features::KMLFeatureSource(_opt);
+	_fs->initialize();
 }
 
 const std::string KMLSource::TYPE_KML = "KML";
@@ -311,7 +312,7 @@ Godzi::Config KMLSource::toConfig() const
 
 const std::string& KMLSource::getLocation() const
 {
-	return _opt.url().get();
+	return _opt.url().isSet() && _opt.url()->size() > 0 ? _opt.url().get() : "";
 }
 
 const std::vector<std::string> KMLSource::getAvailableLayers() const
@@ -341,7 +342,7 @@ osgEarth::ModelLayer* KMLSource::createModelLayer() const
 {
 	std::string name = _name.isSet() ? _name.get() : "KML Source";
 
-  osgEarth::Features::FeatureModelSourceOptions option;
+	osgEarth::Features::FeatureModelSourceOptions option;
   option.featureSource() = _fs;
 
   return new osgEarth::ModelLayer(name, new Godzi::Features::KMLFeatureModelSource(option));
@@ -352,9 +353,9 @@ DataSource* KMLSource::clone() const
 	// [jas] Following shouldn't be necessary, but the TMSOptions copy
 	// constructor does not appear to be working correctly.
 	Godzi::Features::KMLFeatureSourceOptions cOpt;
-	cOpt.url() = _opt.url();
+	if (_opt.url().isSet())
+		cOpt.url() = _opt.url().get();
 
-	//TMSSource* c = new TMSSource(new osgEarth::Drivers::TMSOptions(_opt));
 	KMLSource* c = new KMLSource(cOpt, true, _fs);
 	if (_name.isSet())
 		c->name() = _name;

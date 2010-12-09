@@ -42,7 +42,7 @@ KMLFeatureSource::KMLFeatureSource(const KMLFeatureSourceOptions& options): osgE
 
 osgEarth::Features::FeatureProfile* KMLFeatureSource::createFeatureProfile()
 {
-    return new osgEarth::Features::FeatureProfile(osgEarth::Registry::instance()->getGlobalGeodeticProfile()->getExtent());
+  return new osgEarth::Features::FeatureProfile(osgEarth::Registry::instance()->getGlobalGeodeticProfile()->getExtent());
 }
 
 static const kmldom::FeaturePtr getRootFeature(const kmldom::ElementPtr& root) 
@@ -467,7 +467,6 @@ void KMLFeatureSource::initialize( const std::string& referenceURI )
     {
         _url = osgEarth::getFullPath( referenceURI, _options.url().value() );
     }
-
 
     std::string file = _url;
 

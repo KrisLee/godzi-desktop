@@ -279,7 +279,7 @@ void ServerManagementWidget::updateDataSourceTreeItem(osg::ref_ptr<const Godzi::
 	{
 		QTreeWidgetItem* child = new QTreeWidgetItem(QStringList(QString::fromStdString(source->layerDisplayName(layers[i]))));
 		child->setData(0, Qt::UserRole, QString::fromStdString(layers[i]));
-		child->setCheckState(0, std::find(active.begin(), active.end(), layers[i]) == active.end() ? Qt::Unchecked : Qt::Checked);
+		//child->setCheckState(0, std::find(active.begin(), active.end(), layers[i]) == active.end() ? Qt::Unchecked : Qt::Checked);
 		item->addChild(child);
 	}
 }

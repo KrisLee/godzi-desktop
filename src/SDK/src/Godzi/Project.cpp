@@ -315,8 +315,8 @@ Project::addSource(Godzi::DataSource* source, int index)
 
 	osgEarth::ImageLayer* imageLayer = createImageLayer(source, index);
 	osgEarth::ModelLayer* modelLayer = createModelLayer(source, index);
-
 	SourcedLayers layers(source, imageLayer, modelLayer);
+
 	if (index >= 0)
 	{
 		if (_sourceLayers.size() <= index)
@@ -366,8 +366,10 @@ osgEarth::ImageLayer*
 Project::createImageLayer(osg::ref_ptr<const Godzi::DataSource> source, int index)
 {
 	osgEarth::ImageLayer* layer = source->createImageLayer();
-	if (layer && source->visible())
+	if (layer)
 	{
+		layer->setEnabled(source->visible());
+
 		int mapIndex = index + _baseLayerOffset;
 		if (index >= 0 && mapIndex < _map->getNumImageLayers())
 			_map->insertImageLayer(layer, mapIndex);
@@ -382,8 +384,10 @@ osgEarth::ModelLayer*
 Project::createModelLayer(osg::ref_ptr<const Godzi::DataSource> source, int index)
 {
 	osgEarth::ModelLayer* layer = source->createModelLayer();
-	if (layer && source->visible())
+	if (layer)
 	{
+		layer ->setEnabled(source->visible());
+
 		int mapIndex = index + _baseLayerOffset;
 		if (index >= 0 && mapIndex < _map->getNumModelLayers())
 			_map->insertModelLayer(layer, mapIndex);
