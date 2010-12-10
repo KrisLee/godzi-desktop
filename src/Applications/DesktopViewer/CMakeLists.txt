@@ -8,6 +8,7 @@ set(PROJECT_FILES
     WMSEditDialog.cpp
     AboutDialog.cpp
     AppSettingsDialog.cpp
+    ServerTreeWidget.cpp
     ServerManagementWidget.cpp
     WMSOptionsWidget.cpp
     MapLayerCatalogWidget.cpp
@@ -35,6 +36,7 @@ set (GODZI_DESKTOP_MOC_HDRS
     WMSEditDialog
     AboutDialog
     AppSettingsDialog
+    ServerTreeWidget
     ServerManagementWidget
     WMSOptionsWidget
     MapLayerCatalogWidget

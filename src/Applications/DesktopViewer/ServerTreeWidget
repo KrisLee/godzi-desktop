@@ -1,0 +1,76 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef SERVER_TREE_WIDGET
+#define SERVER_TREE_WIDGET 1
+
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
+#include <QPoint>
+#include <Godzi/Application>
+
+class CustomDataSourceTreeItem : public QTreeWidgetItem
+{
+public:
+	CustomDataSourceTreeItem(Godzi::DataSource* source) : _source(source), QTreeWidgetItem() {};
+	CustomDataSourceTreeItem(Godzi::DataSource* source, const QStringList &strings) : _source(source), QTreeWidgetItem(strings) {};
+	
+	Godzi::DataSource* getSource() const { return _source.get(); }
+	void setSource(Godzi::DataSource* source) { _source = source; }
+	
+private:
+	osg::ref_ptr<Godzi::DataSource> _source;	
+};
+
+
+class ServerTreeWidget : public QTreeWidget
+{
+	Q_OBJECT
+
+public:
+	ServerTreeWidget(Godzi::Application* app);
+
+private slots:
+	void onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
+	void onTreeItemChanged(QTreeWidgetItem* item, int col);
+	void onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource> source, int position);
+	void onDataSourceUpdated(osg::ref_ptr<const Godzi::DataSource> source);
+	void onDataSourceRemoved(osg::ref_ptr<const Godzi::DataSource> source);
+	void onDataSourceMoved(osg::ref_ptr<const Godzi::DataSource> source, int position);
+	void onDataSourceToggled(unsigned int id, bool visible);
+
+protected:
+	osg::ref_ptr<Godzi::Application> _app;
+
+	void processDataSource(osg::ref_ptr<const Godzi::DataSource> source, int position = -1);
+	QTreeWidgetItem* createDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source);
+	void updateDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source, CustomDataSourceTreeItem* item);
+	int findDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSource> source, CustomDataSourceTreeItem** out_item = 0);
+	int findDataSourceTreeItem(unsigned int id, CustomDataSourceTreeItem** out_item = 0);
+	CustomDataSourceTreeItem* findParentSourceItem(QTreeWidgetItem* item);
+	void updateVisibilitiesFromTree(CustomDataSourceTreeItem* item);
+
+	void dragEnterEvent(QDragEnterEvent *e);
+	void dragMoveEvent(QDragMoveEvent *e);
+	void dropEvent(QDropEvent *e);
+};
+
+#endif // SERVER_TREE_WIDGET

@@ -24,7 +24,6 @@
 #include <Godzi/Application>
 #include <Godzi/Project>
 #include "GodziQtApplication"
-#include "DataSourceManager"
 #include "DesktopMainWindow"
 
 #define EARTH_FILE "http://demo.pelicanmapping.com/rmweb/maps/godzi.earth"

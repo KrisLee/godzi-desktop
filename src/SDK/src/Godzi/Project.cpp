@@ -248,6 +248,12 @@ Project::getSources(Godzi::DataSourceVector& out_list) const
 	}
 }
 
+int
+Project::getNumSources() const
+{
+	return _sourceLayers.size();
+}
+
 unsigned int
 Project::getUID()
 {

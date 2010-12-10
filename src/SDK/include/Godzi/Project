@@ -88,6 +88,7 @@ namespace Godzi
 				bool toggleDataSource(unsigned int id, bool visible);
         
 				void getSources(Godzi::DataSourceVector& out_list) const;
+				int getNumSources() const;
 
         /** The map model */
         osgEarth::Map* map() { return _map.get(); }
