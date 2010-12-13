@@ -48,8 +48,6 @@ ServerManagementWidget::ServerManagementWidget(Godzi::Application* app)
 	_app = app;
 	createActions();
 	initUi();
-
-	connect(_app, SIGNAL(projectChanged(osg::ref_ptr<Godzi::Project>, osg::ref_ptr<Godzi::Project>)), this, SLOT(onProjectChanged(osg::ref_ptr<Godzi::Project>, osg::ref_ptr<Godzi::Project>)));
 }
 
 void ServerManagementWidget::createActions()
