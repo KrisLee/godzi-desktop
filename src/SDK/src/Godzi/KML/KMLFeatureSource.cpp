@@ -267,7 +267,7 @@ namespace
     Style*
     createStyle(kmldom::StylePtr kmlStyle, const kmldom::GeometryPtr kmlGeom)
     {
-        osg::ref_ptr<Style> earthStyle = new Style;
+        Style* earthStyle = new Style();
 
         // labeling: todo: convert this to a text style.
         if (kmlStyle->has_labelstyle())
@@ -350,10 +350,13 @@ namespace
             if (kmls->has_icon() && kmls->get_icon()->has_href()) {
                 s->marker() = kmls->get_icon()->get_href();
             }
+            else {
+                s->marker() = "http://demo.pelicanmapping.com/rmweb/godzi_marker.png";
+            }
 
             earthStyle->addSymbol(s);
         }
-        return earthStyle.release();
+        return earthStyle;
     }
 
     // fwd declare
