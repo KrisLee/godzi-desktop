@@ -19,42 +19,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
 
+#ifndef GODZI_KML_FEATURE_SOURCE
+#define GODZI_KML_FEATURE_SOURCE 1
 
-#ifndef GODZI_KML_FEATURE_SOURCE_OPTION
-#define GODZI_KML_FEATURE_SOURCE_OPTION 1
-
-#include <osgEarthFeatures/FeatureSource>
 #include <Godzi/Common>
+#include <Godzi/KML/KMLFeatureSourceOptions>
+#include <osgEarthFeatures/FeatureSource>
 
 namespace Godzi { namespace KML {
 
-    using namespace osgEarth;
     using namespace osgEarth::Features;
+    using namespace osgEarth::Symbology;
 
-    class GODZI_EXPORT KMLFeatureSourceOptions : public FeatureSourceOptions
+    /**
+     * Reads a KML source and creates osgEarth Feature objects.
+     */
+    class GODZI_EXPORT KMLFeatureSource : public FeatureSource
     {
     public:
-        optional<std::string>& url() { return _url; }
-        const optional<std::string>& url() const { return _url; }
-
-    public:
-        KMLFeatureSourceOptions( const ConfigOptions& conf = osgEarth::ConfigOptions() )
-            : FeatureSourceOptions( conf )
-        {
-            setDriver("kml");
-            conf.getConfig().getIfSet<std::string>( "url", _url );
-        }
-
-        osgEarth::Config toConfig() const {
-            osgEarth::Config conf = FeatureSourceOptions::getConfig();
-            conf.updateIfSet( "url", _url );
-            return conf;
-        }
+        void initialize( const std::string& referenceURI = "");
+        KMLFeatureSource(const KMLFeatureSourceOptions& options);
+        FeatureCursor* createFeatureCursor( const Query& query =Query() );
+        void setFeaturesList( const FeatureList& list) { _features = list; }
+        const FeatureList& getFeaturesList() const { return _features; }
+        bool hasEmbeddedStyles() const { return true; }
 
     protected:
-        optional<std::string> _url;
+
+        FeatureProfile* createFeatureProfile();
+
+        KMLFeatureSourceOptions _options;
+        FeatureList _features;
+        std::string _url;
     };
 
 } } // namespace Godzi::KML
 
-#endif
+#endif // GODZI_KML_FEATURE_SOURCE

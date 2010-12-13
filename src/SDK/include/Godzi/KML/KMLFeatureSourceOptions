@@ -18,30 +18,43 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#ifndef GODZI_FEATURES_KML_FEATURE_MODEL_SOURCE
-#define GODZI_FEATURES_KML_FEATURE_MODEL_SOURCE 1
 
+
+#ifndef GODZI_KML_FEATURE_SOURCE_OPTION
+#define GODZI_KML_FEATURE_SOURCE_OPTION 1
+
+#include <osgEarthFeatures/FeatureSource>
 #include <Godzi/Common>
-#include <Godzi/Features/Feature>
-#include <osgEarth/MapNode>
-#include <osgEarthFeatures/FeatureModelSource>
 
 namespace Godzi { namespace KML {
 
+    using namespace osgEarth;
     using namespace osgEarth::Features;
 
-    /** The model source implementation for feature_geom 
-        do we need this class? -gw */
-    class GODZI_EXPORT KMLFeatureModelSource : public FeatureModelSource
+    class GODZI_EXPORT KMLFeatureSourceOptions : public FeatureSourceOptions
     {
     public:
-        KMLFeatureModelSource( const FeatureModelSourceOptions& options );
-        //override
-        void initialize( const std::string& referenceURI, const osgEarth::Map* map );
-        osg::Node* createNode( osgEarth::ProgressCallback* progress );
+        optional<std::string>& url() { return _url; }
+        const optional<std::string>& url() const { return _url; }
 
+    public:
+        KMLFeatureSourceOptions( const ConfigOptions& conf = osgEarth::ConfigOptions() )
+            : FeatureSourceOptions( conf )
+        {
+            setDriver("kml");
+            conf.getConfig().getIfSet<std::string>( "url", _url );
+        }
+
+        Config toConfig() const {
+            osgEarth::Config conf = FeatureSourceOptions::getConfig();
+            conf.updateIfSet( "url", _url );
+            return conf;
+        }
+
+    protected:
+        optional<std::string> _url;
     };
 
 } } // namespace Godzi::KML
 
-#endif // GODZI_FEATURES_KML_FEATURE_MODEL_SOURCE
+#endif

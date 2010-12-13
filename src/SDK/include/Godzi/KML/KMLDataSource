@@ -1,0 +1,69 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+#ifndef GODZI_KML_DATASOURCE
+#define GODZI_KML_DATASOURCE 1
+
+#include <Godzi/DataSources>
+#include <Godzi/KML/KMLFeatureSource>
+#include <Godzi/KML/KMLFeatureSourceOptions>
+
+namespace Godzi { namespace KML {
+
+    class GODZI_EXPORT KMLDataSource : public DataSource
+    {
+    public:
+        static const std::string TYPE_KML;
+
+        KMLDataSource(const KMLFeatureSourceOptions& opt, bool visible=true);
+        KMLDataSource(const Config& conf);
+
+        const std::string& getLocation() const;
+        const std::string& type() const { return TYPE_KML; }
+
+        const std::vector<std::string> getAvailableLayers() const;
+        const std::vector<std::string> getActiveLayers() const;
+        void setActiveLayers(const std::vector<std::string>& layers);
+
+        Config toConfig() const;
+        osgEarth::ModelLayer* createModelLayer() const;
+        osgEarth::ImageLayer* createImageLayer() const;
+        DataSource* clone() const;
+
+    protected:
+        KMLDataSource(const KMLFeatureSourceOptions& opt, bool visible, KMLFeatureSource* soruce);
+
+    private:
+        KMLFeatureSourceOptions _opt;
+        osg::ref_ptr<KMLFeatureSource> _fs;
+    };
+
+    //--------------------------------------------------------------------
+
+    class GODZI_EXPORT KMLDataSourceFactory : public Godzi::DataSourceFactory
+	{
+	public:
+		bool canCreate(const Godzi::Config& config);
+        Godzi::DataSource* createDataSource(const Godzi::Config& config);
+	};
+
+} } // namespace Godzi::KML
+
+#endif // GODZI_KML_DATASOURCE

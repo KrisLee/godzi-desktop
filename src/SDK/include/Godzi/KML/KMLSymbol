@@ -1,0 +1,120 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+#ifndef GODZI_KML_SYMBOL
+#define GODZI_KML_SYMBOL 1
+
+#include <osgEarth/Common>
+#include <osgEarthSymbology/MarkerSymbol>
+#include <osgEarthSymbology/GeometrySymbol>
+#include <osgEarthSymbology/Text>
+
+namespace Godzi { namespace KML {
+
+    using namespace osgEarth::Symbology;
+
+    class KMLExtrude
+    {
+    public:
+        void setExtrude(bool extrude) { _extrude = extrude;}
+        bool getExtrude() const { return _extrude; }
+
+    protected:
+        bool _extrude;
+    };
+
+    class KMLAltitude
+    {
+    public:
+
+        enum AltitudeMode {
+            ClampToGround, 
+            RelativeToGround,
+            Absolute,
+            RelativeToSeaFloor,
+            ClampToSeaFloor, 
+        };
+
+        void setAltitudeMode(const AltitudeMode& altitude) { _altitudeMode = altitude; }
+        AltitudeMode getAltitudeMode() const { return _altitudeMode; }
+
+    protected:
+        AltitudeMode _altitudeMode;
+    };
+
+    template <class T>
+    class KMLSymbolType : public T
+    {
+    public:
+        osgEarth::optional<KMLExtrude>& extrude() { return _extrude; }
+        const osgEarth::optional<KMLExtrude>& extrude() const { return _extrude; }
+
+        osgEarth::optional<KMLAltitude>& altitude() { return _altitude; }
+        const osgEarth::optional<KMLAltitude>& altitude() const { return _altitude; }
+
+    protected:
+        osgEarth::optional<KMLExtrude> _extrude;
+        osgEarth::optional<KMLAltitude> _altitude;
+    };
+
+    template <class T>
+    class KMLAltitudeSymbol : public T
+    {
+    public:
+        osgEarth::optional<KMLAltitude>& altitude() { return _altitude; }
+        const osgEarth::optional<KMLAltitude>& altitude() const { return _altitude; }
+
+    protected:
+        osgEarth::optional<KMLAltitude> _altitude;
+    };
+
+    class KMLModelSymbol : public MarkerSymbol
+    {
+    public:
+
+        const osg::Vec3d& getScale() const { return _location; }
+        const osg::Vec3d& getLocation() const { return _scale; }
+        double getTilt() const { return _tilt; }
+        double getRoll() const { return _roll; }
+        double getHeading() const { return _heading; }
+
+        void setScale(const osg::Vec3d& s) { _scale = s; }
+        void setLocation(const osg::Vec3d& l) {  _location = l; }
+        void setHeading(double h) { _heading = h; }
+        void setRoll(double r) { _roll = r; }
+        void setTilt(double t) { _tilt = t; }
+
+    protected:
+        osg::Vec3d _location;
+        double _heading;
+        double _roll;
+        double _tilt;
+        osg::Vec3d _scale;
+    };
+
+    typedef KMLSymbolType<MarkerSymbol>   KMLIconSymbol;
+    typedef KMLSymbolType<LineSymbol>     KMLLineSymbol;
+    typedef KMLSymbolType<PolygonSymbol>  KMLPolygonSymbol;
+    typedef TextSymbol                    KMLLabelSymbol;
+
+} } // Godzi::KML
+
+#endif // GODZI_KML_SYMBOL
+
