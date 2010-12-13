@@ -20,8 +20,8 @@
  */
 
 #include <Godzi/KML/KMLFeatureSource>
+#include <Godzi/KML/KMLSymbol>
 #include <Godzi/Features/Placemark>
-#include <Godzi/Features/Symbol>
 #include <osgEarthSymbology/Style>
 #include <osgEarth/FileUtils>
 #include <osgEarth/Registry>
