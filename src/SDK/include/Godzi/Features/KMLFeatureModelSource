@@ -26,18 +26,22 @@
 #include <osgEarth/MapNode>
 #include <osgEarthFeatures/FeatureModelSource>
 
-namespace Godzi { namespace Features {
+namespace Godzi { namespace KML {
 
-/** The model source implementation for feature_geom */
-        class GODZI_EXPORT KMLFeatureModelSource : public osgEarth::Features::FeatureModelSource
-        {
-        public:
-						KMLFeatureModelSource( const osgEarth::Features::FeatureModelSourceOptions& options );
-            //override
-            void initialize( const std::string& referenceURI, const osgEarth::Map* map );
-						osg::Node* createNode( osgEarth::ProgressCallback* progress );
+    using namespace osgEarth::Features;
 
-        };
-}}
+    /** The model source implementation for feature_geom 
+        do we need this class? -gw */
+    class GODZI_EXPORT KMLFeatureModelSource : public FeatureModelSource
+    {
+    public:
+        KMLFeatureModelSource( const FeatureModelSourceOptions& options );
+        //override
+        void initialize( const std::string& referenceURI, const osgEarth::Map* map );
+        osg::Node* createNode( osgEarth::ProgressCallback* progress );
 
-#endif
+    };
+
+} } // namespace Godzi::KML
+
+#endif // GODZI_FEATURES_KML_FEATURE_MODEL_SOURCE

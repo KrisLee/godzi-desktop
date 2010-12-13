@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-
+#if 0
 #ifndef GODZI_FEATURES_GEOMETRY
 #define GODZI_FEATURES_GEOMETRY 1
 
@@ -191,3 +191,4 @@ namespace Godzi { namespace Features {
 }}
 
 #endif
+#endif // if 0

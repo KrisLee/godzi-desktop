@@ -61,7 +61,7 @@ ProjectProperties::toConfig() const
 
 //---------------------------------------------------------------------------
 
-Project::Project(osgEarth::Map* defaultMap, const Config& conf)
+Project::Project(osgEarth::Map* defaultMap, const Godzi::Config& conf)
 : _currentUID(0), _map(defaultMap)
 {
 		_props = ProjectProperties( conf.child( "properties" ) );

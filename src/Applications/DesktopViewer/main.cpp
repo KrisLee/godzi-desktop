@@ -44,7 +44,13 @@ main( int argc, char** argv )
 
 		std::string homepath = "";
 		if (homedir.exists())
-			homepath = homedir.absolutePath().append(QDir::separator()).toStdString();
+        {
+            //QString homedirAbs = homedir.absolutePath();
+            //QString homedirAbsSep = homedirAbs.append( QDir::separator() );
+            ////QByteArray ba = homedirAbsSep.toASCII();
+            //homepath = homedirAbsSep.toUtf8().data();
+			homepath = homedir.absolutePath().append(QDir::separator()).toUtf8().data();
+        }
 
 		// Attempt to read the app settings file
 		std::string configPath = homepath + GODZI_CONFIG_FILE;

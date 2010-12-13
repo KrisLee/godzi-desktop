@@ -21,27 +21,24 @@
 
 #include <osgEarth/Config>
 #include <osgEarthDrivers/wms/WMSOptions>
-#include <osgEarthFeatures/FeatureModelSource>
 #include <Godzi/Common>
 #include <Godzi/Application>
 #include <Godzi/Project>
 #include <Godzi/DataSources>
-#include <Godzi/Features/Feature>
-#include <Godzi/Features/KMLFeatureModelSource>
-#include <Godzi/Features/KMLFeatureSource>
 
 using namespace Godzi;
 
 const std::vector<std::string> DataSource::NO_LAYERS = std::vector<std::string>();
 
-DataSource::DataSource(const Config &conf)
+
+DataSource::DataSource(const Godzi::Config &conf)
 : _error(false), _errorMsg("")
 {
 	conf.getIfSet("name", _name);
 	_visible = osgEarth::as<bool>(conf.value<std::string>("visible", "true"), true);
 }
 
-Config DataSource::toConfig() const
+Godzi::Config DataSource::toConfig() const
 {
 	Godzi::Config conf = Godzi::Config("DataSource");
 	conf.addIfSet("name", _name);
@@ -69,7 +66,7 @@ WMSSource::WMSSource(const osgEarth::Drivers::WMSOptions& opt, const std::string
 	_fullUrl = fullUrl;
 }
 
-WMSSource::WMSSource(const Config& conf)
+WMSSource::WMSSource(const Godzi::Config& conf)
 : DataSource(conf)
 {
 	_opt = osgEarth::Drivers::WMSOptions(osgEarth::TileSourceOptions(osgEarth::ConfigOptions(conf.child("options"))));
@@ -217,7 +214,7 @@ TMSSource::TMSSource(const osgEarth::Drivers::TMSOptions& opt, bool visible)
 	_opt = osgEarth::Drivers::TMSOptions((osgEarth::TileSourceOptions)config);
 }
 
-TMSSource::TMSSource(const Config& conf)
+TMSSource::TMSSource(const Godzi::Config& conf)
 : DataSource(conf)
 {
 	_opt = osgEarth::Drivers::TMSOptions(osgEarth::TileSourceOptions(osgEarth::ConfigOptions(conf.child("options"))));
@@ -253,110 +250,6 @@ DataSource* TMSSource::clone() const
 
 	//TMSSource* c = new TMSSource(new osgEarth::Drivers::TMSOptions(_opt));
 	TMSSource* c = new TMSSource(cOpt);
-	if (_name.isSet())
-		c->name() = _name;
-
-	if (_id.isSet())
-		c->setId(_id.get());
-	
-	c->setError(_error);
-	c->setErrorMsg(_errorMsg);
-
-	return c;
-}
-
-/* --------------------------------------------- */
-
-KMLSource::KMLSource(const Godzi::Features::KMLFeatureSourceOptions& opt, bool visible)
-: DataSource(visible)
-{
-	osgEarth::Config config = opt.toConfig();
-	_opt = Godzi::Features::KMLFeatureSourceOptions(osgEarth::ConfigOptions(config));
-
-	_fs = new Godzi::Features::KMLFeatureSource(_opt);
-	_fs->initialize();
-}
-
-KMLSource::KMLSource(const Godzi::Features::KMLFeatureSourceOptions& opt, bool visible, Godzi::Features::KMLFeatureSource* source)
-: DataSource(visible), _fs(source)
-{
-	osgEarth::Config config = opt.toConfig();
-	_opt = Godzi::Features::KMLFeatureSourceOptions(osgEarth::ConfigOptions(config));
-
-	if (!source)
-	{
-		_fs = new Godzi::Features::KMLFeatureSource(_opt);
-		_fs->initialize();
-	}
-}
-
-KMLSource::KMLSource(const Config& conf)
-: DataSource(conf)
-{
-	_opt = Godzi::Features::KMLFeatureSourceOptions(osgEarth::ConfigOptions(conf.child("options")));
-
-	_fs = new Godzi::Features::KMLFeatureSource(_opt);
-	_fs->initialize();
-}
-
-const std::string KMLSource::TYPE_KML = "KML";
-
-Godzi::Config KMLSource::toConfig() const
-{
-	Godzi::Config conf = DataSource::toConfig();
-	conf.add("type", TYPE_KML);
-	conf.add("options", _opt.getConfig());
-
-  return conf;
-}
-
-const std::string& KMLSource::getLocation() const
-{
-	return _opt.url().isSet() && _opt.url()->size() > 0 ? _opt.url().get() : "";
-}
-
-const std::vector<std::string> KMLSource::getAvailableLayers() const
-{
-	std::vector<std::string> layers;
-
-	osgEarth::Features::FeatureList features = _fs->getFeaturesList();
-	for (osgEarth::Features::FeatureList::iterator it = features.begin(); it != features.end(); ++it)
-	{
-		osgEarth::Features::Feature* f = it->get();
-		layers.push_back(f->getName());
-	}
-
-	return layers;
-}
-
-const std::vector<std::string> KMLSource::getActiveLayers() const
-{
-	return getAvailableLayers();
-}
-
-void KMLSource::setActiveLayers(const std::vector<std::string>& layers)
-{
-}
-
-osgEarth::ModelLayer* KMLSource::createModelLayer() const
-{
-	std::string name = _name.isSet() ? _name.get() : "KML Source";
-
-	osgEarth::Features::FeatureModelSourceOptions option;
-  option.featureSource() = _fs;
-
-  return new osgEarth::ModelLayer(name, new Godzi::Features::KMLFeatureModelSource(option));
-}
-
-DataSource* KMLSource::clone() const
-{
-	// [jas] Following shouldn't be necessary, but the TMSOptions copy
-	// constructor does not appear to be working correctly.
-	Godzi::Features::KMLFeatureSourceOptions cOpt;
-	if (_opt.url().isSet())
-		cOpt.url() = _opt.url().get();
-
-	KMLSource* c = new KMLSource(cOpt, true, _fs);
 	if (_name.isSet())
 		c->name() = _name;
 
@@ -458,25 +351,6 @@ DataSource* TMSSourceFactory::createDataSource(const Godzi::Config& config)
 
 	return new TMSSource(config);
 }
-
-//KML
-bool KMLSourceFactory::canCreate(const Godzi::Config &config)
-{
-	osgEarth::optional<std::string> type;
-	if (config.key().compare("datasource") == 0 && config.getIfSet<std::string>("type", type) && type.get() == KMLSource::TYPE_KML)
-			return true;
-
-	return false;
-}
-
-DataSource* KMLSourceFactory::createDataSource(const Godzi::Config& config)
-{
-	if (!canCreate(config))
-		return 0L;
-
-	return new KMLSource(config);
-}
-
 /* --------------------------------------------- */
 
 bool AddorUpdateDataSourceAction::doAction(void *sender, Application *app)

@@ -251,7 +251,7 @@ void DesktopMainWindow::openProject()
 
 		if (!filename.isNull())
 		{
-			_app->actionManager()->doAction(this, new Godzi::OpenProjectAction(filename.toStdString(), loadDefaultMap()));
+			_app->actionManager()->doAction(this, new Godzi::OpenProjectAction( filename.toUtf8().data(), loadDefaultMap()));
 		}
 	}
 }
@@ -261,7 +261,7 @@ bool DesktopMainWindow::saveProject()
 	std::string filename = _app->getProjectLocation();
 
 	if (filename.empty())
-		filename = QFileDialog::getSaveFileName(this, tr("Save..."), tr(""), tr("Godzi project files (*.godzi);;All files (*.*)")).toStdString();
+		filename = QFileDialog::getSaveFileName(this, tr("Save..."), tr(""), tr("Godzi project files (*.godzi);;All files (*.*)")).toUtf8().data();
 
 	if (!filename.empty())
 	{
@@ -280,7 +280,7 @@ bool DesktopMainWindow::saveProject()
 //    {
 //        QString url = ofd.getUrl();
 //        if (!url.isNull() && !url.isEmpty())
-//            loadScene(url.toStdString());
+//            loadScene( url.toUtf8().data() );
 //    }
 //}
 //TEST
@@ -297,8 +297,8 @@ void DesktopMainWindow::editSettings()
 	{
 		osgEarth::TMSCacheOptions tmsOpt = osgEarth::TMSCacheOptions();
 		//tmsOpt.setDriver("tms");
-		QDir cachePath(QString::fromStdString(settingsDialog.getCachePath()) + QDir::separator() + "godzi.cache");
-		tmsOpt.setPath(cachePath.absolutePath().toStdString());
+		QDir cachePath(QString(settingsDialog.getCachePath().c_str()) + QDir::separator() + "godzi.cache");
+		tmsOpt.setPath(cachePath.absolutePath().toUtf8().data());
 
 		_app->setCache(tmsOpt);
 

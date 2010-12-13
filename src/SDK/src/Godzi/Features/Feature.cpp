@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-
+#if 0
 #include <Godzi/Features/Feature>
 
 using namespace Godzi::Features;
@@ -29,3 +29,4 @@ Feature::Feature(const Feature& f, const osg::CopyOp& cp) :
     osgEarth::Features::Feature(f, cp),
     _description(f._description),
     _visible(f._visible) {}
+#endif

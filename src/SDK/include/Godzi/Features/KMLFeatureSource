@@ -23,41 +23,45 @@
 #define GODZI_KML_FEATURE_SOURCE 1
 
 #include <osgEarthFeatures/FeatureSource>
-#include <Godzi/Features/KMLFeatureSourceOptions>
+#include <Godzi/KML/KMLFeatureSourceOptions>
 #include <Godzi/Common>
 
-namespace Godzi { namespace Features {
+namespace Godzi { namespace KML {
 
-        class KMLFeatureCursor : public osgEarth::Features::FeatureCursor
-        {
-        public:
-            KMLFeatureCursor(const osgEarth::Features::FeatureList& featureList);
-            bool hasMore() const;
-            osgEarth::Features::Feature* nextFeature();
+    using namespace osgEarth::Features;
+    using namespace osgEarth::Symbology;
 
-        protected:
-            osgEarth::Features::FeatureList _featureList;
-            osgEarth::Features::FeatureList::iterator _iterator;
-        };
+    class KMLFeatureCursor : public FeatureCursor
+    {
+    public:
+        KMLFeatureCursor(const FeatureList& featureList);
+        bool hasMore() const;
+        Feature* nextFeature();
 
-        class GODZI_EXPORT KMLFeatureSource :  public osgEarth::Features::FeatureSource
-        {
-        public:
-            void initialize( const std::string& referenceURI = "");
-            KMLFeatureSource(const KMLFeatureSourceOptions& options);
-						osgEarth::Features::FeatureCursor* createFeatureCursor( const osgEarth::Symbology::Query& query );
-            void setFeaturesList( const osgEarth::Features::FeatureList& list) { _features = list; }
-            const osgEarth::Features::FeatureList& getFeaturesList() const { return _features; }
-             bool hasEmbeddedStyles() const { return true; }
+    protected:
+        FeatureList _featureList;
+        FeatureList::iterator _iterator;
+    };
 
-        protected:
+    class GODZI_EXPORT KMLFeatureSource :  public FeatureSource
+    {
+    public:
+        void initialize( const std::string& referenceURI = "");
+        KMLFeatureSource(const KMLFeatureSourceOptions& options);
+        FeatureCursor* createFeatureCursor( const Query& query );
+        void setFeaturesList( const FeatureList& list) { _features = list; }
+        const FeatureList& getFeaturesList() const { return _features; }
+        bool hasEmbeddedStyles() const { return true; }
 
-            osgEarth::Features::FeatureProfile* createFeatureProfile();
+    protected:
 
-            KMLFeatureSourceOptions _options;
-            osgEarth::Features::FeatureList _features;
-            std::string _url;
-        };
+        FeatureProfile* createFeatureProfile();
 
-}}
-#endif
+        KMLFeatureSourceOptions _options;
+        FeatureList _features;
+        std::string _url;
+    };
+
+} } // namespace Godzi::KML
+
+#endif // GODZI_KML_FEATURE_SOURCE

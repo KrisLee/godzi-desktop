@@ -75,12 +75,13 @@ void ServerTreeWidget::updateDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSo
 
 	item->setSource(source->clone());
 
-	item->setText(0, QString::fromStdString(source->name().isSet() ? source->name().get() : source->getLocation()));
+    std::string text = source->name().isSet() ? source->name().get() : source->getLocation();
+	item->setText(0, QString( text.c_str() ));
 
 	if (source->error())
 	{
 		item->setForeground(0, Qt::red);
-		item->setToolTip(0, QString::fromStdString(source->errorMsg()));
+		item->setToolTip(0, QString( source->errorMsg().c_str() ));
 	}
 	else
 	{
@@ -100,8 +101,8 @@ void ServerTreeWidget::updateDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSo
 
 	for (int i=0; i < layers.size(); i++)
 	{
-		QTreeWidgetItem* child = new QTreeWidgetItem(QStringList(QString::fromStdString(source->layerDisplayName(layers[i]))));
-		child->setData(0, Qt::UserRole, QString::fromStdString(layers[i]));
+		QTreeWidgetItem* child = new QTreeWidgetItem(QStringList(QString(source->layerDisplayName(layers[i]).c_str())));
+		child->setData(0, Qt::UserRole, QString( layers[i].c_str() ) );
 		child->setFlags(child->flags() & ~(Qt::ItemIsDropEnabled));
 		//child->setCheckState(0, std::find(active.begin(), active.end(), layers[i]) == active.end() ? Qt::Unchecked : Qt::Checked);
 		item->addChild(child);
@@ -160,7 +161,7 @@ void ServerTreeWidget::updateVisibilitiesFromTree(CustomDataSourceTreeItem* item
 		QTreeWidgetItem* child = item->child(i);
 
 		if (child->checkState(0) == Qt::Checked)
-			activeLayers.push_back(child->data(0, Qt::UserRole).toString().toStdString());
+			activeLayers.push_back(child->data(0, Qt::UserRole).toString().toUtf8().data());
 	}
 	source->setActiveLayers(activeLayers);
 

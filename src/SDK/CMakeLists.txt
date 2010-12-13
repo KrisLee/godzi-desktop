@@ -23,12 +23,6 @@ set(CORE_INCLUDE
 	include/Godzi/Project
 	include/Godzi/DataSources
 	include/Godzi/Earth
-	include/Godzi/Features/Feature
-	include/Godzi/Features/Geometry
-	include/Godzi/Features/KMLFeatureSourceOptions
-	include/Godzi/Features/KMLFeatureSource
-	include/Godzi/Features/KMLFeatureModelSource
-	include/Godzi/Features/KMLGeometrySymbolizer
 	include/Godzi/Features/Placemark
 )
 set(CORE_SOURCE
@@ -37,14 +31,23 @@ set(CORE_SOURCE
 	src/Godzi/Project.cpp
 	src/Godzi/DataSources.cpp
 	src/Godzi/Earth.cpp
-	src/Godzi/Features/Feature.cpp
-	src/Godzi/Features/Geometry.cpp
-	src/Godzi/Features/KMLFeatureSource.cpp
-	src/Godzi/Features/KMLFeatureModelSource.cpp
-	src/Godzi/Features/KMLGeometrySymbolizer.cpp
 	src/Godzi/Features/Placemark.cpp
 )   
 source_group( Core FILES ${CORE_INCLUDE} ${CORE_SOURCE} )
+
+# ----- KML namespace ---------------------------------------------------
+
+set(KML_INCLUDE
+	include/Godzi/KML/KMLFeatureSourceOptions
+	include/Godzi/KML/KMLFeatureSource
+	include/Godzi/KML/KMLDataSource
+	include/Godzi/KML/KMLSymbol
+)
+set(KML_SOURCE
+    src/Godzi/KML/KMLDataSource.cpp
+	src/Godzi/KML/KMLFeatureSource.cpp
+)   
+source_group( KML FILES ${KML_INCLUDE} ${KML_SOURCE} )
 
 # ----- UI namespace ---------------------------------------------------
 
@@ -76,6 +79,7 @@ QT4_WRAP_CPP( GODZI_SDK_MOC_SRCS ${GODZI_SDK_MOC_HDRS} )
 set(PROJECT_FILES
     ${CORE_INCLUDE} ${CORE_SOURCE}
     ${UI_INCLUDE} ${UI_SOURCE}
+    ${KML_INCLUDE} ${KML_SOURCE}
     ${GODZI_SDK_MOC_SRCS}
 )
 

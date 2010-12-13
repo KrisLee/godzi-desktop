@@ -34,6 +34,7 @@
 #include <osgEarth/Config>
 #include <osgEarthDrivers/tms/TMSOptions>
 #include <osgEarthDrivers/wms/WMSOptions>
+#include <Godzi/KML/KMLDataSource>
 #include <Godzi/Application>
 #include <Godzi/Project>
 #include <Godzi/DataSources>
@@ -42,6 +43,9 @@
 #include "WMSEditDialog"
 #include "ServerTreeWidget"
 #include "ServerManagementWidget"
+
+using namespace Godzi;
+using namespace Godzi::KML;
 
 ServerManagementWidget::ServerManagementWidget(Godzi::Application* app)
 {
@@ -149,7 +153,7 @@ void ServerManagementWidget::addTMSSource()
 		if (!url.isNull() && !url.isEmpty())
 		{
 			osgEarth::Drivers::TMSOptions opt;
-			opt.url() = url.toStdString();
+			opt.url() = url.toUtf8().data();
 			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::TMSSource(opt)));
 		}
 	}
@@ -171,9 +175,9 @@ void ServerManagementWidget::addKMLSource()
 		if (!url.isNull() && !url.isEmpty())
 		{
 
-      Godzi::Features::KMLFeatureSourceOptions opt;
-			opt.url() = url.toStdString();
-			_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new Godzi::KMLSource(opt)));
+            KMLFeatureSourceOptions opt;
+            opt.url() = url.toUtf8().data();
+            _app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(new KMLDataSource(opt)));
 		}
 	}
 }

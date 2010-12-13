@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-
+#if 0
 #include <Godzi/Features/Geometry>
 
 using namespace Godzi::Features;
@@ -83,3 +83,5 @@ MultiGeometry::MultiGeometry(const MultiGeometry& pm, const osg::CopyOp& cp) : G
 }
 const GeometryList& MultiGeometry::getGeometryList() const { return _geometryList; }
 GeometryList& MultiGeometry::getGeometryList() { return _geometryList; }
+
+#endif // if 0
