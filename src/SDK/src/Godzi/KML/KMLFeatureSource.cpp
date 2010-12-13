@@ -356,6 +356,10 @@ namespace
         return earthStyle.release();
     }
 
+    // fwd declare
+    void collectDocument( const std::string& location, FeatureList& out_features, int dpeth );
+
+
     /** Generates a feature list from the data found in a KML file */
     void
     collectFeature(kmlengine::KmlFilePtr kml_file, 
@@ -366,6 +370,19 @@ namespace
         //TODO: maybe use "IsA()" here instead, so polymorphism will work
         switch (feature->Type())
         {
+        case kmldom::Type_NetworkLink:
+            {
+                printIndented("NetworkLink", depth);
+                const kmldom::NetworkLinkPtr networkLink = kmldom::AsNetworkLink(feature);
+                if ( networkLink && networkLink->has_link() )
+                {
+                    const kmldom::LinkPtr link = networkLink->get_link();
+                    if ( link->has_href() )
+                        collectDocument( link->get_href(), fl, depth+1 );
+                }
+            }
+            break;
+
         case kmldom::Type_Document:
             printIndented("Document", depth);
             break;
@@ -376,10 +393,6 @@ namespace
 
         case kmldom::Type_GroundOverlay:
             printIndented("GroundOverlay", depth);
-            break;
-
-        case kmldom::Type_NetworkLink:
-            printIndented("NetworkLink", depth);
             break;
 
         case kmldom::Type_PhotoOverlay:
@@ -502,44 +515,52 @@ namespace
             }
         }
     }
+    
+    void
+    collectDocument( const std::string& location, FeatureList& out_features, int depth )
+    {
+        OE_INFO << LC << "KML: Reading from: " << location << std::endl;
+
+        // Read it.
+        std::string kml;
+        if ( HTTPClient::readString( location, kml ) != HTTPClient::RESULT_OK )
+        {
+            OE_WARN << LC << location << ": read failed" << std::endl;
+            return;
+        }
+
+        std::string errors;
+        kmlengine::KmlFilePtr kml_file = kmlengine::KmlFile::CreateFromParse(kml, &errors);
+        if (!kml_file)
+        {
+            OE_WARN << LC << errors << std::endl;
+            return;
+        }
+
+        // Parse it.
+        errors.clear();
+        kmldom::ElementPtr root = kmldom::Parse(kml, &errors);
+        if (!root)
+        {
+            OE_WARN << LC << errors << std::endl;
+            return;
+        }
+
+        const kmldom::FeaturePtr feature = getRootFeature(root);
+
+        if (feature)
+        {
+            collectFeature(kml_file, out_features, feature, depth);
+        }
+        else
+        {
+            OE_WARN << LC << "No root feature" << std::endl;
+        }
+    }
 }
 
 //------------------------------------------------------------------------
 
-#if 0
-KMLFeatureCursor::KMLFeatureCursor(const FeatureList& featureList) :
-_featureList(featureList) 
-{
-    _iterator = _featureList.begin();
-}
-
-bool
-KMLFeatureCursor::hasMore() const
-{
-    if (_iterator != _featureList.end())
-        return true;
-    return false;
-}
-
-Feature*
-KMLFeatureCursor::nextFeature()
-{
-    if (!hasMore())
-        return 0;
-    osgEarth::Features::Feature* f = *_iterator;
-    _iterator++;
-    return f;
-}
-#endif
-
-FeatureCursor*
-KMLFeatureSource::createFeatureCursor( const Query& query )
-{
-    return new FeatureListCursor( this->_features );
-    //return new KMLFeatureCursor(_features);
-}
-
-//------------------------------------------------------------------------
 
 KMLFeatureSource::KMLFeatureSource(const KMLFeatureSourceOptions& options) :
 FeatureSource(options), _options(options)
@@ -554,7 +575,6 @@ KMLFeatureSource::createFeatureProfile()
       osgEarth::Registry::instance()->getGlobalGeodeticProfile()->getExtent() );
 }
 
-//override
 void
 KMLFeatureSource::initialize( const std::string& referenceURI )
 {
@@ -564,49 +584,14 @@ KMLFeatureSource::initialize( const std::string& referenceURI )
     if ( _options.url().isSet() )
     {
         _url = osgEarth::getFullPath( referenceURI, _options.url().value() );
+        collectDocument( _url, _features, 0 );
     }
+}
 
-    std::string file = _url;
-
-    FeatureList features;
-
-    // Read it.
-    std::string kml;
-    if ( HTTPClient::readString( file, kml ) != HTTPClient::RESULT_OK )
-    {
-        OE_WARN << LC << file << " read failed" << std::endl;
-        return;
-    }
-
-    std::string errors;
-    kmlengine::KmlFilePtr kml_file = kmlengine::KmlFile::CreateFromParse(kml, &errors);
-    if (!kml_file)
-    {
-        OE_WARN << LC << errors << std::endl;
-        return;
-    }
-
-    // Parse it.
-    errors.clear();
-    kmldom::ElementPtr root = kmldom::Parse(kml, &errors);
-    if (!root)
-    {
-        OE_WARN << LC << errors << std::endl;
-        return;
-    }
-
-    const kmldom::FeaturePtr feature = getRootFeature(root);
-
-    if (feature)
-    {
-        collectFeature(kml_file, features, feature, 0);
-    }
-    else
-    {
-        OE_WARN << LC << "No root feature" << std::endl;
-    }
-
-    _features = features;
+FeatureCursor*
+KMLFeatureSource::createFeatureCursor( const Query& query )
+{
+    return new FeatureListCursor( this->_features );
 }
 
 //------------------------------------------------------------------------
