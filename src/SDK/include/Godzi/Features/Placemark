@@ -22,11 +22,14 @@
 #define GODZI_FEATURES_PLACEMARK 1
 
 #include <Godzi/Common>
-#include <Godzi/Features/Geometry>
-#include <Godzi/Features/Feature>
+#include <osgEarthFeatures/Feature>
+//#include <Godzi/Features/Geometry>
+//#include <Godzi/Features/Feature>
 #include <osg/Vec3d>
 
 namespace Godzi { namespace Features {
+
+    using namespace osgEarth::Features;
 
     class GODZI_EXPORT Placemark : public Feature
     {
@@ -34,9 +37,8 @@ namespace Godzi { namespace Features {
         META_Object(Godzi, Placemark);
         Placemark(const Placemark& pm, const osg::CopyOp& cp = osg::CopyOp::SHALLOW_COPY);
         Placemark();
-
     };
 
-}}
+} } // namespace Godzi::Features
 
 #endif

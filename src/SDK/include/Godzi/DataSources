@@ -24,8 +24,6 @@
 #include <QObject>
 #include <Godzi/Common>
 #include <Godzi/Actions>
-#include <Godzi/Features/KMLFeatureSource>
-#include <Godzi/Features/KMLFeatureSourceOptions>
 #include <osgEarth/Config>
 #include <osgEarth/Revisioning>
 #include <osgEarth/TileSource>
@@ -147,35 +145,6 @@ namespace Godzi
 	};
 
 	/* --------------------------------------------- */
-
-	class GODZI_EXPORT KMLSource : public DataSource
-	{
-	public:
-		static const std::string TYPE_KML;
-		
-		KMLSource(const Godzi::Features::KMLFeatureSourceOptions& opt, bool visible=true);
-		KMLSource(const Config& conf);
-		
-		const std::string& getLocation() const;
-		const std::string& type() const { return TYPE_KML; }
-		
-		const std::vector<std::string> getAvailableLayers() const;
-		const std::vector<std::string> getActiveLayers() const;
-    void setActiveLayers(const std::vector<std::string>& layers);
-		
-		Config toConfig() const;
-		osgEarth::ModelLayer* createModelLayer() const;
-		DataSource* clone() const;
-		
-	protected:
-		KMLSource(const Godzi::Features::KMLFeatureSourceOptions& opt, bool visible, Godzi::Features::KMLFeatureSource* soruce);
-
-	private:
-		Godzi::Features::KMLFeatureSourceOptions _opt;
-		osg::ref_ptr<Godzi::Features::KMLFeatureSource> _fs;
-	};
-	
-	/* --------------------------------------------- */
 	
 	class GODZI_EXPORT DataSourceFactory : public osg::Referenced
 	{
@@ -206,13 +175,6 @@ namespace Godzi
 	};
 
 	class GODZI_EXPORT TMSSourceFactory : public DataSourceFactory
-	{
-	public:
-		bool canCreate(const Godzi::Config& config);
-		DataSource* createDataSource(const Godzi::Config& config);
-	};
-
-	class GODZI_EXPORT KMLSourceFactory : public DataSourceFactory
 	{
 	public:
 		bool canCreate(const Godzi::Config& config);

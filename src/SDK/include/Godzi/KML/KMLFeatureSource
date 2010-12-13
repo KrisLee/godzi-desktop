@@ -1,0 +1,58 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef GODZI_KML_FEATURE_SOURCE
+#define GODZI_KML_FEATURE_SOURCE 1
+
+#include <Godzi/Common>
+#include <Godzi/KML/KMLFeatureSourceOptions>
+#include <osgEarthFeatures/FeatureSource>
+
+namespace Godzi { namespace KML {
+
+    using namespace osgEarth::Features;
+    using namespace osgEarth::Symbology;
+
+    /**
+     * Reads a KML source and creates osgEarth Feature objects.
+     */
+    class GODZI_EXPORT KMLFeatureSource : public FeatureSource
+    {
+    public:
+        void initialize( const std::string& referenceURI = "");
+        KMLFeatureSource(const KMLFeatureSourceOptions& options);
+        FeatureCursor* createFeatureCursor( const Query& query =Query() );
+        void setFeaturesList( const FeatureList& list) { _features = list; }
+        const FeatureList& getFeaturesList() const { return _features; }
+        bool hasEmbeddedStyles() const { return true; }
+
+    protected:
+
+        FeatureProfile* createFeatureProfile();
+
+        KMLFeatureSourceOptions _options;
+        FeatureList _features;
+        std::string _url;
+    };
+
+} } // namespace Godzi::KML
+
+#endif // GODZI_KML_FEATURE_SOURCE

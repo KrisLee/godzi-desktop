@@ -100,7 +100,7 @@ void MapLayerCatalogWidget::update()
 			if (mapLayer)
 			{
 				CustomObjectTreeItem* mapLayerItem = new CustomObjectTreeItem(mapLayer);
-				mapLayerItem->setText(0, QString::fromStdString(mapLayer->getName()));
+				mapLayerItem->setText(0, QString( mapLayer->getName().c_str() ) );
 				mapLayerItem->setCheckState(0, mapLayer->getEnabled() ? Qt::Checked : Qt::Unchecked);
 				imagesItem->addChild(mapLayerItem);
 			}
@@ -114,7 +114,7 @@ void MapLayerCatalogWidget::update()
 			if (modelLayer)
 			{
 				CustomObjectTreeItem* modelLayerItem = new CustomObjectTreeItem(modelLayer);
-				modelLayerItem->setText(0, QString::fromStdString(modelLayer->getName()));
+				modelLayerItem->setText(0, QString( modelLayer->getName().c_str() ) );
 				modelLayerItem->setCheckState(0, modelLayer->getEnabled() ? Qt::Checked : Qt::Unchecked);
 				modelsItem->addChild(modelLayerItem);
 			}

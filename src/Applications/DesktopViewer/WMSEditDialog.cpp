@@ -68,25 +68,25 @@ void WMSEditDialog::initUi()
 
 void WMSEditDialog::updateUi()
 {
-	_ui.locationLineEdit->setText(QString::fromStdString(_source->getLocation()));
+	_ui.locationLineEdit->setText(QString(_source->getLocation().c_str()));
 
 	_ui.nameLabel->setEnabled(_active);
 	_ui.nameLineEdit->setEnabled(_active);
-	_ui.nameLineEdit->setText(_source->name().isSet() ? QString::fromStdString(_source->name().get()) : "");
+	_ui.nameLineEdit->setText(_source->name().isSet() ? QString(_source->name()->c_str()) : "");
 
 	_ui.formatCheckBox->setEnabled(_active);
 	_ui.formatComboBox->setEnabled(_active && _ui.formatCheckBox->isChecked());
 
 	_ui.formatComboBox->clear();
 	for (std::vector<std::string>::iterator it = _availableFormats.begin(); it != _availableFormats.end(); ++it)
-		_ui.formatComboBox->addItem(QString::fromStdString(*it));
+		_ui.formatComboBox->addItem(QString( (*it).c_str() ) );
 
 	osgEarth::Drivers::WMSOptions opt = (osgEarth::Drivers::WMSOptions)_source->getOptions();
 
 	if (opt.format().isSet())
 	{
 		_ui.formatCheckBox->setChecked(true);
-		int fIndex = _ui.formatComboBox->findText(QString::fromStdString(opt.format().get()), Qt::MatchExactly);
+		int fIndex = _ui.formatComboBox->findText(QString(opt.format()->c_str()), Qt::MatchExactly);
 		if (fIndex >= 0)
 		{
 			_ui.formatComboBox->setCurrentIndex(fIndex);
@@ -108,8 +108,8 @@ void WMSEditDialog::updateUi()
 	std::vector<std::string> active = _source->getActiveLayers();
 	for (int i=0; i < layers.size(); i++)
 	{
-		QListWidgetItem* item = new QListWidgetItem(QString::fromStdString(_source->layerDisplayName(layers[i])));
-		item->setData(Qt::UserRole, QString::fromStdString(layers[i]));
+		QListWidgetItem* item = new QListWidgetItem(QString(_source->layerDisplayName(layers[i]).c_str()));
+		item->setData(Qt::UserRole, QString(layers[i].c_str()));
 		item->setCheckState(std::find(active.begin(), active.end(), layers[i]) == active.end() ? Qt::Unchecked : Qt::Checked);
 		_ui.layersListWidget->addItem(item);
 	}
@@ -145,7 +145,7 @@ void WMSEditDialog::updateSourceOptions(bool urlChanged)
 	if (!urlChanged)
 	{
 		if (_ui.formatCheckBox->isChecked())
-			opt.format() = _ui.formatComboBox->currentText().toStdString();
+			opt.format() = _ui.formatComboBox->currentText().toUtf8().data();
 
 		//if (_ui->srsCheckBox->isChecked())
 		//	opt.srs() = _ui->srsLineEdit->text().toStdString();
@@ -155,12 +155,12 @@ void WMSEditDialog::updateSourceOptions(bool urlChanged)
 			QListWidgetItem* item = _ui.layersListWidget->item(i);
 
 			if (item->checkState() == Qt::Checked)
-				activeLayers.push_back(item->data(Qt::UserRole).toString().toStdString());
+				activeLayers.push_back(item->data(Qt::UserRole).toString().toUtf8().data());
 		}
 	}
 
 	_source->setOptions(opt);
-	_ui.nameLineEdit->text().isEmpty() ? _source->name().unset() : _source->name() = _ui.nameLineEdit->text().toStdString();
+	_ui.nameLineEdit->text().isEmpty() ? _source->name().unset() : _source->name() = _ui.nameLineEdit->text().toUtf8().data();
 
 	if (!opt.layers().isSet())
 		_source->setActiveLayers(activeLayers);
@@ -186,11 +186,11 @@ void WMSEditDialog::parseWMSOptions(const std::string& url, osgEarth::Drivers::W
 void WMSEditDialog::doQuery()
 {
 	std::string oldUrl = _source->fullUrl().isSet() ? _source->fullUrl().get() : "";
-	_source->fullUrl() = _ui.locationLineEdit->text().toStdString();
+	_source->fullUrl() = _ui.locationLineEdit->text().toUtf8().data();
 
 	updateSourceOptions(oldUrl != _source->fullUrl().get());
 
-	std::string url = _ui.locationLineEdit->text().toStdString();
+	std::string url = _ui.locationLineEdit->text().toUtf8().data();
 
 	if (url.length() == 0)
 		return;

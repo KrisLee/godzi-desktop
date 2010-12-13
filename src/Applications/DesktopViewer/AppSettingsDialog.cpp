@@ -36,7 +36,7 @@ void AppSettingsDialog::initUi(bool cacheEnabled, const std::string& cachePath)
 	if (!cachePath.empty())
 	{
 		std::string tempStr(cachePath);
-		_ui.cachePathLineEdit->setText(QString::fromStdString(tempStr));
+		_ui.cachePathLineEdit->setText( QString(tempStr.c_str()) );
 	}
 
 	//_ui.cacheMaxSpinBox->setValue(cacheMax);

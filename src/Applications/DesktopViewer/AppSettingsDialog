@@ -33,7 +33,7 @@ class AppSettingsDialog : public QDialog
 		AppSettingsDialog(bool cacheEnabled, const std::string& cachePath);
 
 		bool getCacheEnabled() const { return _ui.cacheEnabledCheckBox->isChecked(); }
-		std::string getCachePath() const { return _ui.cachePathLineEdit->text().toStdString(); }
+        std::string getCachePath() const { return _ui.cachePathLineEdit->text().toUtf8().data(); }
 		//int getCacheMax() const { return _ui.cacheMaxSpinBox->value(); }
 
 	private slots:

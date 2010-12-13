@@ -26,30 +26,35 @@
 #include <osgEarthFeatures/FeatureSource>
 #include <Godzi/Common>
 
-namespace Godzi { namespace Features {
+namespace Godzi { namespace KML {
 
-        class GODZI_EXPORT KMLFeatureSourceOptions : public osgEarth::Features::FeatureSourceOptions
+    using namespace osgEarth;
+    using namespace osgEarth::Features;
+
+    class GODZI_EXPORT KMLFeatureSourceOptions : public FeatureSourceOptions
+    {
+    public:
+        optional<std::string>& url() { return _url; }
+        const optional<std::string>& url() const { return _url; }
+
+    public:
+        KMLFeatureSourceOptions( const ConfigOptions& conf = osgEarth::ConfigOptions() )
+            : FeatureSourceOptions( conf )
         {
-        public:
-            osgEarth::optional<std::string>& url() { return _url; }
-            const osgEarth::optional<std::string>& url() const { return _url; }
+            setDriver("kml");
+            conf.getConfig().getIfSet<std::string>( "url", _url );
+        }
 
-        public:
-						KMLFeatureSourceOptions( const osgEarth::ConfigOptions& conf = osgEarth::ConfigOptions() ) : osgEarth::Features::FeatureSourceOptions( conf ) {
-                setDriver("kml");
-								conf.getConfig().getIfSet<std::string>( "url", _url );
-            }
+        Config toConfig() const {
+            osgEarth::Config conf = FeatureSourceOptions::getConfig();
+            conf.updateIfSet( "url", _url );
+            return conf;
+        }
 
-            osgEarth::Config toConfig() const {
-								osgEarth::Config conf = osgEarth::Features::FeatureSourceOptions::getConfig();
-                conf.updateIfSet( "url", _url );
-                return conf;
-            }
+    protected:
+        optional<std::string> _url;
+    };
 
-				protected:
-						osgEarth::optional<std::string> _url;
-        };
+} } // namespace Godzi::KML
 
-
-}}
 #endif
