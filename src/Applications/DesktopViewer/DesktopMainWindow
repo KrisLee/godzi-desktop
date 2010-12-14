@@ -67,6 +67,7 @@ class DesktopMainWindow : public QMainWindow, public Godzi::ActionCallback
 	
 		Godzi::UI::ViewerWidget* _osgViewer;
 		osg::ref_ptr<Godzi::Application> _app;
+		osg::ref_ptr<osg::Group> _root;
 		std::string _configPath;
 		std::string _defaultMap;
 		QAction *_newProjectAction;
