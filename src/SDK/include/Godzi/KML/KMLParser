@@ -1,0 +1,71 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+#ifndef GODZI_KML_PARSER
+#define GODZI_KML_PARSER 1
+
+#include <osgEarth/Common>
+#include <osgEarthFeatures/Feature>
+#include <osgEarthSymbology/Style>
+#include "kml/dom.h"
+#include "kml/base/file.h"
+#include "kml/engine.h"
+#include <stack>
+
+namespace Godzi { namespace KML {
+
+    using namespace osgEarth::Features;
+    using namespace osgEarth::Symbology;
+
+    /**
+     * Holds a catalog of defined styles in a KML document tree.
+     * (internal class - no export)
+     */
+    class KMLParser
+    {
+    public:
+        KMLParser();
+
+        bool parse( const std::string& location, FeatureList& output );
+
+    protected:
+        bool parseLocation( const std::string& location );
+        bool parseFeature( const kmldom::FeaturePtr& kmlFeature );
+        bool parseNetworkLink( const kmldom::NetworkLinkPtr& kmlNetworkLink );
+        bool parsePlacemark( const kmldom::PlacemarkPtr& kmlPlacemark );
+
+    private:
+        struct ParserContext {
+            kmlengine::KmlFilePtr _kmlFile;
+            StyleCatalog _styles;
+            FeatureList& _results;
+            ParserContext(FeatureList& output) : _results(output) { }
+            ParserContext( const ParserContext& rhs, kmlengine::KmlFilePtr newFile )
+                : _styles(rhs._styles), _results(rhs._results), _kmlFile(newFile) { }
+        };
+        std::stack<ParserContext> _contextStack;
+        ParserContext& context() { return _contextStack.top(); }
+        int _depth;
+    };
+
+} } // Godzi::KML
+
+#endif // GODZI_KML_PARSER
+

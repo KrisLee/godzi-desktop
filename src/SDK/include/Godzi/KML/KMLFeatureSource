@@ -25,6 +25,7 @@
 #include <Godzi/Common>
 #include <Godzi/KML/KMLFeatureSourceOptions>
 #include <osgEarthFeatures/FeatureSource>
+#include <osgEarthSymbology/Style>
 
 namespace Godzi { namespace KML {
 
@@ -33,24 +34,32 @@ namespace Godzi { namespace KML {
 
     /**
      * Reads a KML source and creates osgEarth Feature objects.
+     * (Internal class - no export)
      */
-    class GODZI_EXPORT KMLFeatureSource : public FeatureSource
+    class KMLFeatureSource : public FeatureSource
     {
     public:
-        void initialize( const std::string& referenceURI = "");
         KMLFeatureSource(const KMLFeatureSourceOptions& options);
-        FeatureCursor* createFeatureCursor( const Query& query =Query() );
+
         void setFeaturesList( const FeatureList& list) { _features = list; }
+
         const FeatureList& getFeaturesList() const { return _features; }
+
+    public: // override
+        void initialize( const std::string& referenceURI = "");
+
+        /** Generates a new iterator */
+        FeatureCursor* createFeatureCursor( const Query& query =Query() );
+
+        /** KML objects have embedded sytles (style per feature) */
         bool hasEmbeddedStyles() const { return true; }
 
     protected:
-
         FeatureProfile* createFeatureProfile();
 
+        std::string _url;
         KMLFeatureSourceOptions _options;
         FeatureList _features;
-        std::string _url;
     };
 
 } } // namespace Godzi::KML

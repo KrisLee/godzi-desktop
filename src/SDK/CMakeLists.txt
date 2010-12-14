@@ -41,11 +41,13 @@ set(KML_INCLUDE
 	include/Godzi/KML/KMLFeatureSourceOptions
 	include/Godzi/KML/KMLFeatureSource
 	include/Godzi/KML/KMLDataSource
+	include/Godzi/KML/KMLParser
 	include/Godzi/KML/KMLSymbol
 )
 set(KML_SOURCE
     src/Godzi/KML/KMLDataSource.cpp
 	src/Godzi/KML/KMLFeatureSource.cpp
+	src/Godzi/KML/KMLParser.cpp
 )   
 source_group( KML FILES ${KML_INCLUDE} ${KML_SOURCE} )
 
