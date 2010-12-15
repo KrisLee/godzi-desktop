@@ -37,7 +37,7 @@ namespace Godzi { namespace KML
         bool doAction(void* sender, Application* app);
 
         const DataSource* _ds;
-        int         _objectUID;
+        int               _objectUID;
     };
 
 } } // Godzi::KML

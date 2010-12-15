@@ -45,7 +45,7 @@ namespace Godzi
      *
      * no export; header only
      */
-    class DataObjectSpec
+    class /*GODZI_EXPORT*/ DataObjectSpec
     {
     public:
         DataObjectSpec() { }
@@ -73,7 +73,7 @@ namespace Godzi
      * then present those actions to the user however it sees fit, e.g., via a
      * context menu or a toolbar.
      */
-    class DataObjectActionSpecBase : public osg::Referenced
+    class /*GODZI_EXPORT*/ DataObjectActionSpecBase : public osg::Referenced
     {
     public:
         const std::string& getText() const { return _text; }
@@ -95,7 +95,7 @@ namespace Godzi
 
     /** Templatized concrete instance of an action specification. (see above) */
     template<typename T>
-    class DataObjectActionSpec : public DataObjectActionSpecBase
+    class /*GODZI_EXPORT*/ DataObjectActionSpec : public DataObjectActionSpecBase
     {
     public:
         DataObjectActionSpec( const std::string& text, const std::string& description, bool isDefault =false )
@@ -135,7 +135,7 @@ namespace Godzi
         /** Gets a set of action specifications pertaining to objects in this data source. */
         virtual bool getDataObjectActionSpecs( DataObjectActionSpecVector& out_actionSpecs ) const { return false; }
 
-        // to be deprecated in favor of getDataObjectTokens [gw]
+        // to be deprecated in favor of getDataObjectSpecs [gw]
         virtual const std::vector<std::string> getAvailableLayers() const { return NO_LAYERS; }
         //virtual void setAvailableLayers(const std::vector<std::string>& layers) {};
 

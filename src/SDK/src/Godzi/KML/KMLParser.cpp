@@ -20,13 +20,13 @@
  */
 #include <Godzi/KML/KMLParser>
 #include <Godzi/KML/KMLSymbol>
-#include <Godzi/Features/Placemark>
+#include <Godzi/Placemark>
 #include <osgEarth/HTTPClient>
 #include <osgEarthSymbology/Geometry>
 #include <osgEarthSymbology/GeometrySymbol>
 #include <osgEarthUtil/Viewpoint>
 
-using namespace Godzi::Features;
+using namespace Godzi;
 using namespace Godzi::KML;
 using namespace osgEarth::Util;
 

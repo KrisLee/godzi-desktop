@@ -18,29 +18,31 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#ifndef GODZI_FEATURES_PLACEMARK
-#define GODZI_FEATURES_PLACEMARK 1
+#ifndef GODZI_PLACEMARK
+#define GODZI_PLACEMARK 1
 
 #include <Godzi/Common>
 #include <osgEarthFeatures/Feature>
 #include <osgEarthUtil/Viewpoint>
 #include <osg/Vec3d>
 
-namespace Godzi { namespace Features {
-
-    using namespace Godzi;
+namespace Godzi
+{
     using namespace osgEarth;
     using namespace osgEarth::Util;
     using namespace osgEarth::Features;
 
+    /**
+     * Generic object that combines a Feature (geometry+attributes) with other
+     * application-level information.
+     */
     class GODZI_EXPORT Placemark : public Feature
     {
     public:
-        //META_Object(Godzi, Placemark);
-        Placemark( const Placemark& pm, const osg::CopyOp& cp = osg::CopyOp::SHALLOW_COPY);
         Placemark( long fid );
+        Placemark( const Placemark& pm, const osg::CopyOp& cp = osg::CopyOp::SHALLOW_COPY);
 
-        /** The "lookat" location for zooming the camera. */
+        /** The "lookat" location for focusing the camera on this feature. */
         optional<Viewpoint>& lookAt() { return _lookAt; }
         const optional<Viewpoint>& lookAt() const { return _lookAt; }
 
@@ -48,6 +50,6 @@ namespace Godzi { namespace Features {
         optional<Viewpoint> _lookAt;
     };
 
-} } // namespace Godzi::Features
+} // namespace Godzi::Features
 
-#endif
+#endif // GODZI_PLACEMARK

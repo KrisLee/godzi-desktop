@@ -21,12 +21,11 @@
 #include <Godzi/KML/KMLActions>
 #include <Godzi/KML/KMLDataSource>
 #include <Godzi/Application>
-#include <Godzi/Features/Placemark>
+#include <Godzi/Placemark>
 #include <osgViewer/Viewer>
 #include <osgEarthUtil/EarthManipulator>
 
 using namespace Godzi;
-using namespace Godzi::Features;
 using namespace Godzi::KML;
 using namespace osgEarth::Util;
 

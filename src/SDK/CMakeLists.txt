@@ -20,18 +20,18 @@ set(CORE_INCLUDE
     include/Godzi/Common
 	include/Godzi/Actions
 	include/Godzi/Application
+	include/Godzi/Placemark
 	include/Godzi/Project
 	include/Godzi/DataSources
 	include/Godzi/Earth
-	include/Godzi/Features/Placemark
 )
 set(CORE_SOURCE
 	src/Godzi/Actions.cpp
 	src/Godzi/Application.cpp
+	src/Godzi/Placemark.cpp
 	src/Godzi/Project.cpp
 	src/Godzi/DataSources.cpp
 	src/Godzi/Earth.cpp
-	src/Godzi/Features/Placemark.cpp
 )   
 source_group( Core FILES ${CORE_INCLUDE} ${CORE_SOURCE} )
 

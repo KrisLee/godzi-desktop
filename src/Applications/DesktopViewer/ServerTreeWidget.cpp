@@ -30,8 +30,10 @@
 
 //------------------------------------------------------------------------
 
-// this makes DataObjectSpec eligible for use in a QVariant, which we need
-// in order to assign it to a QTreeWidgetItem's data field.
+// This is a custom object to store in QTreeWidgetItem->data() that holds
+// a reference to the data object being represented by the tree item. Since
+// data() holds a QVariant, we have to declare this as a Qt metatype in 
+// order to store it there.
 namespace
 {
     struct TreeItemData
