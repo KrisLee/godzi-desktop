@@ -24,15 +24,45 @@
 #include <osgEarth/HTTPClient>
 #include <osgEarthSymbology/Geometry>
 #include <osgEarthSymbology/GeometrySymbol>
+#include <osgEarthUtil/Viewpoint>
 
 using namespace Godzi::Features;
 using namespace Godzi::KML;
+using namespace osgEarth::Util;
 
 #define LC "[Godzi.KMLParser] "
 #define DEFAULT_LABEL_SIZE 32
 
 namespace
 {
+    /** Converts a KML "abstract view" into an osgEarth::Util::Viewpoint. */
+    bool
+    s_parseView( const kmldom::AbstractViewPtr& av, Viewpoint& out )
+    {
+        const kmldom::LookAt* lookAt = dynamic_cast<kmldom::LookAt*>( av.get() );
+        if ( lookAt )
+        {
+            if ( !lookAt->has_latitude() || !lookAt->has_longitude() )
+                return false;
+
+            out.setFocalPoint( osg::Vec3d(
+                lookAt->get_longitude(),
+                lookAt->get_latitude(),
+                lookAt->has_altitude() ? lookAt->get_altitude() : 0L ) );
+
+            if ( lookAt->has_heading() )
+                out.setHeading( lookAt->get_heading() );
+
+            if ( lookAt->has_tilt() )
+                out.setPitch( lookAt->get_tilt() - 90.0 );
+
+            out.setRange( lookAt->has_range() ? lookAt->get_range() : 10000.0 );
+
+            return true;
+        }
+        return false;
+    }
+
     /** Finds the root feature in a KML document */
     const kmldom::FeaturePtr
     s_getRootFeature(const kmldom::ElementPtr& root) 
@@ -351,7 +381,8 @@ namespace
 //------------------------------------------------------------------------
 
 KMLParser::KMLParser() :
-_depth( 0 )
+_depth( 0 ),
+_nextUID( 0L )
 {
     //NOP
 }
@@ -360,7 +391,7 @@ bool
 KMLParser::parse( const std::string& location, FeatureList& out_results )
 {    
     _depth = -1;
-    _contextStack.push( ParserContext(out_results) );
+    _contextStack.push( ParserContext(out_results, _nextUID) );
     bool ok = parseLocation( location );
     _contextStack.pop();
     return ok;
@@ -489,7 +520,7 @@ KMLParser::parsePlacemark(const kmldom::PlacemarkPtr& kmlPlacemark)
     if ( !kmlPlacemark.get() )
         return false;
 
-    Placemark* p = new Placemark();
+    Placemark* p = new Placemark( context()._nextUID++ );
 
     // resolve the style attached to this feature:
     kmldom::StylePtr kmlStyle = kmlengine::CreateResolvedStyle( kmlPlacemark, context()._kmlFile, kmldom::STYLESTATE_NORMAL );
@@ -569,6 +600,14 @@ KMLParser::parsePlacemark(const kmldom::PlacemarkPtr& kmlPlacemark)
         osg::notify(osg::NOTICE) << "label " << label->content().value() << std::endl;
 
         s_printIndented("Placemark", _depth);
+
+        // See if the placemark has a "lookat" location:
+        if ( kmlPlacemark->has_abstractview() && kmlPlacemark->get_abstractview()->IsA( kmldom::Type_LookAt ) )
+        {
+            Viewpoint vp;
+            if( s_parseView( kmlPlacemark->get_abstractview(), vp ) )
+                p->lookAt() = vp;
+        }
 
         context()._results.push_back( p );
     }

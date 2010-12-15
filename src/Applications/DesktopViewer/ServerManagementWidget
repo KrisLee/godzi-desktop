@@ -38,7 +38,7 @@ class ServerManagementWidget : public QWidget
 		ServerManagementWidget(Godzi::Application* app);
 		
 	private slots:
-	  void onCurrentItemChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
+        void onCurrentItemChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
 		void addSource();
 		void removeSource();
 		void editSource();

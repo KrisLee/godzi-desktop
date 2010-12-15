@@ -31,57 +31,137 @@
 #include <osgEarth/ModelLayer>
 #include <osgEarthDrivers/wms/WMSOptions>
 #include <osgEarthDrivers/tms/TMSOptions>
+#include <string>
 
 namespace Godzi
 {
 	class Application;
 	class Project;
 
-	class GODZI_EXPORT DataSource : public osgEarth::Revisioned<osg::Referenced>
-  {
-  public:
-		virtual const std::string& getLocation() const =0;
-		virtual const std::string& type() const =0;
-		
-		virtual Config toConfig() const;
-		virtual osgEarth::ImageLayer* createImageLayer() const { return 0;}
-		virtual osgEarth::ModelLayer* createModelLayer() const { return 0;}
-		virtual DataSource* clone() const =0;
-		
-		osgEarth::optional<std::string>& name() { return _name; }
-    const osgEarth::optional<std::string>& name() const { return _name; }
+    /**
+     * A revisioned data object reference. This is an ID-based reference to an
+     * implementation-specific object in a DataSource, coupled with a readable
+     * description that is suitable for use in the UI.
+     *
+     * no export; header only
+     */
+    class DataObjectSpec
+    {
+    public:
+        DataObjectSpec() { }
+        DataObjectSpec( int objectUID, const std::string& text ) : _objectUID( objectUID ), _text(text) { }
+        DataObjectSpec( const DataObjectSpec& rhs ) : _objectUID(rhs._objectUID), _text(rhs._text) { }
 
-		void setId(unsigned int id) { _id = id; }
-		const osgEarth::optional<unsigned int> id() const { return _id; }
-    
-    void setVisible( bool value ) { _visible = value; }
-    bool visible() const { return _visible; }
-    
-    virtual const std::vector<std::string> getAvailableLayers() const { return NO_LAYERS; }
-    //virtual void setAvailableLayers(const std::vector<std::string>& layers) {};
-    
-    virtual const std::vector<std::string> getActiveLayers() const { return NO_LAYERS; }
-    virtual void setActiveLayers(const std::vector<std::string>& layers) {};
-    
-    virtual const std::string& layerDisplayName (const std::string& layerName) const { return layerName; }
-    
-    bool error() const { return _error; }
-    void setError(bool isError) { _error = isError; }
-    
-    const std::string& errorMsg() const { return _errorMsg; }
-    void setErrorMsg(const std::string& msg) { _errorMsg = msg; }
+        /** Gets the unique ID of the object to which this token is referring. */
+        int getObjectUID() const { return _objectUID; }
 
-	protected:
-		DataSource(bool visible=true) : _visible(visible), _error(false), _errorMsg("") {};
-		DataSource(const Config& conf);
-		osgEarth::optional<std::string> _name;
-		osgEarth::optional<unsigned int> _id;
-		bool _visible;
-		bool _error;
-		std::string _errorMsg;
-		
-		static const std::vector<std::string> NO_LAYERS;
-	};
+        const std::string& getText() const { return _text; }
+
+    protected:
+        int _objectUID;
+        std::string _text;
+    };
+
+    typedef std::vector<DataObjectSpec> DataObjectSpecVector;
+    class DataSource;
+
+    /**
+     * Base class for an action specification. An Action Specification gives the 
+     * UI a way to present an action to the user (via the text and description),
+     * and a means to instantiate the related Action. A DataSource will provide
+     * set of Action Specifications for actions on its data objects. The UI can
+     * then present those actions to the user however it sees fit, e.g., via a
+     * context menu or a toolbar.
+     */
+    class DataObjectActionSpecBase : public osg::Referenced
+    {
+    public:
+        const std::string& getText() const { return _text; }
+        const std::string& getDescription() const { return _description; }
+        bool isDefaultAction() const { return _isDefault; }
+
+        virtual Action* createAction( const DataSource* ds, int objectUID ) const =0;
+
+    protected:
+        DataObjectActionSpecBase( const std::string& text, const std::string& description, bool isDefault )
+            : _text(text), _description(description), _isDefault(isDefault) { }
+
+        std::string _text;
+        std::string _description;
+        bool _isDefault;
+    };
+
+    typedef std::vector< osg::ref_ptr<DataObjectActionSpecBase> > DataObjectActionSpecVector;
+
+    /** Templatized concrete instance of an action specification. (see above) */
+    template<typename T>
+    class DataObjectActionSpec : public DataObjectActionSpecBase
+    {
+    public:
+        DataObjectActionSpec( const std::string& text, const std::string& description, bool isDefault =false )
+            : DataObjectActionSpecBase( text, description, isDefault ) { }
+
+        Action* createAction( const DataSource* ds, int objectUID ) const {
+            return new T( ds, objectUID );
+        }
+    };
+
+    /** 
+     * An object that provided data to the application.
+     */
+    class GODZI_EXPORT DataSource : public osgEarth::Revisioned<osg::Referenced>
+    {
+    public:
+        virtual const std::string& getLocation() const =0;
+        virtual const std::string& type() const =0;
+
+        virtual Config toConfig() const;
+        virtual osgEarth::ImageLayer* createImageLayer() const { return 0;}
+        virtual osgEarth::ModelLayer* createModelLayer() const { return 0;}
+        virtual DataSource* clone() const =0;
+
+        osgEarth::optional<std::string>& name() { return _name; }
+        const osgEarth::optional<std::string>& name() const { return _name; }
+
+        void setId(unsigned int id) { _id = id; }
+        const osgEarth::optional<unsigned int> id() const { return _id; }
+
+        void setVisible( bool value ) { _visible = value; }
+        bool visible() const { return _visible; }
+
+        /** Gets the complete set of tokens for the objects provided by this source. */
+        virtual bool getDataObjectSpecs( DataObjectSpecVector& out_objectSpecs ) const { return false; }
+
+        /** Gets a set of action specifications pertaining to objects in this data source. */
+        virtual bool getDataObjectActionSpecs( DataObjectActionSpecVector& out_actionSpecs ) const { return false; }
+
+        // to be deprecated in favor of getDataObjectTokens [gw]
+        virtual const std::vector<std::string> getAvailableLayers() const { return NO_LAYERS; }
+        //virtual void setAvailableLayers(const std::vector<std::string>& layers) {};
+
+        virtual const std::vector<std::string> getActiveLayers() const { return NO_LAYERS; }
+        virtual void setActiveLayers(const std::vector<std::string>& layers) {};
+
+
+        virtual const std::string& layerDisplayName (const std::string& layerName) const { return layerName; }
+
+        bool error() const { return _error; }
+        void setError(bool isError) { _error = isError; }
+
+        const std::string& errorMsg() const { return _errorMsg; }
+        void setErrorMsg(const std::string& msg) { _errorMsg = msg; }
+
+    protected:
+        DataSource(bool visible=true) : _visible(visible), _error(false), _errorMsg("") {};
+        DataSource(const Config& conf);
+        osgEarth::optional<std::string> _name;
+        osgEarth::optional<unsigned int> _id;
+        bool _visible;
+        bool _error;
+        std::string _errorMsg;
+
+        static const std::vector<std::string> NO_LAYERS;
+    };
 
 	typedef std::vector<osg::ref_ptr<DataSource>> DataSourceVector;
 	

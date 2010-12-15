@@ -28,6 +28,23 @@
 #include <Godzi/Application>
 #include "ServerTreeWidget"
 
+//------------------------------------------------------------------------
+
+// this makes DataObjectSpec eligible for use in a QVariant, which we need
+// in order to assign it to a QTreeWidgetItem's data field.
+namespace
+{
+    struct TreeItemData
+    {
+        const Godzi::DataSource* _source;
+        Godzi::DataObjectSpec _spec;
+    };
+}
+Q_DECLARE_METATYPE(TreeItemData);
+
+
+//------------------------------------------------------------------------
+
 ServerTreeWidget::ServerTreeWidget(Godzi::Application *app)
 : _app(app)
 {
@@ -40,6 +57,7 @@ ServerTreeWidget::ServerTreeWidget(Godzi::Application *app)
 
 	connect(_app, SIGNAL(projectChanged(osg::ref_ptr<Godzi::Project>, osg::ref_ptr<Godzi::Project>)), this, SLOT(onProjectChanged(osg::ref_ptr<Godzi::Project>, osg::ref_ptr<Godzi::Project>)));
 	connect(this, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(onTreeItemChanged(QTreeWidgetItem*, int)));
+    connect(this, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(onItemDoubleClicked(QTreeWidgetItem*,int)));
 }
 
 void ServerTreeWidget::processDataSource(osg::ref_ptr<const Godzi::DataSource> source, int position)
@@ -90,23 +108,51 @@ void ServerTreeWidget::updateDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSo
 	}
 
 	item->setCheckState(0, source->visible() ? Qt::Checked : Qt::Unchecked);
-	
-	std::vector<std::string> layers = source->getAvailableLayers();
-	std::vector<std::string> active = source->getActiveLayers();
 
-	//Remove old child items and free memory
-	QList<QTreeWidgetItem*> oldChildren = item->takeChildren();
-	//while (!oldChildren.isEmpty())
-  //   delete oldChildren.takeFirst();
+    //Remove old child items and free memory
+    QList<QTreeWidgetItem*> oldChildren = item->takeChildren();
+    //while (!oldChildren.isEmpty())
+    //   delete oldChildren.takeFirst();
 
-	for (int i=0; i < layers.size(); i++)
-	{
-		QTreeWidgetItem* child = new QTreeWidgetItem(QStringList(QString(source->layerDisplayName(layers[i]).c_str())));
-		child->setData(0, Qt::UserRole, QString( layers[i].c_str() ) );
-		child->setFlags(child->flags() & ~(Qt::ItemIsDropEnabled));
-		//child->setCheckState(0, std::find(active.begin(), active.end(), layers[i]) == active.end() ? Qt::Unchecked : Qt::Checked);
-		item->addChild(child);
-	}
+    // first, try data objects.
+    Godzi::DataObjectSpecVector objSpecs;
+    if ( source->getDataObjectSpecs( objSpecs ) )
+    {
+        for( Godzi::DataObjectSpecVector::const_iterator i = objSpecs.begin(); i != objSpecs.end(); ++i )
+        {
+            const Godzi::DataObjectSpec& spec = *i;
+
+            QTreeWidgetItem* child = new QTreeWidgetItem( QStringList( QString( spec.getText().c_str() ) ) );
+
+            TreeItemData data;
+            data._source = source.get();
+            data._spec = spec;
+
+            // store the object spec in the data so we can reference it later during an action:
+            child->setData( 0, Qt::UserRole, QVariant::fromValue(data) ); //spec.getObjectUID() );
+
+            // disable the drop zone:
+            child->setFlags( child->flags() & ~(Qt::ItemIsDropEnabled));
+
+            item->addChild( child );
+        }
+    }
+
+    else
+    {
+        // otherwise, try the old method:
+	    std::vector<std::string> layers = source->getAvailableLayers();
+	    std::vector<std::string> active = source->getActiveLayers();
+
+	    for (int i=0; i < layers.size(); i++)
+	    {
+		    QTreeWidgetItem* child = new QTreeWidgetItem(QStringList(QString(source->layerDisplayName(layers[i]).c_str())));
+		    child->setData(0, Qt::UserRole, QString( layers[i].c_str() ) );
+		    child->setFlags(child->flags() & ~(Qt::ItemIsDropEnabled));
+		    //child->setCheckState(0, std::find(active.begin(), active.end(), layers[i]) == active.end() ? Qt::Unchecked : Qt::Checked);
+		    item->addChild(child);
+	    }
+    }
 }
 
 
@@ -201,6 +247,32 @@ void ServerTreeWidget::onTreeItemChanged(QTreeWidgetItem* item, int col)
 		else
 			updateVisibilitiesFromTree(sourceItem);
 	}
+}
+
+void
+ServerTreeWidget::onItemDoubleClicked(QTreeWidgetItem* item, int col)
+{
+    QVariant v = item->data(col, Qt::UserRole);
+    if ( !v.isNull() )
+    {
+        TreeItemData data = v.value<TreeItemData>();
+        std::cout << "DOUBLE-CLICK, object UID = " << data._spec.getText() << ", " << data._spec.getObjectUID() << std::endl;
+
+        Godzi::DataObjectActionSpecVector specs;
+        if ( data._source->getDataObjectActionSpecs( specs ) )
+        {
+            for(Godzi::DataObjectActionSpecVector::const_iterator i = specs.begin(); i != specs.end(); ++i )
+            {
+                Godzi::DataObjectActionSpecBase* actionSpec = i->get();
+                if ( actionSpec->isDefaultAction() )
+                {
+                    Godzi::Action* action = actionSpec->createAction( data._source, data._spec.getObjectUID() );
+                    _app->actionManager()->doAction( this, action );
+                    break;
+                }
+            }
+        }
+    }
 }
 
 void ServerTreeWidget::onDataSourceAdded(osg::ref_ptr<const Godzi::DataSource> source, int position)

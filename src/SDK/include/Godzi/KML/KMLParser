@@ -29,8 +29,8 @@
 #include "kml/engine.h"
 #include <stack>
 
-namespace Godzi { namespace KML {
-
+namespace Godzi { namespace KML
+{
     using namespace osgEarth::Features;
     using namespace osgEarth::Symbology;
 
@@ -50,19 +50,22 @@ namespace Godzi { namespace KML {
         bool parseFeature( const kmldom::FeaturePtr& kmlFeature );
         bool parseNetworkLink( const kmldom::NetworkLinkPtr& kmlNetworkLink );
         bool parsePlacemark( const kmldom::PlacemarkPtr& kmlPlacemark );
+        bool parseLookAt( const kmldom::LookAtPtr& kmlLookAt );
 
     private:
         struct ParserContext {
             kmlengine::KmlFilePtr _kmlFile;
             StyleCatalog _styles;
             FeatureList& _results;
-            ParserContext(FeatureList& output) : _results(output) { }
+            long& _nextUID;
+            ParserContext( FeatureList& output, long& nextUID ) : _results(output), _nextUID(nextUID) { }
             ParserContext( const ParserContext& rhs, kmlengine::KmlFilePtr newFile )
-                : _styles(rhs._styles), _results(rhs._results), _kmlFile(newFile) { }
+                : _styles(rhs._styles), _results(rhs._results), _nextUID(rhs._nextUID), _kmlFile(newFile) { }
         };
         std::stack<ParserContext> _contextStack;
         ParserContext& context() { return _contextStack.top(); }
         int _depth;
+        long _nextUID;
     };
 
 } } // Godzi::KML

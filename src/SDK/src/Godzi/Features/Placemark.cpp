@@ -18,12 +18,16 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-
 #include <Godzi/Features/Placemark>
+#include <osgEarth/Registry>
 
 using namespace Godzi::Features;
 
-Placemark::Placemark() {}
+Placemark::Placemark( long fid ) : 
+Feature( fid )
+{
+    //NOP
+}
 
 Placemark::Placemark(const Placemark& pm, const osg::CopyOp& cp):
     Feature(pm, cp)

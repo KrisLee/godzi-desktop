@@ -47,8 +47,9 @@ void DesktopMainWindow::initUi()
 {
 	setWindowTitle(tr("Godzi[*] - Pelican Mapping"));
 	setWindowIcon(QIcon(":/resources/images/pmicon32.png"));
-
+    
 	_osgViewer = new Godzi::UI::ViewerWidget( this, 0, 0, true );
+    _app->setView( _osgViewer->getView() );
 	setCentralWidget(_osgViewer);
 
 	createActions();

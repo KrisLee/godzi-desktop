@@ -31,6 +31,9 @@ namespace Godzi { namespace KML {
     using namespace osgEarth;
     using namespace osgEarth::Features;
 
+    /**
+     * Configuration for the KML Feature Source.
+     */
     class GODZI_EXPORT KMLFeatureSourceOptions : public FeatureSourceOptions
     {
     public:

@@ -18,36 +18,29 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-#ifndef GODZI_FEATURES_PLACEMARK
-#define GODZI_FEATURES_PLACEMARK 1
+#ifndef GODZI_KML_ACTIONS
+#define GODZI_KML_ACTIONS 1
 
-#include <Godzi/Common>
-#include <osgEarthFeatures/Feature>
-#include <osgEarthUtil/Viewpoint>
-#include <osg/Vec3d>
+#include <Godzi/Actions>
+#include <Godzi/DataSources>
 
-namespace Godzi { namespace Features {
-
+namespace Godzi { namespace KML
+{
     using namespace Godzi;
-    using namespace osgEarth;
-    using namespace osgEarth::Util;
-    using namespace osgEarth::Features;
 
-    class GODZI_EXPORT Placemark : public Feature
+    class ZoomToKmlObjectAction : public Action
     {
     public:
-        //META_Object(Godzi, Placemark);
-        Placemark( const Placemark& pm, const osg::CopyOp& cp = osg::CopyOp::SHALLOW_COPY);
-        Placemark( long fid );
+        ZoomToKmlObjectAction( const DataSource* ds, int objectUID ) :
+          _ds(ds), _objectUID(objectUID) { }
 
-        /** The "lookat" location for zooming the camera. */
-        optional<Viewpoint>& lookAt() { return _lookAt; }
-        const optional<Viewpoint>& lookAt() const { return _lookAt; }
+        bool doAction(void* sender, Application* app);
 
-    protected:
-        optional<Viewpoint> _lookAt;
+        const DataSource* _ds;
+        int         _objectUID;
     };
 
-} } // namespace Godzi::Features
+} } // Godzi::KML
 
-#endif
+#endif // GODZI_KML_ACTIONS
+

@@ -93,12 +93,15 @@ ActionManagerImpl::addAfterActionCallback( ActionCallback* cb )
 }
 
 bool
-ActionManagerImpl::doAction( void* sender, Action* action, bool reversible )
+ActionManagerImpl::doAction( void* sender, Action* action_, bool reversible )
 {
+    // this ensures that the action will be unref'd and deleted after running
+    osg::ref_ptr<Action> action = action_;
+
     bool undoInProgress = sender == this;
 
     for( ActionCallbackList::iterator i = _beforeCallbacks.begin(); i != _beforeCallbacks.end(); ++i )
-        i->get()->operator()( sender, action );
+        i->get()->operator()( sender, action.get() );
 
     bool actionSucceeded = false;
 
@@ -114,7 +117,7 @@ ActionManagerImpl::doAction( void* sender, Action* action, bool reversible )
             }
             else if ( reversible && action->isReversible() )
             {
-                _undoStack.push_back( action );
+                _undoStack.push_back( action.get() );
                 if ( (int)_undoStack.size() > _maxUndoStackSize )
                 {
                     _undoStack.pop_front();
@@ -125,7 +128,7 @@ ActionManagerImpl::doAction( void* sender, Action* action, bool reversible )
         //todo: during-action callbacks here? like in pogo?
 
         for( ActionCallbackList::iterator j = _afterCallbacks.begin(); j != _afterCallbacks.end(); ++j )
-            j->get()->operator()( sender, action );
+            j->get()->operator()( sender, action.get() );
     }
 
     return actionSucceeded;

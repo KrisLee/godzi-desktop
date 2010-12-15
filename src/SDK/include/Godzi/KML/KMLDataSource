@@ -35,12 +35,23 @@ namespace Godzi { namespace KML
         KMLDataSource(const KMLFeatureSourceOptions& opt, bool visible=true);
         KMLDataSource(const Config& conf);
 
+        /** Looks up a feature by its unique object ID. */
+        Feature* getFeature( int objectUID ) const;
+
+    public: // DataSource overrides
+
         const std::string& getLocation() const;
         const std::string& type() const { return TYPE_KML; }
 
         const std::vector<std::string> getAvailableLayers() const;
         const std::vector<std::string> getActiveLayers() const;
         void setActiveLayers(const std::vector<std::string>& layers);
+
+        /** Returns all the KML features in this source. */
+        bool getDataObjectSpecs( DataObjectSpecVector& out_list ) const;
+
+        /** Provides all the action specs for KML objects. */
+        bool getDataObjectActionSpecs( DataObjectActionSpecVector& out_actionSpecs ) const;
 
         Config toConfig() const;
         osgEarth::ModelLayer* createModelLayer() const;
@@ -50,9 +61,16 @@ namespace Godzi { namespace KML
     protected:
         KMLDataSource(const KMLFeatureSourceOptions& opt, bool visible, KMLFeatureSource* soruce);
 
+        void populate();
+
     private:
         KMLFeatureSourceOptions _opt;
         osg::ref_ptr<KMLFeatureSource> _fs;
+        
+        FeatureList _features;
+        
+        typedef std::map<int, Feature*> FeaturesById;
+        FeaturesById _featureMap;
     };
 
     //--------------------------------------------------------------------

@@ -20,6 +20,7 @@
  */
 #include <Godzi/KML/KMLDataSource>
 #include <Godzi/KML/KMLFeatureSource>
+#include <Godzi/KML/KMLActions>
 #include <osgEarthDrivers/agglite/AGGLiteOptions>
 
 using namespace Godzi;
@@ -69,23 +70,75 @@ KMLDataSource::getLocation() const
 	return _opt.url().isSet() && _opt.url()->size() > 0 ? _opt.url().get() : EMPTY_STRING;
 }
 
+void
+KMLDataSource::populate()
+{
+    if ( _features.empty() )
+    {
+        osg::ref_ptr<KMLFeatureSource> fs = new KMLFeatureSource( _opt );
+        fs->initialize();
+
+        osg::ref_ptr<FeatureCursor> cursor = fs->createFeatureCursor();
+        while( cursor->hasMore() )
+        {
+            Feature* f = cursor->nextFeature();
+            if ( f )
+            {
+                _features.push_back( f );
+                _featureMap[ f->getFID() ] = f;
+            }
+        }
+    }
+}
+
+bool
+KMLDataSource::getDataObjectSpecs( DataObjectSpecVector& out_results ) const
+{
+    const_cast<KMLDataSource*>(this)->populate();
+
+    out_results.clear();
+    for( FeatureList::const_iterator i = _features.begin(); i != _features.end(); ++i )
+    {
+        Feature* f = i->get();
+        out_results.push_back( DataObjectSpec( f->getFID(), f->getName() ) );
+    }
+    return true;
+}
+
+bool
+KMLDataSource::getDataObjectActionSpecs( DataObjectActionSpecVector& out_actionSpecs ) const
+{
+    out_actionSpecs.push_back( new DataObjectActionSpec<ZoomToKmlObjectAction>(
+        "Locate",
+        "Moves the camera to look at the object",
+        true ) );
+
+    return true;
+}
+
+Feature*
+KMLDataSource::getFeature( int objectUID ) const
+{
+    const_cast<KMLDataSource*>(this)->populate();
+
+    FeaturesById::const_iterator i = _featureMap.find( objectUID );
+    return i != _featureMap.end() ? i->second : 0L;
+}
+
+
 const std::vector<std::string>
 KMLDataSource::getAvailableLayers() const
 {
-	std::vector<std::string> layers;
+    const_cast<KMLDataSource*>(this)->populate();
 
-    osg::ref_ptr<KMLFeatureSource> fs = new KMLFeatureSource( _opt );
-    fs->initialize();
-
-    osg::ref_ptr<FeatureCursor> cursor = fs->createFeatureCursor();
-    while( cursor->hasMore() )
+    std::vector<std::string> layers;
+    for( FeatureList::const_iterator i = _features.begin(); i != _features.end(); ++i )
     {
-        Feature* f = cursor->nextFeature();
-        if ( !f->getName().empty() )
+        Feature* f = i->get();
+        if ( f && !f->getName().empty() )
             layers.push_back( f->getName() );
     }
-
-	return layers;
+    return layers;
 }
 
 const std::vector<std::string>

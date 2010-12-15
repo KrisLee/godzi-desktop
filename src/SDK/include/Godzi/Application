@@ -26,9 +26,11 @@
 #include <Godzi/Common>
 #include <Godzi/Project>
 #include <Godzi/DataSources>
+#include <Godzi/UI/ViewerWidgets>
 
 namespace Godzi
 {
+    using namespace Godzi::UI;
     class ActionManager;
 
     class GODZI_EXPORT Application : public QObject, public osg::Referenced
@@ -78,16 +80,24 @@ namespace Godzi
 
         /** Sets the project to "clean" (no unsaved changes) */
         void setProjectClean();
+
+        /** Sets/gets the 3D view associated with this application */
+        void setView( osgViewer::View* view ) { _view = view; }
+        osgViewer::View* getView() const { return _view.get(); }
 						
 		signals:
 			void projectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
 		
     protected:
         osg::ref_ptr<Project>                   _project;
+
         osgEarth::Revision                      _projectCheckpoint;
         std::string                             _projectLocation;
+        osg::observer_ptr<osgViewer::View>      _view;
+
 				bool                                    _mapCacheEnabled;
 				osgEarth::Cache*                        _mapCache;
+
 
         ActionManager*                          _actionMgr;
 
