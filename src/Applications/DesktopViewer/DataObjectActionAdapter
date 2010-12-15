@@ -1,0 +1,91 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+#ifndef GODZI_DESKTOP_DATA_OBJECT_ACTION_ADAPTER_H
+#define GODZI_DESKTOP_DATA_OBJECT_ACTION_ADAPTER_H 1
+
+#include <QObject>
+#include <QMenu>
+#include <QToolBar>
+#include <Godzi/DataSources>
+#include <Godzi/Application>
+#include <algorithm>
+
+/**
+ * A user data item that can be ecapsulated in a QVariant and used in the
+ * data() property in various Qt widgets.
+ */
+struct WidgetUserDataToken
+{
+    const Godzi::DataSource* _source;
+    Godzi::DataObjectSpec    _spec;
+};
+Q_DECLARE_METATYPE( WidgetUserDataToken );
+
+/**
+ * This adapter ties Godzi Actions to QMenu and other QAction receivers.
+ */
+class DataObjectActionAdapter : public QObject
+{
+    Q_OBJECT;
+
+public:
+    DataObjectActionAdapter() { }
+
+    DataObjectActionAdapter( 
+        void* sender,
+        const WidgetUserDataToken& token,
+        Godzi::DataObjectActionSpecBase* actionSpec, 
+        Godzi::Application* app )
+        : _sender(sender), _actionSpec(actionSpec), _token(token), _app(app) { }
+
+
+    void addActionTo( QMenu* menu ) const {
+        menu->addAction( QString(_actionSpec->getText().c_str()), this, SLOT(onTriggered()) );
+    }
+
+    void addActionTo( QToolBar* tb ) const {
+        tb->addAction( QString(_actionSpec->getText().c_str()), this, SLOT(onTriggered()) );
+    }
+
+    void* _sender;
+    WidgetUserDataToken _token;
+    Godzi::Application* _app;
+    Godzi::DataObjectActionSpecBase* _actionSpec;
+
+public slots:
+    void onTriggered() {
+        _app->actionManager()->doAction( 
+            _sender, _actionSpec->createAction( _token._source, _token._spec.getObjectUID() ) );
+    }
+};
+
+/** 
+ * List of adapters that automatically deletes its members upon destruction
+ */
+struct DataObjectActionAdapterAutoList : public std::list<DataObjectActionAdapter*>
+{
+    virtual ~DataObjectActionAdapterAutoList() {
+        struct DeleteFunctor { void operator()( DataObjectActionAdapter* obj ) { delete obj; } };
+        std::for_each( begin(), end(), DeleteFunctor() );
+    }
+};
+
+#endif // GODZI_DESKTOP_DATA_OBJECT_ACTION_ADAPTER_H
