@@ -20,6 +20,7 @@
  */
 #include <Godzi/UI/ViewerWidgets>
 #include <QtGui/QDesktopServices>
+#include <osgEarthUtil/AutoClipPlaneHandler>
 
 #define USE_QT4
 
@@ -98,6 +99,7 @@ ViewerWidget::createContext()
     }
 
     _viewer = new osgViewer::Viewer();
+    _viewer->addEventHandler( new osgEarth::Util::AutoClipPlaneHandler() );
     _viewer->setThreadingModel(osgViewer::Viewer::DrawThreadPerContext);
     _viewer->getCamera()->setGraphicsContext( _gw );
     _viewer->getCamera()->setProjectionMatrixAsPerspective( 30.0f, (double)traits->width/(double)traits->height, 1.0, 1000.0 );
@@ -105,7 +107,7 @@ ViewerWidget::createContext()
     _viewer->addEventHandler( new osgViewer::StatsHandler() );
     _viewer->addEventHandler( new osgGA::StateSetManipulator() );
     _viewer->addEventHandler( new osgViewer::ThreadingHandler() );
-		_viewer->setCameraManipulator( new osgEarth::Util::EarthManipulator() );
+    _viewer->setCameraManipulator( new osgEarth::Util::EarthManipulator() );
 
     _viewer->setKeyEventSetsDone( 0 );
     _viewer->setQuitEventSetsDone( false );
