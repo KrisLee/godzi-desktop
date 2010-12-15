@@ -23,6 +23,7 @@
 #include <QString>
 #include <osgViewer/View>
 #include <osgEarth/XmlUtils>
+#include <osgEarthUtil/SkyNode>
 #include <Godzi/UI/ViewerWidgets>
 #include <Godzi/Earth>
 #include <Godzi/Application>
@@ -315,6 +316,13 @@ void DesktopMainWindow::showAbout()
 
 void DesktopMainWindow::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject)
 {
-		osgEarth::MapNode* mapNode = new osgEarth::MapNode(_app->getProject()->map());
-    loadScene(mapNode);
+	_root = new osg::Group();
+	_root->addChild(new osgEarth::MapNode(_app->getProject()->map()));
+
+	osgEarth::Util::SkyNode* sky = new osgEarth::Util::SkyNode(_app->getProject()->map());
+	sky->setSunPosition(osg::Vec3(0,-1,0));
+	sky->attach(_osgViewer->getView());
+	_root->addChild(sky);
+
+  loadScene(_root);
 }
