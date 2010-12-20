@@ -21,6 +21,7 @@
 
 #include <osgDB/FileNameUtils>
 #include <osgEarthUtil/WMS>
+#include "Common"
 #include "WMSEditDialog"
 
 std::string extractBetween(const std::string& str, const std::string &lhs, const std::string &rhs)
@@ -49,10 +50,7 @@ WMSEditDialog::WMSEditDialog(const Godzi::WMSSource* source)
 
 Godzi::WMSSource* WMSEditDialog::getSource()
 {
-	Godzi::WMSSource* outSource = (Godzi::WMSSource*)_source->clone();
-	outSource->setAvailableLayers(_source->getActiveLayers());
-
-	return outSource;
+	return (Godzi::WMSSource*)_source->clone();
 }
 
 void WMSEditDialog::initUi()
@@ -64,6 +62,8 @@ void WMSEditDialog::initUi()
 	QObject::connect(this, SIGNAL(accepted()), this, SLOT(onDialogClose()));
 	QObject::connect(_ui.locationLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(toggleQueryEnabled()));
 	QObject::connect(_ui.formatCheckBox, SIGNAL(toggled(bool)), this, SLOT(toggleOptions()));
+	QObject::connect(_ui.selectAllCheckbox, SIGNAL(clicked(bool)), this, SLOT(selectAllClicked(bool)));
+	QObject::connect(_ui.layersListWidget, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(onLayerItemClicked(QListWidgetItem*)));
 }
 
 void WMSEditDialog::updateUi()
@@ -104,14 +104,29 @@ void WMSEditDialog::updateUi()
 	_ui.layersListWidget->setEnabled(_active);
 	_ui.layersListWidget->clear();
 
-	std::vector<std::string> layers = _source->getAvailableLayers();
-	std::vector<std::string> active = _source->getActiveLayers();
-	for (int i=0; i < layers.size(); i++)
-	{
-		QListWidgetItem* item = new QListWidgetItem(QString(_source->layerDisplayName(layers[i]).c_str()));
-		item->setData(Qt::UserRole, QString(layers[i].c_str()));
-		item->setCheckState(std::find(active.begin(), active.end(), layers[i]) == active.end() ? Qt::Unchecked : Qt::Checked);
-		_ui.layersListWidget->addItem(item);
+	Godzi::DataObjectSpecVector layerSpecs;
+  if (_source->getDataObjectSpecs(layerSpecs) )
+  {
+		bool allVisible = true;
+		for(Godzi::DataObjectSpecVector::const_iterator i = layerSpecs.begin(); i != layerSpecs.end(); ++i)
+		{
+			QListWidgetItem* item = new QListWidgetItem(QString(i->getText().c_str()));
+
+			GodziDesktop::DataSourceObjectPair data;
+      data._source = _source.get();
+      data._spec = *i;
+
+			item->setData(Qt::UserRole, QVariant::fromValue(data));
+
+			if (!_source->getObjectSpecVisibility(i->getObjectUID()))
+				allVisible = false;
+
+			item->setCheckState(_source->getObjectSpecVisibility(i->getObjectUID()) ? Qt::Checked : Qt::Unchecked);
+
+			_ui.layersListWidget->addItem(item);
+		}
+
+		_ui.selectAllCheckbox->setChecked(allVisible);
 	}
 
 	if (_active)
@@ -131,16 +146,15 @@ void WMSEditDialog::onDialogClose()
 	updateSourceOptions(false);
 }
 
-void WMSEditDialog::updateSourceOptions(bool urlChanged)
+void WMSEditDialog::updateSourceOptions(bool urlChanged, std::vector<std::string>& out_specifiedLayers)
 {
 	osgEarth::Drivers::WMSOptions opt;
-	std::vector<std::string> activeLayers;
-	std::string urlStr = _source->fullUrl().isSet() ? _source->fullUrl().get() : _source->getLocation();
 
+	std::string urlStr = _source->fullUrl().isSet() ? _source->fullUrl().get() : _source->getLocation();
 	opt.url() = urlStr.substr(0, urlStr.find("?"));
 
 	if (urlStr.find("?") != std::string::npos)
-		parseWMSOptions(urlStr, opt);
+		out_specifiedLayers = Godzi::csvToVector(parseWMSOptions(urlStr, opt));
 
 	if (!urlChanged)
 	{
@@ -150,28 +164,47 @@ void WMSEditDialog::updateSourceOptions(bool urlChanged)
 		//if (_ui->srsCheckBox->isChecked())
 		//	opt.srs() = _ui->srsLineEdit->text().toStdString();
 
-		for (int i = 0; i < _ui.layersListWidget->count(); i++)
+		if (out_specifiedLayers.size() == 0)
 		{
-			QListWidgetItem* item = _ui.layersListWidget->item(i);
+			std::vector<int> selectedLayerIds;
+			for (int i = 0; i < _ui.layersListWidget->count(); i++)
+			{
+				QListWidgetItem* item = _ui.layersListWidget->item(i);
 
-			if (item->checkState() == Qt::Checked)
-				activeLayers.push_back(item->data(Qt::UserRole).toString().toUtf8().data());
+				if (item->checkState() == Qt::Checked)
+				{
+					QVariant v = item->data(Qt::UserRole);
+					if ( !v.isNull() )
+					{
+						GodziDesktop::DataSourceObjectPair data = v.value<GodziDesktop::DataSourceObjectPair>();
+						selectedLayerIds.push_back(data._spec.getObjectUID());
+					}
+				}
+			}
+
+			std::vector<std::string> selectedLayers;
+			for (std::vector<int>::iterator it = selectedLayerIds.begin(); it != selectedLayerIds.end(); ++it)
+				selectedLayers.push_back(_fullLayerList[*it]);
+
+			_source->setLayers(selectedLayers);
 		}
 	}
 
 	_source->setOptions(opt);
 	_ui.nameLineEdit->text().isEmpty() ? _source->name().unset() : _source->name() = _ui.nameLineEdit->text().toUtf8().data();
 
-	if (!opt.layers().isSet())
-		_source->setActiveLayers(activeLayers);
+	//if (!opt.layers().isSet())
+	//if (specifiedLayers.size() == 0)
+	//_source->setLayers(selectedLayers);
 }
 
-void WMSEditDialog::parseWMSOptions(const std::string& url, osgEarth::Drivers::WMSOptions& opt)
+std::string WMSEditDialog::parseWMSOptions(const std::string& url, osgEarth::Drivers::WMSOptions& opt)
 {
 	std::string lower = osgDB::convertToLowerCase( url );
 
+	std::string layers = "";
 	if (lower.find("layers=", 0) != std::string::npos)
-		opt.layers() = extractBetween(lower, "layers=", "&");
+		layers = extractBetween(lower, "layers=", "&");
 
 	if (lower.find("styles=", 0) != std::string::npos)
 		opt.style() = extractBetween(lower, "styles=", "&");
@@ -181,6 +214,8 @@ void WMSEditDialog::parseWMSOptions(const std::string& url, osgEarth::Drivers::W
 
 	if (lower.find("format=image/", 0) != std::string::npos)
 		opt.format() = extractBetween(lower, "format=image/", "&");
+
+	return layers;
 }
 
 void WMSEditDialog::doQuery()
@@ -188,10 +223,10 @@ void WMSEditDialog::doQuery()
 	std::string oldUrl = _source->fullUrl().isSet() ? _source->fullUrl().get() : "";
 	_source->fullUrl() = _ui.locationLineEdit->text().toUtf8().data();
 
-	updateSourceOptions(oldUrl != _source->fullUrl().get());
+	std::vector<std::string> specifiedLayers;
+	updateSourceOptions(oldUrl != _source->fullUrl().get(), specifiedLayers);
 
 	std::string url = _ui.locationLineEdit->text().toUtf8().data();
-
 	if (url.length() == 0)
 		return;
 
@@ -205,18 +240,11 @@ void WMSEditDialog::doQuery()
 		_active = true;
 
 		//NOTE: Currently this flattens any layer heirarchy into a single list of layers
-		std::vector<std::string> layerList;
+		_fullLayerList.clear();
 		std::map<std::string, std::string> displayNames;
-		getLayerNames(capabilities->getLayers(), layerList, displayNames);
+		getLayerNames(capabilities->getLayers(), _fullLayerList, displayNames, specifiedLayers);
 
-		// If layers are specified in the url, use only those specified as the available layers
-		std::string lower = osgDB::convertToLowerCase(url);
-		if (lower.find("layers=", 0) != std::string::npos && _source->getActiveLayers().size() > 0)
-		{
-			layerList = _source->getActiveLayers();
-		}
-
-		_source->setAvailableLayers(layerList);
+		_source->setLayers(_fullLayerList);
 		_source->setLayerDisplayNames(displayNames);
 
 		_availableFormats.clear();
@@ -255,11 +283,24 @@ void WMSEditDialog::toggleOptions()
 	_ui.formatComboBox->setEnabled(_ui.formatCheckBox->isChecked());
 }
 
-void WMSEditDialog::getLayerNames(osgEarth::Util::WMSLayer::LayerList& layers, std::vector<std::string>& names, std::map<std::string, std::string>& displayNames)
+void WMSEditDialog::selectAllClicked(bool checked)
+{
+	for (int i = 0; i < _ui.layersListWidget->count(); i++)
+		_ui.layersListWidget->item(i)->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
+}
+
+void WMSEditDialog::onLayerItemClicked(QListWidgetItem* item)
+{
+	if (item->checkState() != Qt::Checked)
+		_ui.selectAllCheckbox->setChecked(false);
+}
+
+void WMSEditDialog::getLayerNames(osgEarth::Util::WMSLayer::LayerList& layers, std::vector<std::string>& names, std::map<std::string, std::string>& displayNames, std::vector<std::string> subset)
 {
 	for (int i=0; i < layers.size(); i++)
 	{
-		if (layers[i]->getName().size() > 0)
+		if ((layers[i]->getName().size() > 0) &&
+			  (subset.size() == 0 || std::find(subset.begin(), subset.end(), layers[i]->getName()) != subset.end()))
 		{
 			names.push_back(layers[i]->getName());
 
@@ -267,6 +308,6 @@ void WMSEditDialog::getLayerNames(osgEarth::Util::WMSLayer::LayerList& layers, s
 				displayNames[layers[i]->getName()] = layers[i]->getTitle() + " (" + layers[i]->getName() + ")";
 		}
 
-		getLayerNames(layers[i]->getLayers(), names, displayNames);
+		getLayerNames(layers[i]->getLayers(), names, displayNames, subset);
 	}
 }

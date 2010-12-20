@@ -1,0 +1,41 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+#ifndef GODZI_DESKTOP_COMMON_H
+#define GODZI_DESKTOP_COMMON_H
+
+#include <QMetaType>
+#include <Godzi/DataSources>
+
+// This is a custom object to store in QTreeWidgetItem->data() that holds
+// a reference to the data object being represented by the tree item. Since
+// data() holds a QVariant, we have to declare this as a Qt metatype in 
+// order to store it there.
+namespace GodziDesktop
+{
+    struct DataSourceObjectPair
+    {
+        const Godzi::DataSource* _source;
+        Godzi::DataObjectSpec _spec;
+    };
+}
+Q_DECLARE_METATYPE(GodziDesktop::DataSourceObjectPair);
+
+#endif // GODZI_DESKTOP_COMMON_H

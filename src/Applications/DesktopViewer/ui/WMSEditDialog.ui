@@ -153,6 +153,13 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QCheckBox" name="selectAllCheckbox">
+        <property name="text">
+         <string>Select / Deselect All</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -211,6 +218,19 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>locationLineEdit</tabstop>
+  <tabstop>queryButton</tabstop>
+  <tabstop>nameLineEdit</tabstop>
+  <tabstop>formatCheckBox</tabstop>
+  <tabstop>formatComboBox</tabstop>
+  <tabstop>srsCheckBox</tabstop>
+  <tabstop>srsLineEdit</tabstop>
+  <tabstop>layersListWidget</tabstop>
+  <tabstop>selectAllCheckbox</tabstop>
+  <tabstop>okButton</tabstop>
+  <tabstop>cancelButton</tabstop>
+ </tabstops>
  <resources>
   <include location="../AppImages.qrc"/>
  </resources>

@@ -49,7 +49,7 @@ namespace Godzi
     {
     public:
         DataObjectSpec() { }
-        DataObjectSpec( int objectUID, const std::string& text ) : _objectUID( objectUID ), _text(text) { }
+        DataObjectSpec( int objectUID, const std::string& text, bool canHide=false ) : _objectUID( objectUID ), _text(text), _canHide(canHide) { }
         DataObjectSpec( const DataObjectSpec& rhs ) : _objectUID(rhs._objectUID), _text(rhs._text) { }
 
         /** Gets the unique ID of the object to which this token is referring. */
@@ -57,9 +57,12 @@ namespace Godzi
 
         const std::string& getText() const { return _text; }
 
+				bool canHide() const { return _canHide; }
+
     protected:
         int _objectUID;
         std::string _text;
+				bool _canHide;
     };
 
     typedef std::vector<DataObjectSpec> DataObjectSpecVector;
@@ -135,15 +138,7 @@ namespace Godzi
         /** Gets a set of action specifications pertaining to objects in this data source. */
         virtual bool getDataObjectActionSpecs( DataObjectActionSpecVector& out_actionSpecs ) const { return false; }
 
-        // to be deprecated in favor of getDataObjectSpecs [gw]
-        virtual const std::vector<std::string> getAvailableLayers() const { return NO_LAYERS; }
-        //virtual void setAvailableLayers(const std::vector<std::string>& layers) {};
-
-        virtual const std::vector<std::string> getActiveLayers() const { return NO_LAYERS; }
-        virtual void setActiveLayers(const std::vector<std::string>& layers) {};
-
-
-        virtual const std::string& layerDisplayName (const std::string& layerName) const { return layerName; }
+				virtual bool getObjectSpecVisibility(int id) const { return true; }
 
         bool error() const { return _error; }
         void setError(bool isError) { _error = isError; }
@@ -187,20 +182,22 @@ namespace Godzi
 		osgEarth::ImageLayer* createImageLayer() const;
 		DataSource* clone() const;
 		
-		const std::vector<std::string> getAvailableLayers() const;
-		void setAvailableLayers(const std::vector<std::string>& layers);
-		
-    const std::vector<std::string> getActiveLayers() const;
-    void setActiveLayers(const std::vector<std::string>& layers);
-    
-    const std::string& layerDisplayName(const std::string& layerName) const;
-    void setLayerDisplayNames(const std::map<std::string, std::string>& nameMap) { _displayNames = nameMap; }
+		void setLayers(const std::vector<std::string>& layers);
+		void setLayerDisplayNames(const std::map<std::string, std::string>& nameMap) { _displayNames = nameMap; }
+
+		/** Gets the complete set of tokens for the objects provided by this source. */
+    bool getDataObjectSpecs( DataObjectSpecVector& out_objectSpecs ) const;
+
+    /** Gets a set of action specifications pertaining to objects in this data source. */
+    //bool getDataObjectActionSpecs( DataObjectActionSpecVector& out_actionSpecs ) const;
 
 	private:
 		osgEarth::Drivers::WMSOptions _opt;
 		osgEarth::optional<std::string> _fullUrl;
-		std::vector<std::string> _availableLayers;
+		std::vector<std::string> _layers;
 		std::map<std::string, std::string> _displayNames;
+
+		const std::string& getDisplayName(const std::string& layerName) const;
 	};
 	
 	/* --------------------------------------------- */

@@ -39,19 +39,22 @@ class WMSEditDialog : public QDialog
 		void onDialogClose();
 		void toggleQueryEnabled();
 		void toggleOptions();
+		void selectAllClicked(bool checked);
+		void onLayerItemClicked(QListWidgetItem* item);
 
 	private:		
 		Ui::WMSEditDialog _ui;
 		bool _active;
 		bool _urlChanged;
 		osg::ref_ptr<Godzi::WMSSource> _source;
+		std::vector<std::string> _fullLayerList;
 		std::vector<std::string> _availableFormats;
 		
 		void initUi();
 		void updateUi();
-		void updateSourceOptions(bool urlChanged);
-		void parseWMSOptions(const std::string& url, osgEarth::Drivers::WMSOptions& opt);
-		void getLayerNames(osgEarth::Util::WMSLayer::LayerList& layers, std::vector<std::string>& names, std::map<std::string, std::string>& displayNames);
+		void updateSourceOptions(bool urlChanged, std::vector<std::string>& out_specifiedLayers=std::vector<std::string>());
+		std::string parseWMSOptions(const std::string& url, osgEarth::Drivers::WMSOptions& opt);
+		void getLayerNames(osgEarth::Util::WMSLayer::LayerList& layers, std::vector<std::string>& names, std::map<std::string, std::string>& displayNames, std::vector<std::string> subset=std::vector<std::string>());
 };
 
 

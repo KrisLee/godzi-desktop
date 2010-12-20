@@ -147,12 +147,6 @@ KMLDataSource::getActiveLayers() const
 	return getAvailableLayers();
 }
 
-void
-KMLDataSource::setActiveLayers(const std::vector<std::string>& layers)
-{
-    //NOP
-}
-
 osgEarth::ModelLayer*
 KMLDataSource::createModelLayer() const
 {

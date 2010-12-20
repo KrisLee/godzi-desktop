@@ -74,14 +74,14 @@ WMSSource::WMSSource(const Godzi::Config& conf)
 
 	osgEarth::optional<std::string> availableLayers;
 	if (conf.getIfSet("availablelayers", availableLayers))
-		_availableLayers = Godzi::csvToVector(availableLayers.get());
+		_layers = Godzi::csvToVector(availableLayers.get());
 
 	osgEarth::optional<std::string> displayNames;
 	if (conf.getIfSet("displaynames", displayNames))
 	{
 		std::vector<std::string> displayNamesVect = Godzi::csvToVector(displayNames.get());
-		for (int i=0; i < _availableLayers.size() && i < displayNamesVect.size(); i++)
-			_displayNames[_availableLayers[i]] = displayNamesVect[i];
+		for (int i=0; i < _layers.size() && i < displayNamesVect.size(); i++)
+			_displayNames[_layers[i]] = displayNamesVect[i];
 	}
 }
 
@@ -91,11 +91,11 @@ Godzi::Config WMSSource::toConfig() const
 	conf.add("type", TYPE_WMS);
 	conf.add("options", _opt.getConfig());
 	conf.addIfSet("fullUrl", _fullUrl);
-	conf.add("availableLayers", Godzi::vectorToCSV(_availableLayers));
+	conf.add("availableLayers", Godzi::vectorToCSV(_layers));
 
 	std::string displayNames = "";
-	for (std::vector<std::string>::const_iterator it = _availableLayers.begin(); it != _availableLayers.end(); ++it)
-		displayNames += displayNames.length() == 0 ? layerDisplayName(*it) : "," + layerDisplayName(*it);
+	for (std::vector<std::string>::const_iterator it = _layers.begin(); it != _layers.end(); ++it)
+		displayNames += displayNames.length() == 0 ? getDisplayName(*it) : "," + getDisplayName(*it);
 	conf.add("displayNames", displayNames);
 
   return conf;
@@ -119,7 +119,7 @@ void WMSSource::setOptions(const osgEarth::Drivers::WMSOptions& opt)
 
 osgEarth::ImageLayer* WMSSource::createImageLayer() const
 {
-	if (getActiveLayers().size() > 0)
+	if (_layers.size() > 0)
 	{
 		//std::string name = _name.isSet() ? _name.get() : "WMS Source";
 		std::string name = (_opt.url().isSet() ? _opt.url().get() : "WMS") + "__" + (_opt.layers().isSet() ? _opt.layers().get() : "nolayers");
@@ -153,48 +153,32 @@ DataSource* WMSSource::clone() const
 
 	c->setError(_error);
 	c->setErrorMsg(_errorMsg);
-	c->setAvailableLayers(_availableLayers);
+	c->setLayers(_layers);
 	c->setLayerDisplayNames(_displayNames);
 
 	return c;
 }
 
-const std::vector<std::string> WMSSource::getAvailableLayers() const
+//const std::vector<std::string> WMSSource::getAvailableLayers() const
+//{
+//	return _layers;
+//}
+
+void WMSSource::setLayers(const std::vector<std::string>& layers)
 {
-	return _availableLayers;
+	_layers.assign(layers.begin(), layers.end());
 }
 
-void WMSSource::setAvailableLayers(const std::vector<std::string>& layers)
+bool WMSSource::getDataObjectSpecs( DataObjectSpecVector& out_objectSpecs ) const
 {
-	_availableLayers.assign(layers.begin(), layers.end());
+	out_objectSpecs.clear();
+	for (int i=0; i < _layers.size(); i++)
+		out_objectSpecs.push_back(DataObjectSpec(i, getDisplayName(_layers[i])));
+
+	return true;
 }
 
-const std::vector<std::string> WMSSource::getActiveLayers() const
-{
-	if (_opt.layers().isSet())
-		return Godzi::csvToVector(_opt.layers().get());
-
-	return std::vector<std::string>();
-}
-
-void WMSSource::setActiveLayers(const std::vector<std::string>& layers)
-{
-	if (layers.size() > 0)
-	{
-		std::string layerStr = layers[0];
-
-		for (int i=1; i < layers.size(); i++)
-			layerStr = layerStr + "," + layers[i];
-
-		_opt.layers() = layerStr;
-	}
-	else
-	{
-		_opt.layers().unset();
-	}
-}
-
-const std::string& WMSSource::layerDisplayName (const std::string& layerName) const
+const std::string& WMSSource::getDisplayName (const std::string& layerName) const
 {
 	std::map<std::string, std::string>::const_iterator it = _displayNames.find(layerName);
 	if (it != _displayNames.end())
