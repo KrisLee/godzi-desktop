@@ -48,18 +48,20 @@ ZoomToWMSLayerAction::doAction(void* sender, Application* app)
 				double minLon, minLat, maxLon, maxLat;
 				const_cast<osgEarth::Util::WMSLayer*>(layer)->getLatLonExtents(minLon, minLat, maxLon, maxLat);
 
-				viewpoint.setFocalPoint(osg::Vec3d((maxLon + minLon) / 2.0,
-                                                   (maxLat + minLat) / 2.0,
-                                                   0L));
+				// If getLatLonExtents returns all zeroes, try getExtents.
+				if (minLon == 0.0 && minLat == 0.0 && maxLon == 0.0 && maxLat == 0.0)
+					const_cast<osgEarth::Util::WMSLayer*>(layer)->getExtents(minLon, minLat, maxLon, maxLat);
 
-				viewpoint.setRange(((0.5 * (maxLat - minLat)) / 0.267949849) * 111000.0);
+        viewpoint.setFocalPoint(osg::Vec3d((maxLon + minLon) / 2.0,
+                                           (maxLat + minLat) / 2.0,
+                                           0L));
 
-				if (viewpoint.getRange() > 0)
+				double rangeFactor = maxLat != minLat ? maxLat - minLat : maxLon - minLon;
+				viewpoint.setRange(((0.5 * rangeFactor) / 0.267949849) * 111000.0);
+				if (viewpoint.getRange() == 0.0)
+					viewpoint.setRange(20000000.0);
+
 					manip->setViewpoint(viewpoint, 3.0);
-
-				//TODO: Try to use getExtents as fallback if getLatLonExtents returns all zeroes?
-				//double minX, minY, maxX, maxY;
-				//const_cast<osgEarth::Util::WMSLayer*>(layer)->getExtents(minX, minY, maxX, maxY);
 			}
   }
   return true;
