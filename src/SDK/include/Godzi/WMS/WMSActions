@@ -18,40 +18,29 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
+#ifndef GODZI_WMS_ACTIONS
+#define GODZI_WMS_ACTIONS 1
 
-#ifndef WMS_EDIT_DIALOG
-#define WMS_EDIT_DIALOG 1
-
-#include <osgEarthUtil/WMS>
+#include <Godzi/Actions>
 #include <Godzi/DataSources>
-#include <Godzi/WMS/WMSDataSource>
-#include "ui_WMSEditDialog.h"
 
-class WMSEditDialog : public QDialog
+namespace Godzi { namespace WMS
 {
-	Q_OBJECT
+    using namespace Godzi;
 
-	public:
-		WMSEditDialog(const Godzi::WMS::WMSDataSource* source=0L);
-		Godzi::WMS::WMSDataSource* getSource();
-		
-	private slots:
-		void doQuery();
-		void onDialogClose();
-		void toggleQueryEnabled();
-		void toggleOptions();
-		void selectAllClicked(bool checked);
-		void onLayerItemClicked(QListWidgetItem* item);
+    class ZoomToWMSLayerAction : public Action
+    {
+    public:
+        ZoomToWMSLayerAction( const DataSource* ds, int objectUID ) :
+          _ds(ds), _objectUID(objectUID) { }
 
-	private:		
-		Ui::WMSEditDialog _ui;
-		osg::ref_ptr<Godzi::WMS::WMSDataSource> _source;
-		std::string _activeUrl;
-		
-		void initUi();
-		void updateUi(bool canSelectLayers=false);
-		osgEarth::Drivers::WMSOptions createSourceOptions();
-};
+        bool doAction(void* sender, Application* app);
 
+        const DataSource* _ds;
+        int               _objectUID;
+    };
 
-#endif // WMS_EDIT_DIALOG
+} } // Godzi::WMS
+
+#endif // GODZI_WMS_ACTIONS
+

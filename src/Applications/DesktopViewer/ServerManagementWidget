@@ -28,6 +28,7 @@
 #include <Godzi/Application>
 #include <Godzi/Project>
 #include <Godzi/DataSources>
+#include <Godzi/WMS/WMSDataSource>
 #include "ServerTreeWidget"
 
 class ServerManagementWidget : public QWidget
@@ -55,7 +56,7 @@ class ServerManagementWidget : public QWidget
 		void createActions();
 		void initUi();
 		void addTMSSource();
-		void addOrUpdateWMSSource(Godzi::WMSSource* source = 0L);
+		void addOrUpdateWMSSource(Godzi::WMS::WMSDataSource* source = 0L);
 		void addKMLSource();
 };
 

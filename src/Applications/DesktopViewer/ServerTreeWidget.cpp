@@ -115,7 +115,7 @@ void ServerTreeWidget::updateDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSo
       data._spec = spec;
 
       // store the object spec in the data so we can reference it later during an action:
-      child->setData( 0, Qt::UserRole, QVariant::fromValue(data) ); //spec.getObjectUID() );
+      child->setData( 0, Qt::UserRole, QVariant::fromValue(data) );
 
       // disable the drop zone:
       child->setFlags( child->flags() & ~(Qt::ItemIsDropEnabled));

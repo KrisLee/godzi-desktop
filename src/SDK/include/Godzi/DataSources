@@ -29,7 +29,6 @@
 #include <osgEarth/TileSource>
 #include <osgEarth/ImageLayer>
 #include <osgEarth/ModelLayer>
-#include <osgEarthDrivers/wms/WMSOptions>
 #include <osgEarthDrivers/tms/TMSOptions>
 #include <string>
 
@@ -50,7 +49,7 @@ namespace Godzi
     public:
         DataObjectSpec() { }
         DataObjectSpec( int objectUID, const std::string& text, bool canHide=false ) : _objectUID( objectUID ), _text(text), _canHide(canHide) { }
-        DataObjectSpec( const DataObjectSpec& rhs ) : _objectUID(rhs._objectUID), _text(rhs._text) { }
+				DataObjectSpec( const DataObjectSpec& rhs ) : _objectUID(rhs._objectUID), _text(rhs._text), _canHide(rhs._canHide) { }
 
         /** Gets the unique ID of the object to which this token is referring. */
         int getObjectUID() const { return _objectUID; }
@@ -161,46 +160,6 @@ namespace Godzi
 	typedef std::vector<osg::ref_ptr<DataSource>> DataSourceVector;
 	
 	/* --------------------------------------------- */
-	
-	class GODZI_EXPORT WMSSource : public DataSource
-	{
-	public:
-		static const std::string TYPE_WMS;
-	
-		WMSSource(const osgEarth::Drivers::WMSOptions& opt, bool visible=true);
-		WMSSource(const osgEarth::Drivers::WMSOptions& opt, const std::string& fullUrl, bool visible=true);
-		WMSSource(const Config& conf);
-		
-		const osgEarth::DriverConfigOptions& getOptions() const;
-		void setOptions(const osgEarth::Drivers::WMSOptions& opt);
-
-		const std::string& getLocation() const;
-		const std::string& type() const { return TYPE_WMS; }
-		osgEarth::optional<std::string>& fullUrl() { return _fullUrl; }
-		
-		Config toConfig() const;
-		osgEarth::ImageLayer* createImageLayer() const;
-		DataSource* clone() const;
-		
-		void setLayers(const std::vector<std::string>& layers);
-		void setLayerDisplayNames(const std::map<std::string, std::string>& nameMap) { _displayNames = nameMap; }
-
-		/** Gets the complete set of tokens for the objects provided by this source. */
-    bool getDataObjectSpecs( DataObjectSpecVector& out_objectSpecs ) const;
-
-    /** Gets a set of action specifications pertaining to objects in this data source. */
-    //bool getDataObjectActionSpecs( DataObjectActionSpecVector& out_actionSpecs ) const;
-
-	private:
-		osgEarth::Drivers::WMSOptions _opt;
-		osgEarth::optional<std::string> _fullUrl;
-		std::vector<std::string> _layers;
-		std::map<std::string, std::string> _displayNames;
-
-		const std::string& getDisplayName(const std::string& layerName) const;
-	};
-	
-	/* --------------------------------------------- */
 
 	class GODZI_EXPORT TMSSource : public DataSource
 	{
@@ -240,15 +199,6 @@ namespace Godzi
       DataSourceFactoryManager();
       static DataSourceFactoryManager* create();
       friend class Godzi::Application;
-	};
-	
-	/* --------------------------------------------- */
-	
-	class GODZI_EXPORT WMSSourceFactory : public DataSourceFactory
-	{
-	public:
-		bool canCreate(const Godzi::Config& config);
-		DataSource* createDataSource(const Godzi::Config& config);
 	};
 
 	class GODZI_EXPORT TMSSourceFactory : public DataSourceFactory

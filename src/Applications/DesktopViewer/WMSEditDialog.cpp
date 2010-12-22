@@ -24,33 +24,15 @@
 #include "Common"
 #include "WMSEditDialog"
 
-std::string extractBetween(const std::string& str, const std::string &lhs, const std::string &rhs)
+WMSEditDialog::WMSEditDialog(const Godzi::WMS::WMSDataSource* source) : _activeUrl("")
 {
-    std::string result;
-		std::string::size_type start = str.find(lhs);
-		if (start != std::string::npos)
-    {
-        start += lhs.length();
-        std::string::size_type count = str.size() - start;
-        std::string::size_type end = str.find(rhs, start); 
-        if (end != std::string::npos) count = end-start;
-        result = str.substr(start, count);
-    }
-    return result;
-}
-
-WMSEditDialog::WMSEditDialog(const Godzi::WMSSource* source)
-{
-	_source = source ? (Godzi::WMSSource*)source->clone() : new Godzi::WMSSource(osgEarth::Drivers::WMSOptions());
-	_active = _source->getLocation().length() > 0;
-
 	initUi();
-	updateUi();
+	updateUi(source);
 }
 
-Godzi::WMSSource* WMSEditDialog::getSource()
+Godzi::WMS::WMSDataSource* WMSEditDialog::getSource()
 {
-	return (Godzi::WMSSource*)_source->clone();
+	return (Godzi::WMS::WMSDataSource*)_source->clone();
 }
 
 void WMSEditDialog::initUi()
@@ -66,211 +48,134 @@ void WMSEditDialog::initUi()
 	QObject::connect(_ui.layersListWidget, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(onLayerItemClicked(QListWidgetItem*)));
 }
 
-void WMSEditDialog::updateUi()
+void WMSEditDialog::updateUi(bool canSelectLayers)
 {
-	_ui.locationLineEdit->setText(QString(_source->getLocation().c_str()));
+	bool active = _source.valid() && !_source->getLocation().empty() && !_source->error();
 
-	_ui.nameLabel->setEnabled(_active);
-	_ui.nameLineEdit->setEnabled(_active);
-	_ui.nameLineEdit->setText(_source->name().isSet() ? QString(_source->name()->c_str()) : "");
+	_ui.locationLineEdit->setText(_source.valid() ? QString(_source->getLocation().c_str()) : "");
 
-	_ui.formatCheckBox->setEnabled(_active);
-	_ui.formatComboBox->setEnabled(_active && _ui.formatCheckBox->isChecked());
+	_ui.nameLabel->setEnabled(active);
+
+	_ui.nameLineEdit->setEnabled(active);
+	_ui.nameLineEdit->setText(active && _source->name().isSet() ? QString(_source->name()->c_str()) : "");
+
+	_ui.formatCheckBox->setEnabled(active);
 
 	_ui.formatComboBox->clear();
-	for (std::vector<std::string>::iterator it = _availableFormats.begin(); it != _availableFormats.end(); ++it)
-		_ui.formatComboBox->addItem(QString( (*it).c_str() ) );
 
-	osgEarth::Drivers::WMSOptions opt = (osgEarth::Drivers::WMSOptions)_source->getOptions();
+	_ui.layersListWidget->setEnabled(active && canSelectLayers);
+	_ui.layersListWidget->clear();
 
-	if (opt.format().isSet())
+	_ui.okButton->setEnabled(active);
+
+	_ui.selectAllCheckbox->setChecked(true);
+	_ui.selectAllCheckbox->setEnabled(active && canSelectLayers);
+
+	if (active)
 	{
-		_ui.formatCheckBox->setChecked(true);
-		int fIndex = _ui.formatComboBox->findText(QString(opt.format()->c_str()), Qt::MatchExactly);
-		if (fIndex >= 0)
+		std::vector<std::string> formats = _source->getAvailableFormats();
+		for (std::vector<std::string>::iterator it = formats.begin(); it != formats.end(); ++it)
+			_ui.formatComboBox->addItem(QString( (*it).c_str() ) );
+
+		osgEarth::Drivers::WMSOptions opt = (osgEarth::Drivers::WMSOptions)_source->getOptions();
+
+		if (opt.format().isSet())
 		{
-			_ui.formatComboBox->setCurrentIndex(fIndex);
+			_ui.formatCheckBox->setChecked(true);
+			int fIndex = _ui.formatComboBox->findText(QString(opt.format()->c_str()), Qt::MatchExactly);
+			if (fIndex >= 0)
+			{
+				_ui.formatComboBox->setCurrentIndex(fIndex);
+			}
+			else
+			{
+				//TODO?
+			}
 		}
 		else
 		{
-			//TODO?
+			_ui.formatCheckBox->setChecked(false);
 		}
-	}
-	else
-	{
-		_ui.formatCheckBox->setChecked(false);
-	}
 
-	_ui.layersListWidget->setEnabled(_active);
-	_ui.layersListWidget->clear();
-
-	Godzi::DataObjectSpecVector layerSpecs;
-  if (_source->getDataObjectSpecs(layerSpecs) )
-  {
-		bool allVisible = true;
-		for(Godzi::DataObjectSpecVector::const_iterator i = layerSpecs.begin(); i != layerSpecs.end(); ++i)
+		Godzi::DataObjectSpecVector layerSpecs;
+		if (_source->getDataObjectSpecs(layerSpecs) )
 		{
-			QListWidgetItem* item = new QListWidgetItem(QString(i->getText().c_str()));
+			for(Godzi::DataObjectSpecVector::const_iterator i = layerSpecs.begin(); i != layerSpecs.end(); ++i)
+			{
+				QListWidgetItem* item = new QListWidgetItem(QString(i->getText().c_str()));
 
-			GodziDesktop::DataSourceObjectPair data;
-      data._source = _source.get();
-      data._spec = *i;
+				GodziDesktop::DataSourceObjectPair data;
+				data._source = _source.get();
+				data._spec = *i;
 
-			item->setData(Qt::UserRole, QVariant::fromValue(data));
+				item->setData(Qt::UserRole, QVariant::fromValue(data));
 
-			if (!_source->getObjectSpecVisibility(i->getObjectUID()))
-				allVisible = false;
+				if (canSelectLayers)
+					item->setCheckState(Qt::Checked);
 
-			item->setCheckState(_source->getObjectSpecVisibility(i->getObjectUID()) ? Qt::Checked : Qt::Unchecked);
-
-			_ui.layersListWidget->addItem(item);
+				_ui.layersListWidget->addItem(item);
+			}
 		}
-
-		_ui.selectAllCheckbox->setChecked(allVisible);
 	}
 
-	if (_active)
-	{
-		_ui.messageLabel->setText("");
-	}
-	else
-	{
-		_ui.messageLabel->setText(QString::fromStdString(_source->errorMsg()));
-	}
+	_ui.formatComboBox->setEnabled(active && _ui.formatCheckBox->isChecked());
 
-	_ui.okButton->setEnabled(_active);
+	if (_source.valid())
+		_ui.messageLabel->setText(QString(_source->error() ? _source->errorMsg().c_str() : ""));
 }
 
 void WMSEditDialog::onDialogClose()
 {
-	updateSourceOptions(false);
+	_source = new Godzi::WMS::WMSDataSource(createSourceOptions());
+	_source->setFullUrl(_activeUrl);
+	_ui.nameLineEdit->text().isEmpty() ? _source->name().unset() : _source->name() = _ui.nameLineEdit->text().toUtf8().data();
 }
 
-void WMSEditDialog::updateSourceOptions(bool urlChanged, std::vector<std::string>& out_specifiedLayers)
+osgEarth::Drivers::WMSOptions WMSEditDialog::createSourceOptions()
 {
 	osgEarth::Drivers::WMSOptions opt;
 
-	std::string urlStr = _source->fullUrl().isSet() ? _source->fullUrl().get() : _source->getLocation();
-	opt.url() = urlStr.substr(0, urlStr.find("?"));
+	std::string url = _ui.locationLineEdit->text().toUtf8().data();
+	opt.url() = url.substr(0, url.find("?"));
 
-	if (urlStr.find("?") != std::string::npos)
-		out_specifiedLayers = Godzi::csvToVector(parseWMSOptions(urlStr, opt));
+	if (_ui.formatCheckBox->isChecked())
+		opt.format() = _ui.formatComboBox->currentText().toUtf8().data();
 
-	if (!urlChanged)
+	//if (_ui->srsCheckBox->isChecked())
+	//	opt.srs() = _ui->srsLineEdit->text().toStdString();
+
+	std::vector<int> selectedLayerIds;
+	for (int i = 0; i < _ui.layersListWidget->count(); i++)
 	{
-		if (_ui.formatCheckBox->isChecked())
-			opt.format() = _ui.formatComboBox->currentText().toUtf8().data();
+		QListWidgetItem* item = _ui.layersListWidget->item(i);
 
-		//if (_ui->srsCheckBox->isChecked())
-		//	opt.srs() = _ui->srsLineEdit->text().toStdString();
-
-		if (out_specifiedLayers.size() == 0)
+		if (item->checkState() == Qt::Checked)
 		{
-			std::vector<int> selectedLayerIds;
-			for (int i = 0; i < _ui.layersListWidget->count(); i++)
+			QVariant v = item->data(Qt::UserRole);
+			if ( !v.isNull() )
 			{
-				QListWidgetItem* item = _ui.layersListWidget->item(i);
-
-				if (item->checkState() == Qt::Checked)
-				{
-					QVariant v = item->data(Qt::UserRole);
-					if ( !v.isNull() )
-					{
-						GodziDesktop::DataSourceObjectPair data = v.value<GodziDesktop::DataSourceObjectPair>();
-						selectedLayerIds.push_back(data._spec.getObjectUID());
-					}
-				}
+				GodziDesktop::DataSourceObjectPair data = v.value<GodziDesktop::DataSourceObjectPair>();
+				selectedLayerIds.push_back(data._spec.getObjectUID());
 			}
-
-			std::vector<std::string> selectedLayers;
-			for (std::vector<int>::iterator it = selectedLayerIds.begin(); it != selectedLayerIds.end(); ++it)
-				selectedLayers.push_back(_fullLayerList[*it]);
-
-			_source->setLayers(selectedLayers);
 		}
 	}
 
-	_source->setOptions(opt);
-	_ui.nameLineEdit->text().isEmpty() ? _source->name().unset() : _source->name() = _ui.nameLineEdit->text().toUtf8().data();
+	std::vector<std::string> selectedLayers;
+	for (std::vector<int>::iterator it = selectedLayerIds.begin(); it != selectedLayerIds.end(); ++it)
+		selectedLayers.push_back(_source->getLayerName(*it));
 
-	//if (!opt.layers().isSet())
-	//if (specifiedLayers.size() == 0)
-	//_source->setLayers(selectedLayers);
-}
+	opt.layers() = Godzi::vectorToCSV(selectedLayers);
 
-std::string WMSEditDialog::parseWMSOptions(const std::string& url, osgEarth::Drivers::WMSOptions& opt)
-{
-	std::string lower = osgDB::convertToLowerCase( url );
-
-	std::string layers = "";
-	if (lower.find("layers=", 0) != std::string::npos)
-		layers = extractBetween(lower, "layers=", "&");
-
-	if (lower.find("styles=", 0) != std::string::npos)
-		opt.style() = extractBetween(lower, "styles=", "&");
-
-	if (lower.find("srs=", 0) != std::string::npos)
-		opt.srs() = extractBetween(lower, "srs=", "&");
-
-	if (lower.find("format=image/", 0) != std::string::npos)
-		opt.format() = extractBetween(lower, "format=image/", "&");
-
-	return layers;
+	return opt;
 }
 
 void WMSEditDialog::doQuery()
 {
-	std::string oldUrl = _source->fullUrl().isSet() ? _source->fullUrl().get() : "";
-	_source->fullUrl() = _ui.locationLineEdit->text().toUtf8().data();
+	_activeUrl = _ui.locationLineEdit->text().toUtf8().data();
+	_source = new Godzi::WMS::WMSDataSource(_activeUrl);
 
-	std::vector<std::string> specifiedLayers;
-	updateSourceOptions(oldUrl != _source->fullUrl().get(), specifiedLayers);
-
-	std::string url = _ui.locationLineEdit->text().toUtf8().data();
-	if (url.length() == 0)
-		return;
-
-	char sep = url.find_first_of('?') == std::string::npos? '?' : '&';
-	std::string capUrl = url + sep + "SERVICE=WMS" + "&REQUEST=GetCapabilities";
-
-	//Try to read the WMS capabilities
-	osg::ref_ptr<osgEarth::Util::WMSCapabilities> capabilities = osgEarth::Util::WMSCapabilitiesReader::read(capUrl, 0L);
-	if (capabilities.valid())
-	{
-		_active = true;
-
-		//NOTE: Currently this flattens any layer heirarchy into a single list of layers
-		_fullLayerList.clear();
-		std::map<std::string, std::string> displayNames;
-		getLayerNames(capabilities->getLayers(), _fullLayerList, displayNames, specifiedLayers);
-
-		_source->setLayers(_fullLayerList);
-		_source->setLayerDisplayNames(displayNames);
-
-		_availableFormats.clear();
-		osgEarth::Util::WMSCapabilities::FormatList formats = capabilities->getFormats();
-		for (osgEarth::Util::WMSCapabilities::FormatList::const_iterator it = formats.begin(); it != formats.end(); ++it)
-		{
-			std::string format = *it;
-
-			int pos = format.find("image/");
-			if (pos != std::string::npos && int(pos) == 0)
-				format.erase(0, 6);
-
-			_availableFormats.push_back(format);
-		}
-
-		_source->setError(false);
-		_source->setErrorMsg("");
-	}
-	else
-	{
-		_active = false;
-		_source->setError(true);
-		_source->setErrorMsg("Could not get WMS capabilities.");
-	}
-
-	updateUi();
+	std::string lower = osgDB::convertToLowerCase(_activeUrl);
+	updateUi(lower.find("layers=", 0) == std::string::npos);
 }
 
 void WMSEditDialog::toggleQueryEnabled()
@@ -291,23 +196,6 @@ void WMSEditDialog::selectAllClicked(bool checked)
 
 void WMSEditDialog::onLayerItemClicked(QListWidgetItem* item)
 {
-	if (item->checkState() != Qt::Checked)
+	if (_ui.selectAllCheckbox->isEnabled() && item->checkState() != Qt::Checked)
 		_ui.selectAllCheckbox->setChecked(false);
-}
-
-void WMSEditDialog::getLayerNames(osgEarth::Util::WMSLayer::LayerList& layers, std::vector<std::string>& names, std::map<std::string, std::string>& displayNames, std::vector<std::string> subset)
-{
-	for (int i=0; i < layers.size(); i++)
-	{
-		if ((layers[i]->getName().size() > 0) &&
-			  (subset.size() == 0 || std::find(subset.begin(), subset.end(), layers[i]->getName()) != subset.end()))
-		{
-			names.push_back(layers[i]->getName());
-
-			if (layers[i]->getTitle().size() > 0)
-				displayNames[layers[i]->getName()] = layers[i]->getTitle() + " (" + layers[i]->getName() + ")";
-		}
-
-		getLayerNames(layers[i]->getLayers(), names, displayNames, subset);
-	}
 }
