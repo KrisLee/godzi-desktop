@@ -83,9 +83,11 @@ Project::Project(osgEarth::Map* defaultMap, const Godzi::Config& conf)
 		for (osgEarth::ConfigSet::const_iterator it = sources.begin(); it != sources.end(); ++it)
 		{
 			DataSourceFactory* factory = Application::dataSourceFactoryManager->getFactory(*it);
+
 			if (factory)
 			{
 				DataSource* source = factory->createDataSource(*it);
+
 				if (source)
 				{
 					if (!source->id().isSet())
@@ -314,9 +316,9 @@ Project::updateVisibleLayers()
 }
 
 void
-Project::addSource(Godzi::DataSource* source, int index)
+Project::addSource(osg::ref_ptr<Godzi::DataSource> source, int index)
 {
-	if (!source)
+	if (!source.valid())
 		return;
 
 	osgEarth::ImageLayer* imageLayer = createImageLayer(source, index);
@@ -427,7 +429,7 @@ NewProjectAction::doAction( void* sender, Application* app )
 
 bool
 OpenProjectAction::doAction( void* sender, Application* app )
-{    
+{
     std::ifstream input( _location.c_str() );
     osg::ref_ptr<osgEarth::XmlDocument> doc = osgEarth::XmlDocument::load( input );
     if ( doc.valid() )
