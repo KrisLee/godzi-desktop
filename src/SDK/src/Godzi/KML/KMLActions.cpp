@@ -37,6 +37,12 @@ ZoomToKmlObjectAction::doAction(void* sender, Application* app)
     Placemark* placemark = dynamic_cast<Placemark*>( kmlds->getFeature( _objectUID ) );
     if ( placemark && placemark->lookAt().isSet() )
     {
+        Viewpoint vp = *placemark->lookAt();
+        if ( vp.getRange() <= 0.0 )
+        {
+            Viewpoint oldVP = app->getView()->getManipulator()->getViewpoint();
+            vp.setRange( oldVP.getRange() );
+        }
         app->getView()->getManipulator()->setViewpoint( *placemark->lookAt(), 5.0 );
     }
     return true;
