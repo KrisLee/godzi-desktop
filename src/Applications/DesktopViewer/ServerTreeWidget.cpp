@@ -27,22 +27,23 @@
 #include <QModelIndex>
 #include <Godzi/Application>
 #include "ServerTreeWidget"
+#include "DataObjectActionAdapter"
 
 //------------------------------------------------------------------------
-
-// This is a custom object to store in QTreeWidgetItem->data() that holds
-// a reference to the data object being represented by the tree item. Since
-// data() holds a QVariant, we have to declare this as a Qt metatype in 
-// order to store it there.
-namespace
-{
-    struct TreeItemData
-    {
-        const Godzi::DataSource* _source;
-        Godzi::DataObjectSpec _spec;
-    };
-}
-Q_DECLARE_METATYPE(TreeItemData);
+//
+//// This is a custom object to store in QTreeWidgetItem->data() that holds
+//// a reference to the data object being represented by the tree item. Since
+//// data() holds a QVariant, we have to declare this as a Qt metatype in 
+//// order to store it there.
+//namespace
+//{
+//    struct TreeItemData
+//    {
+//        const Godzi::DataSource* _source;
+//        Godzi::DataObjectSpec _spec;
+//    };
+//}
+//Q_DECLARE_METATYPE(TreeItemData);
 
 
 //------------------------------------------------------------------------
@@ -126,12 +127,12 @@ void ServerTreeWidget::updateDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSo
 
             QTreeWidgetItem* child = new QTreeWidgetItem( QStringList( QString( spec.getText().c_str() ) ) );
 
-            TreeItemData data;
-            data._source = source.get();
-            data._spec = spec;
+            WidgetUserDataToken token;
+            token._source = source.get();
+            token._spec = spec;
 
             // store the object spec in the data so we can reference it later during an action:
-            child->setData( 0, Qt::UserRole, QVariant::fromValue(data) ); //spec.getObjectUID() );
+            child->setData( 0, Qt::UserRole, QVariant::fromValue(token) ); //spec.getObjectUID() );
 
             // disable the drop zone:
             child->setFlags( child->flags() & ~(Qt::ItemIsDropEnabled));
@@ -254,21 +255,24 @@ void ServerTreeWidget::onTreeItemChanged(QTreeWidgetItem* item, int col)
 void
 ServerTreeWidget::onItemDoubleClicked(QTreeWidgetItem* item, int col)
 {
+    // pull our data token from the clicked item:
     QVariant v = item->data(col, Qt::UserRole);
     if ( !v.isNull() )
     {
-        TreeItemData data = v.value<TreeItemData>();
-        std::cout << "DOUBLE-CLICK, object UID = " << data._spec.getText() << ", " << data._spec.getObjectUID() << std::endl;
+        WidgetUserDataToken token = v.value<WidgetUserDataToken>();
 
+        // query the data source for the list of available actions:
         Godzi::DataObjectActionSpecVector specs;
-        if ( data._source->getDataObjectActionSpecs( specs ) )
+        if ( token._source->getDataObjectActionSpecs( specs ) )
         {
+            // find the default action, if there is one:
             for(Godzi::DataObjectActionSpecVector::const_iterator i = specs.begin(); i != specs.end(); ++i )
             {
                 Godzi::DataObjectActionSpecBase* actionSpec = i->get();
                 if ( actionSpec->isDefaultAction() )
                 {
-                    Godzi::Action* action = actionSpec->createAction( data._source, data._spec.getObjectUID() );
+                    // found it; fire off the default action:
+                    Godzi::Action* action = actionSpec->createAction( token._source, token._spec.getObjectUID() );
                     _app->actionManager()->doAction( this, action );
                     break;
                 }
@@ -321,6 +325,42 @@ void ServerTreeWidget::onDataSourceToggled(unsigned int id, bool visible)
 	findDataSourceTreeItem(id, &item);
 	if (item && (item->checkState(0) == Qt::Checked) != visible)
 		item->setCheckState(0, visible ? Qt::Checked : Qt::Unchecked);
+}
+
+void
+ServerTreeWidget::contextMenuEvent( QContextMenuEvent* e )
+{
+    // pull the data token associated with the item under the mouse:
+    QTreeWidgetItem* item = this->itemAt( e->pos() );
+    if ( item )
+    {
+        QVariant qdata = item->data( 0, Qt::UserRole );
+        if ( !qdata.isNull() && qdata.canConvert<WidgetUserDataToken>() )
+        {
+            WidgetUserDataToken token = qdata.value<WidgetUserDataToken>();
+
+            // query the data source for the list of available actions:
+            Godzi::DataObjectActionSpecVector actionSpecs;
+            if ( token._source->getDataObjectActionSpecs( actionSpecs ) )
+            {
+                // make a context menu to hold all the action buttons:
+                QMenu* contextMenu = new QMenu(this);
+
+                DataObjectActionAdapterAutoList adapters;
+
+                for( Godzi::DataObjectActionSpecVector::const_iterator i = actionSpecs.begin(); i != actionSpecs.end(); ++i )
+                {
+                    Godzi::DataObjectActionSpecBase* actionSpec = i->get();
+                    DataObjectActionAdapter* adapter = new DataObjectActionAdapter( this, token, actionSpec, _app );
+                    adapter->addActionTo( contextMenu );
+                    adapters.push_back( adapter );
+                }
+
+                contextMenu->exec( e->globalPos() );
+                delete contextMenu;
+            }
+        }
+    }
 }
 
 void ServerTreeWidget::dragEnterEvent(QDragEnterEvent* e)

@@ -26,7 +26,7 @@
 #include <Godzi/Common>
 #include <Godzi/Project>
 #include <Godzi/DataSources>
-#include <Godzi/UI/ViewerWidgets>
+#include <Godzi/UI/ViewController>
 
 namespace Godzi
 {
@@ -82,8 +82,8 @@ namespace Godzi
         void setProjectClean();
 
         /** Sets/gets the 3D view associated with this application */
-        void setView( osgViewer::View* view ) { _view = view; }
-        osgViewer::View* getView() const { return _view.get(); }
+        void setView( IViewController* view ) { _view = view; }
+        IViewController* getView() const { return _view; }
 						
 		signals:
 			void projectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject);
@@ -93,7 +93,7 @@ namespace Godzi
 
         osgEarth::Revision                      _projectCheckpoint;
         std::string                             _projectLocation;
-        osg::observer_ptr<osgViewer::View>      _view;
+        IViewController*                        _view;
 
 				bool                                    _mapCacheEnabled;
 				osgEarth::Cache*                        _mapCache;

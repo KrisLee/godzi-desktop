@@ -59,6 +59,7 @@ typedef Window WindowHandle;
 typedef osgViewer::GraphicsWindowX11::WindowData WindowData;
 #endif
 
+#include "ViewController"
 #include <osgEarthUtil/EarthManipulator>
 #include <osgGA/StateSetManipulator>
 #include <osgDB/ReadFile>
@@ -70,12 +71,19 @@ namespace Godzi { namespace UI
     /**
      * An OSG window embedded in a Qt widget.
      */
-    class GODZI_EXPORT ViewerWidget : public QWidget
+    class GODZI_EXPORT ViewerWidget : public QWidget, public IViewController
     {
+    public: // IViewController
+
+        /** The motion model controller */
+        osgEarth::Util::EarthManipulator* getManipulator() const;
+
+
     public:
         ViewerWidget( QWidget* parent, const char* name =0, WindowFlags flags =0, bool overrideTraits =false );
 
         osgViewer::View* getView() const { return _viewer.get(); }
+
 
 #ifdef WIN32
         // Prevent flicker on Windows Qt

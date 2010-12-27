@@ -136,8 +136,10 @@ namespace
             {
                 const kmldom::CoordinatesPtr coord = kmldom::AsLinearRing(kmlGeom)->get_coordinates();
                 osg::Vec3dArray* array = s_kmlCoordinatesToVec3dArray(coord);
-                if (array) {
+                if (array)
+                {
                     Ring* geom = new Ring(array);
+                    geom->rewind( Ring::ORIENTATION_CCW );
                     return (geom);
                 }
             }
@@ -151,14 +153,20 @@ namespace
                     const kmldom::CoordinatesPtr coord = poly->get_outerboundaryis()->get_linearring()->get_coordinates();
 
                     osg::Vec3dArray* array = s_kmlCoordinatesToVec3dArray(coord);
-                    if (array) {
+                    if (array)
+                    {
                         Polygon* geom = new Polygon(array);
+                        geom->rewind( Ring::ORIENTATION_CCW );
 
                         for (size_t i = 0; i < poly->get_innerboundaryis_array_size(); ++i)
                         {
                             const kmldom::CoordinatesPtr inner = poly->get_innerboundaryis_array_at(i)->get_linearring()->get_coordinates();
                             if (inner)
-                                geom->getHoles().push_back(new Ring(s_kmlCoordinatesToVec3dArray(inner)));
+                            {
+                                Ring* hole = new Ring(s_kmlCoordinatesToVec3dArray(inner));
+                                hole->rewind( Ring::ORIENTATION_CW );
+                                geom->getHoles().push_back( hole );
+                            }
                         }
 
                         return (geom);
@@ -342,14 +350,15 @@ namespace
                     poly->fill()->color() = s_getColor(kmls->get_color() );
             }
 
-            else if ( kmls->has_outline() )
-            {
-                LineSymbol* line = s_createSymbol<KMLLineSymbol>( kmlGeom );
-                earthStyle->addSymbol( line );
+            //else if ( kmls->has_outline() || kmls->get_outline() == true )
+            //{
+            //    OE_INFO << LC << "Found outline, adding line symbol" << std::endl;
+            //    LineSymbol* line = s_createSymbol<KMLLineSymbol>( kmlGeom );
+            //    earthStyle->addSymbol( line );
 
-                if ( kmls->has_color() )
-                    line->stroke()->color() = s_getColor( kmls->get_color() );
-            }
+            //    if ( kmls->has_color() )
+            //        line->stroke()->color() = s_getColor( kmls->get_color() );                
+            //}
         }
 
         if (kmlStyle->has_iconstyle())
@@ -442,6 +451,8 @@ KMLParser::parseLocation( const std::string& location )
         OE_WARN << LC << "No root feature" << std::endl;
         return false;
     }
+
+    return true;
 }
 
 bool

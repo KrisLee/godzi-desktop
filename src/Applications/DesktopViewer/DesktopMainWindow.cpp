@@ -50,7 +50,7 @@ void DesktopMainWindow::initUi()
 	setWindowIcon(QIcon(":/resources/images/pmicon32.png"));
     
 	_osgViewer = new Godzi::UI::ViewerWidget( this, 0, 0, true );
-    _app->setView( _osgViewer->getView() );
+    _app->setView( _osgViewer );
 	setCentralWidget(_osgViewer);
 
 	createActions();
@@ -317,12 +317,18 @@ void DesktopMainWindow::showAbout()
 void DesktopMainWindow::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject, osg::ref_ptr<Godzi::Project> newProject)
 {
 	_root = new osg::Group();
-	_root->addChild(new osgEarth::MapNode(_app->getProject()->map()));
 
+    osgEarth::MapNode* mapNode = new osgEarth::MapNode( _app->getProject()->map() );
+
+    _root->addChild( mapNode );
+
+#ifndef _DEBUG
+    // add a sky model:
 	osgEarth::Util::SkyNode* sky = new osgEarth::Util::SkyNode(_app->getProject()->map());
 	sky->setSunPosition(osg::Vec3(0,-1,0));
 	sky->attach(_osgViewer->getView());
 	_root->addChild(sky);
+#endif // _DEBUG
 
-  loadScene(_root);
+    loadScene(_root);
 }

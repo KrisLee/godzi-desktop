@@ -13,6 +13,7 @@ set(PROJECT_FILES
     WMSOptionsWidget.cpp
     MapLayerCatalogWidget.cpp
     GodziQtApplication
+    DataObjectActionAdapter.cpp
 )
 
 # Qt resrouce files
@@ -40,6 +41,7 @@ set (GODZI_DESKTOP_MOC_HDRS
     ServerManagementWidget
     WMSOptionsWidget
     MapLayerCatalogWidget
+    DataObjectActionAdapter
 )
 
 FIND_PACKAGE( Qt4 REQUIRED )

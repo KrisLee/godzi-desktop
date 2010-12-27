@@ -57,6 +57,7 @@ source_group( KML FILES ${KML_INCLUDE} ${KML_SOURCE} )
 
 set(UI_INCLUDE
 	include/Godzi/UI/ViewerWidgets
+	include/Godzi/UI/ViewController
 )
 set(UI_SOURCE
 	src/Godzi/UI/ViewerWidgets.cpp

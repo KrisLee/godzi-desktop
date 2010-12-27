@@ -59,7 +59,7 @@ namespace Godzi { namespace KML
         DataSource* clone() const;
 
     protected:
-        KMLDataSource(const KMLFeatureSourceOptions& opt, bool visible, KMLFeatureSource* soruce);
+        KMLDataSource(const KMLFeatureSourceOptions& opt, bool visible, KMLFeatureSource* source);
 
         void populate();
 

@@ -37,12 +37,7 @@ ZoomToKmlObjectAction::doAction(void* sender, Application* app)
     Placemark* placemark = dynamic_cast<Placemark*>( kmlds->getFeature( _objectUID ) );
     if ( placemark && placemark->lookAt().isSet() )
     {
-        osgViewer::View* view = app->getView();
-        EarthManipulator* manip = dynamic_cast<EarthManipulator*>( view->getCameraManipulator() );
-        if ( manip )
-        {
-            manip->setViewpoint( *placemark->lookAt(), 3.0 );
-        }
+        app->getView()->getManipulator()->setViewpoint( *placemark->lookAt(), 5.0 );
     }
     return true;
 }

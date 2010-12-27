@@ -21,7 +21,7 @@
 #include <Godzi/KML/KMLDataSource>
 #include <Godzi/KML/KMLFeatureSource>
 #include <Godzi/KML/KMLActions>
-#include <osgEarthDrivers/agglite/AGGLiteOptions>
+#include <osgEarthDrivers/model_feature_geom/FeatureGeomModelOptions>
 
 using namespace Godzi;
 using namespace Godzi::KML;
@@ -156,23 +156,22 @@ KMLDataSource::setActiveLayers(const std::vector<std::string>& layers)
 osgEarth::ModelLayer*
 KMLDataSource::createModelLayer() const
 {
-    //TODO: come back to this later - use for 
-    return 0L;
+    std::string name = _name.isSet() ? _name.get() : "KML Source";
+
+    osgEarth::Drivers::FeatureGeomModelOptions options;
+    options.featureOptions() = _opt;
+
+    osgEarth::ModelLayerOptions layerOptions( name, options );
+    layerOptions.overlay() = true;
+    //options.heightOffset() = 2000;
+
+    return new osgEarth::ModelLayer( layerOptions );
 }
 
 osgEarth::ImageLayer*
 KMLDataSource::createImageLayer() const
 {
-    std::string name = _name.isSet() ? _name.get() : "KML Source";
-
-    osgEarth::Drivers::AGGLiteOptions options;
-    options.featureOptions() = _opt;
-    //options.optimizeLineSampling() = false;
-
-    osgEarth::ImageLayerOptions layerOptions( name, options );
-    layerOptions.cacheEnabled() = false;
-
-    return new osgEarth::ImageLayer( layerOptions );
+    return 0L;
 }
 
 DataSource*

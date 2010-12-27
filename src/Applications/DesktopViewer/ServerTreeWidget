@@ -43,30 +43,9 @@ private:
 	osg::ref_ptr<Godzi::DataSource> _source;	
 };
 
-#if 0
 /**
- * Tree item that represents a unique ata object within a DataSource.
+ * Tree for data server and data object management and interaction.
  */
-class CustomDataObjectTreeItem : public QTreeWidgetItem
-{
-    CustomDataObjectTreeItem( Godzi::DataSource* source, int objectUID )
-        : QTreeWidgetItem(), _source(source), _objectUID(objectUID) { }
-
-    /** Gets the data source that owns this object */
-    Godzi::DataSource* getSource() const { return _source.get(); }
-    
-    /** Gets the object representing this item */
-    int getObjectUID() const { return _objectUID; }
-
-    /** Gets the data object that backs this tree item. */
-    osg::Referenced* getDataObject() const { return _source->getDataObject(_objectUID); }
-
-private:
-    osg::ref_ptr<Godzi::DataSource> _source;
-    int _objectUID;
-};
-#endif
-
 class ServerTreeWidget : public QTreeWidget
 {
 	Q_OBJECT
@@ -98,6 +77,7 @@ protected:
 	void dragEnterEvent(QDragEnterEvent *e);
 	void dragMoveEvent(QDragMoveEvent *e);
 	void dropEvent(QDropEvent *e);
+    void contextMenuEvent(QContextMenuEvent* e);
 };
 
 #endif // SERVER_TREE_WIDGET

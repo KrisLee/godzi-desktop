@@ -21,22 +21,32 @@
 #include <Godzi/UI/ViewerWidgets>
 #include <QtGui/QDesktopServices>
 #include <osgEarthUtil/AutoClipPlaneHandler>
+#include <osgEarthUtil/OverlayDecorator>
 
 #define USE_QT4
 
 using namespace Godzi;
 using namespace Godzi::UI;
+using namespace osgEarth::Util;
 
 
 ViewerWidget::ViewerWidget( QWidget* parent, const char* name, WindowFlags f, bool overrideTraits) :
 QWidget(parent, f),
 _overrideTraits (overrideTraits)
 {
+    // set up the OpenGL context for an OSG window
     createContext();
 
+    // configure Qt to render the OSG window
     setAttribute(Qt::WA_PaintOnScreen);
     setAttribute(Qt::WA_NoSystemBackground);
     setFocusPolicy(Qt::ClickFocus);
+}
+
+EarthManipulator*
+ViewerWidget::getManipulator() const
+{
+    return static_cast<EarthManipulator*>(_viewer->getCameraManipulator());
 }
 
 void
@@ -100,6 +110,7 @@ ViewerWidget::createContext()
 
     _viewer = new osgViewer::Viewer();
     _viewer->addEventHandler( new osgEarth::Util::AutoClipPlaneHandler() );
+    _viewer->setCameraManipulator( new osgEarth::Util::EarthManipulator() );
     _viewer->setThreadingModel(osgViewer::Viewer::DrawThreadPerContext);
     _viewer->getCamera()->setGraphicsContext( _gw );
     _viewer->getCamera()->setProjectionMatrixAsPerspective( 30.0f, (double)traits->width/(double)traits->height, 1.0, 1000.0 );
@@ -107,7 +118,6 @@ ViewerWidget::createContext()
     _viewer->addEventHandler( new osgViewer::StatsHandler() );
     _viewer->addEventHandler( new osgGA::StateSetManipulator() );
     _viewer->addEventHandler( new osgViewer::ThreadingHandler() );
-    _viewer->setCameraManipulator( new osgEarth::Util::EarthManipulator() );
 
     _viewer->setKeyEventSetsDone( 0 );
     _viewer->setQuitEventSetsDone( false );

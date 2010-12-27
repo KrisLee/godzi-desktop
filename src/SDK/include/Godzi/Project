@@ -106,12 +106,12 @@ namespace Godzi
     protected:
 				struct SourcedLayers
 				{
-						osg::ref_ptr<Godzi::DataSource> source;
+						osg::ref_ptr<Godzi::DataSource>    source;
 						osg::ref_ptr<osgEarth::ImageLayer> imageLayer;
 						osg::ref_ptr<osgEarth::ModelLayer> modelLayer;
 
 						SourcedLayers() : source(0L), imageLayer(0), modelLayer(0) {}
-						SourcedLayers(Godzi::DataSource* src, osgEarth::ImageLayer* imageLyr, osgEarth::ModelLayer* modelLyr)
+                        SourcedLayers(Godzi::DataSource* src, osgEarth::ImageLayer* imageLyr, osgEarth::ModelLayer* modelLyr)
 								: source(src), imageLayer(imageLyr), modelLayer(modelLyr) {}
 
 						bool valid() const { return source.valid(); }
