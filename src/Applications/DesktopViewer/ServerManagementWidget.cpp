@@ -38,6 +38,7 @@
 #include <Godzi/Application>
 #include <Godzi/Project>
 #include <Godzi/DataSources>
+#include <Godzi/WMS/WMSDataSource>
 #include "OpenFileDialog"
 #include "WMSOptionsWidget"
 #include "WMSEditDialog"
@@ -104,7 +105,7 @@ void ServerManagementWidget::onCurrentItemChanged(QTreeWidgetItem* current, QTre
 		_removeSourceAction->setEnabled(false);
 
 	CustomDataSourceTreeItem* item = dynamic_cast<CustomDataSourceTreeItem*>(current);
-	if (item && item->getSource() && item->getSource()->type() == Godzi::WMSSource::TYPE_WMS)
+	if (item && item->getSource() && item->getSource()->type() == Godzi::WMS::WMSDataSource::TYPE_WMS)
 		_editSourceAction->setEnabled(true);
 	else
 		_editSourceAction->setEnabled(false);
@@ -137,8 +138,8 @@ void ServerManagementWidget::removeSource()
 void ServerManagementWidget::editSource()
 {
 	CustomDataSourceTreeItem* item = dynamic_cast<CustomDataSourceTreeItem*>(_sourceTree->currentItem());
-	if (item && item->getSource()->type() == Godzi::WMSSource::TYPE_WMS)
-		addOrUpdateWMSSource((Godzi::WMSSource*)item->getSource());
+	if (item && item->getSource()->type() == Godzi::WMS::WMSDataSource::TYPE_WMS)
+		addOrUpdateWMSSource((Godzi::WMS::WMSDataSource*)item->getSource());
 }
 
 void ServerManagementWidget::addTMSSource()
@@ -157,7 +158,7 @@ void ServerManagementWidget::addTMSSource()
 	}
 }
 
-void ServerManagementWidget::addOrUpdateWMSSource(Godzi::WMSSource* source)
+void ServerManagementWidget::addOrUpdateWMSSource(Godzi::WMS::WMSDataSource* source)
 {
 	WMSEditDialog wed(source);
 	if (wed.exec() == QDialog::Accepted)

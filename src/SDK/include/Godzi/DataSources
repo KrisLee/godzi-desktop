@@ -29,7 +29,6 @@
 #include <osgEarth/TileSource>
 #include <osgEarth/ImageLayer>
 #include <osgEarth/ModelLayer>
-#include <osgEarthDrivers/wms/WMSOptions>
 #include <osgEarthDrivers/tms/TMSOptions>
 #include <string>
 
@@ -49,17 +48,20 @@ namespace Godzi
     {
     public:
         DataObjectSpec() { }
-        DataObjectSpec( int objectUID, const std::string& text ) : _objectUID( objectUID ), _text(text) { }
-        DataObjectSpec( const DataObjectSpec& rhs ) : _objectUID(rhs._objectUID), _text(rhs._text) { }
+        DataObjectSpec( int objectUID, const std::string& text, bool canHide=false ) : _objectUID( objectUID ), _text(text), _canHide(canHide) { }
+				DataObjectSpec( const DataObjectSpec& rhs ) : _objectUID(rhs._objectUID), _text(rhs._text), _canHide(rhs._canHide) { }
 
         /** Gets the unique ID of the object to which this token is referring. */
         int getObjectUID() const { return _objectUID; }
 
         const std::string& getText() const { return _text; }
 
+				bool canHide() const { return _canHide; }
+
     protected:
         int _objectUID;
         std::string _text;
+				bool _canHide;
     };
 
     typedef std::vector<DataObjectSpec> DataObjectSpecVector;
@@ -135,15 +137,7 @@ namespace Godzi
         /** Gets a set of action specifications pertaining to objects in this data source. */
         virtual bool getDataObjectActionSpecs( DataObjectActionSpecVector& out_actionSpecs ) const { return false; }
 
-        // to be deprecated in favor of getDataObjectSpecs [gw]
-        virtual const std::vector<std::string> getAvailableLayers() const { return NO_LAYERS; }
-        //virtual void setAvailableLayers(const std::vector<std::string>& layers) {};
-
-        virtual const std::vector<std::string> getActiveLayers() const { return NO_LAYERS; }
-        virtual void setActiveLayers(const std::vector<std::string>& layers) {};
-
-
-        virtual const std::string& layerDisplayName (const std::string& layerName) const { return layerName; }
+				virtual bool getObjectSpecVisibility(int id) const { return true; }
 
         bool error() const { return _error; }
         void setError(bool isError) { _error = isError; }
@@ -164,44 +158,6 @@ namespace Godzi
     };
 
 	typedef std::vector<osg::ref_ptr<DataSource>> DataSourceVector;
-	
-	/* --------------------------------------------- */
-	
-	class GODZI_EXPORT WMSSource : public DataSource
-	{
-	public:
-		static const std::string TYPE_WMS;
-	
-		WMSSource(const osgEarth::Drivers::WMSOptions& opt, bool visible=true);
-		WMSSource(const osgEarth::Drivers::WMSOptions& opt, const std::string& fullUrl, bool visible=true);
-		WMSSource(const Config& conf);
-		
-		const osgEarth::DriverConfigOptions& getOptions() const;
-		void setOptions(const osgEarth::Drivers::WMSOptions& opt);
-
-		const std::string& getLocation() const;
-		const std::string& type() const { return TYPE_WMS; }
-		osgEarth::optional<std::string>& fullUrl() { return _fullUrl; }
-		
-		Config toConfig() const;
-		osgEarth::ImageLayer* createImageLayer() const;
-		DataSource* clone() const;
-		
-		const std::vector<std::string> getAvailableLayers() const;
-		void setAvailableLayers(const std::vector<std::string>& layers);
-		
-    const std::vector<std::string> getActiveLayers() const;
-    void setActiveLayers(const std::vector<std::string>& layers);
-    
-    const std::string& layerDisplayName(const std::string& layerName) const;
-    void setLayerDisplayNames(const std::map<std::string, std::string>& nameMap) { _displayNames = nameMap; }
-
-	private:
-		osgEarth::Drivers::WMSOptions _opt;
-		osgEarth::optional<std::string> _fullUrl;
-		std::vector<std::string> _availableLayers;
-		std::map<std::string, std::string> _displayNames;
-	};
 	
 	/* --------------------------------------------- */
 
@@ -243,15 +199,6 @@ namespace Godzi
       DataSourceFactoryManager();
       static DataSourceFactoryManager* create();
       friend class Godzi::Application;
-	};
-	
-	/* --------------------------------------------- */
-	
-	class GODZI_EXPORT WMSSourceFactory : public DataSourceFactory
-	{
-	public:
-		bool canCreate(const Godzi::Config& config);
-		DataSource* createDataSource(const Godzi::Config& config);
 	};
 
 	class GODZI_EXPORT TMSSourceFactory : public DataSourceFactory

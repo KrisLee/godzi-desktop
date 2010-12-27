@@ -18,40 +18,24 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
+#ifndef GODZI_DESKTOP_COMMON_H
+#define GODZI_DESKTOP_COMMON_H
 
-#ifndef WMS_EDIT_DIALOG
-#define WMS_EDIT_DIALOG 1
-
-#include <osgEarthUtil/WMS>
+#include <QMetaType>
 #include <Godzi/DataSources>
-#include <Godzi/WMS/WMSDataSource>
-#include "ui_WMSEditDialog.h"
 
-class WMSEditDialog : public QDialog
+// This is a custom object to store in QTreeWidgetItem->data() that holds
+// a reference to the data object being represented by the tree item. Since
+// data() holds a QVariant, we have to declare this as a Qt metatype in 
+// order to store it there.
+namespace GodziDesktop
 {
-	Q_OBJECT
+    struct DataSourceObjectPair
+    {
+        const Godzi::DataSource* _source;
+        Godzi::DataObjectSpec _spec;
+    };
+}
+Q_DECLARE_METATYPE(GodziDesktop::DataSourceObjectPair);
 
-	public:
-		WMSEditDialog(const Godzi::WMS::WMSDataSource* source=0L);
-		Godzi::WMS::WMSDataSource* getSource();
-		
-	private slots:
-		void doQuery();
-		void onDialogClose();
-		void toggleQueryEnabled();
-		void toggleOptions();
-		void selectAllClicked(bool checked);
-		void onLayerItemClicked(QListWidgetItem* item);
-
-	private:		
-		Ui::WMSEditDialog _ui;
-		osg::ref_ptr<Godzi::WMS::WMSDataSource> _source;
-		std::string _activeUrl;
-		
-		void initUi();
-		void updateUi(bool canSelectLayers=false);
-		osgEarth::Drivers::WMSOptions createSourceOptions();
-};
-
-
-#endif // WMS_EDIT_DIALOG
+#endif // GODZI_DESKTOP_COMMON_H

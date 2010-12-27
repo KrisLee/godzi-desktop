@@ -125,34 +125,6 @@ KMLDataSource::getFeature( int objectUID ) const
     return i != _featureMap.end() ? i->second : 0L;
 }
 
-
-const std::vector<std::string>
-KMLDataSource::getAvailableLayers() const
-{
-    const_cast<KMLDataSource*>(this)->populate();
-
-    std::vector<std::string> layers;
-    for( FeatureList::const_iterator i = _features.begin(); i != _features.end(); ++i )
-    {
-        Feature* f = i->get();
-        if ( f && !f->getName().empty() )
-            layers.push_back( f->getName() );
-    }
-    return layers;
-}
-
-const std::vector<std::string>
-KMLDataSource::getActiveLayers() const
-{
-	return getAvailableLayers();
-}
-
-void
-KMLDataSource::setActiveLayers(const std::vector<std::string>& layers)
-{
-    //NOP
-}
-
 osgEarth::ModelLayer*
 KMLDataSource::createModelLayer() const
 {

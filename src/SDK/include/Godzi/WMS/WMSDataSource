@@ -1,0 +1,88 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+#ifndef GODZI_WMS_DATASOURCE
+#define GODZI_WMS_DATASOURCE 1
+
+#include <osgEarthUtil/WMS>
+#include <osgEarthDrivers/wms/WMSOptions>
+#include <Godzi/DataSources>
+
+namespace Godzi { namespace WMS
+{
+  class GODZI_EXPORT WMSDataSource : public DataSource
+	{
+	public:
+		static const std::string TYPE_WMS;
+	
+		WMSDataSource(const osgEarth::Drivers::WMSOptions& opt, bool visible=true);
+		WMSDataSource(const std::string& url, bool visible=true);
+		WMSDataSource(const Config& conf);
+		
+		const osgEarth::DriverConfigOptions& getOptions() const;
+		const std::string& getLocation() const;
+		const std::string& type() const { return TYPE_WMS; }
+		void setFullUrl(const std::string& url);
+		
+		Config toConfig() const;
+		DataSource* clone() const;
+
+		osgEarth::ImageLayer* createImageLayer() const;
+
+		const std::vector<std::string>& getAvailableFormats() const;
+		//void setFormat(const std::string& format);
+
+		const std::string& getLayerName(int id);
+		const osgEarth::Util::WMSLayer* getLayer(int id) const;
+
+		/** Gets the complete set of tokens for the objects provided by this source. */
+    bool getDataObjectSpecs( DataObjectSpecVector& out_objectSpecs ) const;
+
+    /** Gets a set of action specifications pertaining to objects in this data source. */
+    bool getDataObjectActionSpecs( DataObjectActionSpecVector& out_actionSpecs ) const;
+
+	protected:
+		void update();
+		std::string parseWMSOptions(const std::string& url);
+		void processLayerList(const osgEarth::Util::WMSLayer::LayerList& layerList, const std::vector<std::string>& subset, std::vector<std::string>& out_layers);
+
+	private:
+		osgEarth::Drivers::WMSOptions _opt;
+		osgEarth::optional<std::string> _fullUrl;
+		osgEarth::Util::WMSLayer::LayerList _layers;
+		
+		std::vector<std::string> _availableFormats;
+		bool _updateNeeded;
+
+		std::string getDisplayName(osgEarth::Util::WMSLayer* layer) const;
+	};
+
+	/* --------------------------------------------- */
+	
+	class GODZI_EXPORT WMSDataSourceFactory : public DataSourceFactory
+	{
+	public:
+		bool canCreate(const Godzi::Config& config);
+		DataSource* createDataSource(const Godzi::Config& config);
+	};
+
+} } // namespace Godzi::WMS
+
+#endif // GODZI_WMS_DATASOURCE

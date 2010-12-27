@@ -20,6 +20,7 @@
  */
 //#include <osgEarthDrivers/cache_sqlite3/Sqlite3CacheOptions>
 #include <Godzi/Application>
+#include <Godzi/WMS/WMSDataSource>
 #include <Godzi/KML/KMLDataSource>
 
 using namespace Godzi;
@@ -48,7 +49,7 @@ Application::initApp(const Godzi::Config& conf)
 {
 	_actionMgr = ActionManager::create(this);
 
-	Application::dataSourceFactoryManager->addFactory(new WMSSourceFactory());
+	Application::dataSourceFactoryManager->addFactory(new WMS::WMSDataSourceFactory());
 	Application::dataSourceFactoryManager->addFactory(new TMSSourceFactory());
     Application::dataSourceFactoryManager->addFactory(new KML::KMLDataSourceFactory());
 }

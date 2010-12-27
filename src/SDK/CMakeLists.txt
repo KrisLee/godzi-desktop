@@ -53,6 +53,18 @@ set(KML_SOURCE
 )   
 source_group( KML FILES ${KML_INCLUDE} ${KML_SOURCE} )
 
+# ----- WMS namespace ---------------------------------------------------
+
+set(WMS_INCLUDE
+    include/Godzi/WMS/WMSActions
+    include/Godzi/WMS/WMSDataSource
+)
+set(WMS_SOURCE
+    src/Godzi/WMS/WMSActions.cpp
+    src/Godzi/WMS/WMSDataSource.cpp
+)   
+source_group( WMS FILES ${WMS_INCLUDE} ${WMS_SOURCE} )
+
 # ----- UI namespace ---------------------------------------------------
 
 set(UI_INCLUDE
@@ -85,6 +97,7 @@ set(PROJECT_FILES
     ${CORE_INCLUDE} ${CORE_SOURCE}
     ${UI_INCLUDE} ${UI_SOURCE}
     ${KML_INCLUDE} ${KML_SOURCE}
+    ${WMS_INCLUDE} ${WMS_SOURCE}
     ${GODZI_SDK_MOC_SRCS}
 )
 

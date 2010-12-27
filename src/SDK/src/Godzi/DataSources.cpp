@@ -20,7 +20,6 @@
  */
 
 #include <osgEarth/Config>
-#include <osgEarthDrivers/wms/WMSOptions>
 #include <Godzi/Common>
 #include <Godzi/Application>
 #include <Godzi/Project>
@@ -47,160 +46,6 @@ Godzi::Config DataSource::toConfig() const
 	//conf.add("options", getOptions().getConfig());
 
 	return conf;
-}
-
-/* --------------------------------------------- */
-
-const std::string WMSSource::TYPE_WMS = "WMS";
-
-WMSSource::WMSSource(const osgEarth::Drivers::WMSOptions& opt, bool visible)
-: DataSource(visible)
-{
-	setOptions(opt);
-}
-
-WMSSource::WMSSource(const osgEarth::Drivers::WMSOptions& opt, const std::string& fullUrl, bool visible)
-: DataSource(visible)
-{
-	setOptions(opt);
-	_fullUrl = fullUrl;
-}
-
-WMSSource::WMSSource(const Godzi::Config& conf)
-: DataSource(conf)
-{
-	_opt = osgEarth::Drivers::WMSOptions(osgEarth::TileSourceOptions(osgEarth::ConfigOptions(conf.child("options"))));
-	conf.getIfSet("fullurl", _fullUrl);
-
-	osgEarth::optional<std::string> availableLayers;
-	if (conf.getIfSet("availablelayers", availableLayers))
-		_availableLayers = Godzi::csvToVector(availableLayers.get());
-
-	osgEarth::optional<std::string> displayNames;
-	if (conf.getIfSet("displaynames", displayNames))
-	{
-		std::vector<std::string> displayNamesVect = Godzi::csvToVector(displayNames.get());
-		for (int i=0; i < _availableLayers.size() && i < displayNamesVect.size(); i++)
-			_displayNames[_availableLayers[i]] = displayNamesVect[i];
-	}
-}
-
-Godzi::Config WMSSource::toConfig() const
-{
-	Godzi::Config conf = DataSource::toConfig();
-	conf.add("type", TYPE_WMS);
-	conf.add("options", _opt.getConfig());
-	conf.addIfSet("fullUrl", _fullUrl);
-	conf.add("availableLayers", Godzi::vectorToCSV(_availableLayers));
-
-	std::string displayNames = "";
-	for (std::vector<std::string>::const_iterator it = _availableLayers.begin(); it != _availableLayers.end(); ++it)
-		displayNames += displayNames.length() == 0 ? layerDisplayName(*it) : "," + layerDisplayName(*it);
-	conf.add("displayNames", displayNames);
-
-  return conf;
-}
-
-const std::string& WMSSource::getLocation() const
-{
-	return !_fullUrl.isSet() || _fullUrl.get().empty() ? _opt.url().get() : _fullUrl.get();
-}
-
-const osgEarth::DriverConfigOptions& WMSSource::getOptions() const
-{
-	return _opt;
-}
-
-void WMSSource::setOptions(const osgEarth::Drivers::WMSOptions& opt)
-{
-	osgEarth::Config config = opt.getConfig();
-	_opt = osgEarth::Drivers::WMSOptions((osgEarth::TileSourceOptions)config);
-}
-
-osgEarth::ImageLayer* WMSSource::createImageLayer() const
-{
-	if (getActiveLayers().size() > 0)
-	{
-		//std::string name = _name.isSet() ? _name.get() : "WMS Source";
-		std::string name = (_opt.url().isSet() ? _opt.url().get() : "WMS") + "__" + (_opt.layers().isSet() ? _opt.layers().get() : "nolayers");
-		return new osgEarth::ImageLayer(name, _opt);
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-DataSource* WMSSource::clone() const
-{
-	// [jas] Following shouldn't be necessary, but the TMSOptions copy
-	// constructor does not appear to be working correctly.
-	osgEarth::Drivers::WMSOptions cOpt;
-	cOpt.url() = _opt.url();
-	cOpt.layers() = _opt.layers();
-	cOpt.format() = _opt.format();
-
-	//WMSSource* c = new WMSSource(new osgEarth::Drivers::WMSOptions(_opt), _visible);
-	WMSSource* c = new WMSSource(cOpt, _visible);
-	if (_fullUrl.isSet())
-		c->fullUrl() = _fullUrl.get();
-
-	if (_name.isSet())
-		c->name() = _name;
-
-	if (_id.isSet())
-		c->setId(_id.get());
-
-	c->setError(_error);
-	c->setErrorMsg(_errorMsg);
-	c->setAvailableLayers(_availableLayers);
-	c->setLayerDisplayNames(_displayNames);
-
-	return c;
-}
-
-const std::vector<std::string> WMSSource::getAvailableLayers() const
-{
-	return _availableLayers;
-}
-
-void WMSSource::setAvailableLayers(const std::vector<std::string>& layers)
-{
-	_availableLayers.assign(layers.begin(), layers.end());
-}
-
-const std::vector<std::string> WMSSource::getActiveLayers() const
-{
-	if (_opt.layers().isSet())
-		return Godzi::csvToVector(_opt.layers().get());
-
-	return std::vector<std::string>();
-}
-
-void WMSSource::setActiveLayers(const std::vector<std::string>& layers)
-{
-	if (layers.size() > 0)
-	{
-		std::string layerStr = layers[0];
-
-		for (int i=1; i < layers.size(); i++)
-			layerStr = layerStr + "," + layers[i];
-
-		_opt.layers() = layerStr;
-	}
-	else
-	{
-		_opt.layers().unset();
-	}
-}
-
-const std::string& WMSSource::layerDisplayName (const std::string& layerName) const
-{
-	std::map<std::string, std::string>::const_iterator it = _displayNames.find(layerName);
-	if (it != _displayNames.end())
-		return (*it).second;
-
-	return layerName;
 }
 
 /* --------------------------------------------- */
@@ -315,24 +160,6 @@ DataSourceFactoryManager::create()
 }
 
 /* --------------------------------------------- */
-
-//WMS
-bool WMSSourceFactory::canCreate(const Godzi::Config &config)
-{
-	osgEarth::optional<std::string> type;
-	if (config.key().compare("datasource") == 0 && config.getIfSet<std::string>("type", type) && type.get() == WMSSource::TYPE_WMS)
-			return true;
-
-	return false;
-}
-
-DataSource* WMSSourceFactory::createDataSource(const Godzi::Config& config)
-{
-	if (!canCreate(config))
-		return 0L;
-
-	return new WMSSource(config);
-}
 
 //TMS
 bool TMSSourceFactory::canCreate(const Godzi::Config &config)

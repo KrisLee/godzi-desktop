@@ -127,7 +127,7 @@ namespace Godzi
         unsigned int getUID();
         void setVisibleLayers();
 				void updateVisibleLayers();
-				void addSource(Godzi::DataSource* source, int index=-1);
+				void addSource(osg::ref_ptr<Godzi::DataSource> source, int index=-1);
 				int removeSource(Godzi::DataSource* source, Godzi::DataSource** out_removed=0L);
 				osgEarth::ImageLayer* createImageLayer(osg::ref_ptr<const Godzi::DataSource> source, int index=-1);
 				osgEarth::ModelLayer* createModelLayer(osg::ref_ptr<const Godzi::DataSource> source, int index=-1);

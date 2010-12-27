@@ -43,10 +43,6 @@ namespace Godzi { namespace KML
         const std::string& getLocation() const;
         const std::string& type() const { return TYPE_KML; }
 
-        const std::vector<std::string> getAvailableLayers() const;
-        const std::vector<std::string> getActiveLayers() const;
-        void setActiveLayers(const std::vector<std::string>& layers);
-
         /** Returns all the KML features in this source. */
         bool getDataObjectSpecs( DataObjectSpecVector& out_list ) const;
 
