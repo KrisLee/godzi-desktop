@@ -21,7 +21,6 @@
 #include <Godzi/UI/ViewerWidgets>
 #include <QtGui/QDesktopServices>
 #include <osgEarthUtil/AutoClipPlaneHandler>
-#include <osgEarthUtil/OverlayDecorator>
 
 #define USE_QT4
 
