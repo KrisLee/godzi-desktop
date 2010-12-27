@@ -39,8 +39,8 @@ ZoomToWMSLayerAction::doAction(void* sender, Application* app)
 	const osgEarth::Util::WMSLayer* layer = wmsds->getLayer(_objectUID);
   if (layer)
   {
-      osgViewer::View* view = app->getView();
-      EarthManipulator* manip = dynamic_cast<EarthManipulator*>(view->getCameraManipulator());
+      IViewController* view = app->getView();
+      EarthManipulator* manip =view->getManipulator();
       if (manip)
       {
 				osgEarth::Util::Viewpoint viewpoint = manip->getViewpoint();

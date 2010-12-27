@@ -30,23 +30,6 @@
 #include "DataObjectActionAdapter"
 
 //------------------------------------------------------------------------
-//
-//// This is a custom object to store in QTreeWidgetItem->data() that holds
-//// a reference to the data object being represented by the tree item. Since
-//// data() holds a QVariant, we have to declare this as a Qt metatype in 
-//// order to store it there.
-//namespace
-//{
-//    struct TreeItemData
-//    {
-//        const Godzi::DataSource* _source;
-//        Godzi::DataObjectSpec _spec;
-//    };
-//}
-//Q_DECLARE_METATYPE(TreeItemData);
-
-
-//------------------------------------------------------------------------
 
 ServerTreeWidget::ServerTreeWidget(Godzi::Application *app)
 : _app(app)
@@ -132,15 +115,20 @@ void ServerTreeWidget::updateDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSo
             token._spec = spec;
 
             // store the object spec in the data so we can reference it later during an action:
-            child->setData( 0, Qt::UserRole, QVariant::fromValue(token) ); //spec.getObjectUID() );
+            child->setData( 0, Qt::UserRole, QVariant::fromValue(token) );
 
             // disable the drop zone:
             child->setFlags( child->flags() & ~(Qt::ItemIsDropEnabled));
+
+            // set a CheckState iff the data object is hideable
+            if ( token._spec.canHide() )
+                child->setCheckState(0, token._source->getObjectSpecVisibility(token._spec.getObjectUID()) ? Qt::Checked : Qt::Unchecked);
 
             item->addChild( child );
         }
     }
 
+#if 0
     else
     {
         // otherwise, try the old method:
@@ -156,6 +144,8 @@ void ServerTreeWidget::updateDataSourceTreeItem(osg::ref_ptr<const Godzi::DataSo
 		    item->addChild(child);
 	    }
     }
+#endif
+
 }
 
 
@@ -204,15 +194,15 @@ void ServerTreeWidget::updateVisibilitiesFromTree(CustomDataSourceTreeItem* item
 	Godzi::DataSource* source = item->getSource();
 	source->setVisible(item->checkState(0) == Qt::Checked);
 
-	std::vector<std::string> activeLayers;
-	for (int i=0; i < item->childCount(); i++)
-	{
-		QTreeWidgetItem* child = item->child(i);
+	//std::vector<std::string> activeLayers;
+	//for (int i=0; i < item->childCount(); i++)
+	//{
+	//	QTreeWidgetItem* child = item->child(i);
 
-		if (child->checkState(0) == Qt::Checked)
-			activeLayers.push_back(child->data(0, Qt::UserRole).toString().toUtf8().data());
-	}
-	source->setActiveLayers(activeLayers);
+	//	if (child->checkState(0) == Qt::Checked)
+	//		activeLayers.push_back(child->data(0, Qt::UserRole).toString().toUtf8().data());
+	//}
+	//source->setActiveLayers(activeLayers);
 
 	_app->actionManager()->doAction(this, new Godzi::AddorUpdateDataSourceAction(source));
 }
