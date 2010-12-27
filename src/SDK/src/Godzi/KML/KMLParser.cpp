@@ -613,12 +613,31 @@ KMLParser::parsePlacemark(const kmldom::PlacemarkPtr& kmlPlacemark)
         s_printIndented("Placemark", _depth);
 
         // See if the placemark has a "lookat" location:
+        bool hasView = false;
         if ( kmlPlacemark->has_abstractview() && kmlPlacemark->get_abstractview()->IsA( kmldom::Type_LookAt ) )
         {
             Viewpoint vp;
             if( s_parseView( kmlPlacemark->get_abstractview(), vp ) )
+            {
                 p->lookAt() = vp;
+                hasView = true;
+            }
         }
+
+        // if there's no explicit view defined, make one based on the extents .. 
+        if ( !hasView )
+        {
+            if ( p->getGeometry() )
+            {
+                osgEarth::Bounds bounds = p->getGeometry()->getBounds();
+                double range =
+                    p->getGeometry()->getComponentType() == Geometry::TYPE_POINTSET || bounds.radius() < 10.0 ? 1250.0 :
+                    bounds.radius() * 4.0;
+                OE_INFO << "Range = " << range << std::endl;
+                p->lookAt() = Viewpoint( bounds.center(), 0.0, -55.0, range );
+            }
+        }
+
 
         context()._results.push_back( p );
     }
