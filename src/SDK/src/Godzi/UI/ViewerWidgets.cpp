@@ -49,6 +49,18 @@ ViewerWidget::getManipulator() const
 }
 
 void
+ViewerWidget::resetManipulator()
+{
+    EarthManipulator* manip = new EarthManipulator();
+
+    manip->getSettings()->setArcViewpointTransitions( true );
+    manip->getSettings()->setAutoViewpointDurationEnabled( true );
+    manip->getSettings()->setAutoViewpointDurationLimits( 3.0, 8.0 );
+
+    getView()->setCameraManipulator( manip );
+}
+
+void
 ViewerWidget::createContext()
 {
     osg::DisplaySettings* ds = osg::DisplaySettings::instance().get();
