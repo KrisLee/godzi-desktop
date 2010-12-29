@@ -84,6 +84,7 @@ namespace Godzi { namespace UI
 
         osgViewer::View* getView() const { return _viewer.get(); }
 
+        void resetManipulator();
 
 #ifdef WIN32
         // Prevent flicker on Windows Qt
