@@ -27,7 +27,11 @@
 WMSEditDialog::WMSEditDialog(const Godzi::WMS::WMSDataSource* source) : _activeUrl("")
 {
   if (source)
+  {
     _source = (Godzi::WMS::WMSDataSource*)source->clone();
+    if (_source->id().isSet())
+      _activeId = _source->id().get();
+  }
 
 	initUi();
 	updateUi(false);
@@ -35,7 +39,12 @@ WMSEditDialog::WMSEditDialog(const Godzi::WMS::WMSDataSource* source) : _activeU
 
 Godzi::WMS::WMSDataSource* WMSEditDialog::getSource()
 {
-	return (Godzi::WMS::WMSDataSource*)_source->clone();
+  Godzi::WMS::WMSDataSource* cSource = (Godzi::WMS::WMSDataSource*)_source->clone();
+
+  if (_activeId.isSet())
+    cSource->setId(_activeId.get());
+
+  return cSource;
 }
 
 void WMSEditDialog::initUi()
@@ -113,8 +122,7 @@ void WMSEditDialog::updateUi(bool canSelectLayers)
 
 				item->setData(Qt::UserRole, QVariant::fromValue(data));
 
-				if (canSelectLayers)
-					item->setCheckState(Qt::Checked);
+        item->setCheckState(Qt::Checked);
 
 				_ui.layersListWidget->addItem(item);
 			}
@@ -176,6 +184,9 @@ void WMSEditDialog::doQuery()
 {
 	_activeUrl = _ui.locationLineEdit->text().toUtf8().data();
 	_source = new Godzi::WMS::WMSDataSource(_activeUrl);
+
+  if (!_ui.nameLineEdit->text().isEmpty())
+    _source->name() = _ui.nameLineEdit->text().toUtf8().data();
 
 	std::string lower = osgDB::convertToLowerCase(_activeUrl);
 	updateUi(lower.find("layers=", 0) == std::string::npos);

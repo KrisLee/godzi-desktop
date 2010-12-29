@@ -126,9 +126,6 @@ Godzi::DataSource* WMSDataSource::clone() const
 	cOpt.style() = _opt.style();
 
 	//WMSDataSource* c = new WMSDataSource(new osgEarth::Drivers::WMSOptions(_opt), _visible);
-	WMSDataSource* c;
-	if (_fullUrl.isSet())
-
 	WMSDataSource* c = new WMSDataSource(cOpt, _visible);
 	if (_fullUrl.isSet())
 		c->setFullUrl(_fullUrl.get());

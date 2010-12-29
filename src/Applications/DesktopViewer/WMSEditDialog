@@ -47,6 +47,7 @@ class WMSEditDialog : public QDialog
 		Ui::WMSEditDialog _ui;
 		osg::ref_ptr<Godzi::WMS::WMSDataSource> _source;
 		std::string _activeUrl;
+    osgEarth::optional<unsigned int> _activeId;
 		
 		void initUi();
 		void updateUi(bool canSelectLayers=false);
