@@ -121,7 +121,7 @@ Project::toConfig()
 }
 
 void
-Project::addDataSource(Godzi::DataSource* source)
+Project::addDataSource(osg::ref_ptr<Godzi::DataSource> source)
 {
 	if (!source)
 		return;
@@ -130,8 +130,8 @@ Project::addDataSource(Godzi::DataSource* source)
 		source->setId(getUID());
 
 	addSource(source);
-	
-	dirty();
+
+  dirty();
 	emit dataSourceAdded(source, _sourceLayers.size() - 1);
 }
 

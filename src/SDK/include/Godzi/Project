@@ -81,7 +81,7 @@ namespace Godzi
         const ProjectProperties& getProperties() const { return _props; }
         void setProperties( const ProjectProperties& props ) { _props = props; }
         
-        void addDataSource(Godzi::DataSource* source);
+        void addDataSource(osg::ref_ptr<Godzi::DataSource> source);
         int removeDataSource(Godzi::DataSource* source);
         bool updateDataSource(Godzi::DataSource* source, bool dirtyProject=true, Godzi::DataSource** out_old = 0);
         int moveDataSource(Godzi::DataSource* source, int position);

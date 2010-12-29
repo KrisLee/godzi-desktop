@@ -215,18 +215,12 @@ std::string WMSDataSource::parseWMSOptions(const std::string& url)
 
 	if (lower.find("styles=", 0) != std::string::npos)
 		_opt.style() = extractBetween(lower, "styles=", "&");
-	else
-		_opt.style().unset();
 
 	if (lower.find("srs=", 0) != std::string::npos)
 		_opt.srs() = extractBetween(lower, "srs=", "&");
-	else
-		_opt.srs().unset();
 
 	if (lower.find("format=image/", 0) != std::string::npos)
 		_opt.format() = extractBetween(lower, "format=image/", "&");
-	else
-		_opt.format().unset();
 
 	return layers;
 }

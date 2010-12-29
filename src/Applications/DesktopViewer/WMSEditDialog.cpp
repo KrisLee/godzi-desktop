@@ -26,8 +26,11 @@
 
 WMSEditDialog::WMSEditDialog(const Godzi::WMS::WMSDataSource* source) : _activeUrl("")
 {
+  if (source)
+    _source = (Godzi::WMS::WMSDataSource*)source->clone();
+
 	initUi();
-	updateUi(source);
+	updateUi(false);
 }
 
 Godzi::WMS::WMSDataSource* WMSEditDialog::getSource()
