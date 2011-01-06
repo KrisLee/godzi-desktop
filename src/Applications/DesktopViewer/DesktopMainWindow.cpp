@@ -36,6 +36,9 @@
 #include "MapLayerCatalogWidget"
 #include "DesktopMainWindow"
 
+#define ORG_NAME "Pelican Mapping"
+#define APP_NAME "Godzi Desktop"
+
 DesktopMainWindow::DesktopMainWindow(GodziApp* app, const std::string& configPath, const std::string& defaultMap)
 : _app(app), _configPath(configPath), _defaultMap(defaultMap)
 {
@@ -58,7 +61,18 @@ void DesktopMainWindow::initUi()
 	createMenus();
 	createToolbars();
 	createDockWindows();
-	updateStatusBar(tr("Ready"));
+
+  QSettings settings(ORG_NAME, APP_NAME);
+
+  //Set default state/geometry if unset
+  //if (!settings.value("default_state").isValid())
+    settings.setValue("default_state", saveState());
+
+  //Restore window state
+  restoreGeometry(settings.value("geometry").toByteArray());
+  restoreState(settings.value("windowstate").toByteArray());
+  
+  updateStatusBar(tr("Ready"));
 }
 
 void DesktopMainWindow::createActions()
@@ -87,6 +101,9 @@ void DesktopMainWindow::createActions()
 	_settingsAction = new QAction(QIcon(":/resources/images/gear.png"), tr("&Options"), this);
 	connect(_settingsAction, SIGNAL(triggered()), this, SLOT(editSettings()));
 
+  _restoreLayoutAction = new QAction(tr("&Restore Layout"), this);
+  connect(_restoreLayoutAction, SIGNAL(triggered()), this, SLOT(restoreLayout()));
+
 	_aboutAction = new QAction(QIcon(":/resources/images/info.png"), tr("&About"), this);
 	_aboutAction->setStatusTip(tr("About Godzi"));
 	connect(_aboutAction, SIGNAL(triggered()), this, SLOT(showAbout()));
@@ -108,6 +125,8 @@ void DesktopMainWindow::createMenus()
 	_editMenu->addAction(_settingsAction);
 
 	_viewMenu = menuBar()->addMenu(tr("&View"));
+  _viewSeparator = _viewMenu->addSeparator();
+  _viewMenu->addAction(_restoreLayoutAction);
 
 	_helpMenu = menuBar()->addMenu(tr("&Help"));
 	_helpMenu->addAction(_aboutAction);
@@ -116,6 +135,7 @@ void DesktopMainWindow::createMenus()
 void DesktopMainWindow::createToolbars()
 {
 	_fileToolbar = addToolBar(tr("File Toolbar"));
+  _fileToolbar->setObjectName(tr("FILE_TOOLBAR"));
 	_fileToolbar->setIconSize(QSize(24, 24));
 	_fileToolbar->addAction(_openProjectAction);
 	_fileToolbar->addAction(_saveProjectAction);
@@ -124,24 +144,26 @@ void DesktopMainWindow::createToolbars()
 	//_fileToolbar->addSeparator();
 	//_fileToolbar->addAction(_settingsAction);
 
-	_viewMenu->addAction(_fileToolbar->toggleViewAction());
+  _viewMenu->insertAction(_viewSeparator, _fileToolbar->toggleViewAction());
 }
 
 void DesktopMainWindow::createDockWindows()
 {
 	QDockWidget *catalogDock = new QDockWidget(tr("Base Map"), this);
+  catalogDock->setObjectName(tr("CATALOG_DOCK_WINDOW"));
   catalogDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	MapLayerCatalogWidget* layerCatalog = new MapLayerCatalogWidget(_app);
 	catalogDock->setWidget(layerCatalog);
 	addDockWidget(Qt::LeftDockWidgetArea, catalogDock);
-	_viewMenu->addAction(catalogDock->toggleViewAction());
+  _viewMenu->insertAction(_viewSeparator, catalogDock->toggleViewAction());
 
 	QDockWidget *serverDock = new QDockWidget(tr("User Data"), this);
+  serverDock->setObjectName(tr("SERVER_DOCK_WINDOW"));
   serverDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	_serverManager = new ServerManagementWidget(_app);
 	serverDock->setWidget(_serverManager);
 	addDockWidget(Qt::LeftDockWidgetArea, serverDock);
-	_viewMenu->addAction(serverDock->toggleViewAction());
+	_viewMenu->insertAction(_viewSeparator, serverDock->toggleViewAction());
 }
 
 void DesktopMainWindow::updateStatusBar(const QString &message)
@@ -203,12 +225,12 @@ bool DesktopMainWindow::saveSettings()
 	 if (_configPath.empty())
 		 return false;
 
+   //Save window state via Qt
+   QSettings settings(ORG_NAME, APP_NAME);
+   settings.setValue("geometry", saveGeometry());
+   settings.setValue("windowstate", saveState());
+
 	 Godzi::Config conf("godzi_desktop");
-	 
-	 
-	 //TODO: write app settings like QMainWindow state and geometry
-
-
 	 conf.addChild(_app->toConfig());
 
 	 osg::ref_ptr<osgEarth::XmlDocument> doc = new osgEarth::XmlDocument( conf );
@@ -315,6 +337,12 @@ void DesktopMainWindow::editSettings()
 
 		_app->setCacheEnabled(settingsDialog.getCacheEnabled());
 	}
+}
+
+void DesktopMainWindow::restoreLayout()
+{
+  QSettings settings(ORG_NAME, APP_NAME);
+  restoreState(settings.value("default_state").toByteArray());
 }
 
 void DesktopMainWindow::showAbout()
