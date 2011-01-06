@@ -22,7 +22,7 @@
 #ifndef APP_SETTINGS_DIALOG
 #define APP_SETTINGS_DIALOG 1
 
-#include <Godzi/Application>
+#include "GodziApp"
 #include "ui_AppSettingsDialog.h"
 
 class AppSettingsDialog : public QDialog
@@ -30,20 +30,30 @@ class AppSettingsDialog : public QDialog
 	Q_OBJECT
 
 	public:
-		AppSettingsDialog(bool cacheEnabled, const std::string& cachePath);
+    AppSettingsDialog(const GodziApp* app);
 
-		bool getCacheEnabled() const { return _ui.cacheEnabledCheckBox->isChecked(); }
-        std::string getCachePath() const { return _ui.cachePathLineEdit->text().toUtf8().data(); }
-		//int getCacheMax() const { return _ui.cacheMaxSpinBox->value(); }
+    void getSunPosition(double& out_lat, double& out_lon);
+
+    bool getCacheEnabled() const { return _ui.cacheEnabledCheckBox->isChecked(); }
+    std::string getCachePath() const { return _ui.cachePathLabel->text().toUtf8().data(); }
+		int getCacheMax() const { return _ui.cacheMaxSpinBox->value(); }
 
 	private slots:
+    void validateAndAccept();
+    void updateSkyStates();
+    void onNumericTextChanged();
 		void showBrowse();
 		void updateCacheStates();
+    void clearCache();
 
 	private:		
 		Ui::AppSettingsDialog _ui;
+    osg::ref_ptr<const GodziApp> _app;
+    bool _cacheEnabled;
 
-		void initUi(bool cacheEnabled, const std::string& cachePath);
+		void initUi();
+    bool validateNumericInput(std::string&);
+    bool validateCacheSettings(std::string&);
 };
 
 #endif // APP_SETTINGS_DIALOG

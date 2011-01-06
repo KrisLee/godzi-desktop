@@ -20,10 +20,12 @@
  */
 #include <QtGui/QApplication>
 #include <osgEarth/XmlUtils>
+#include <osgEarthDrivers/cache_sqlite3/Sqlite3CacheOptions>
 #include <Godzi/Earth>
 #include <Godzi/Application>
 #include <Godzi/Project>
 #include "GodziQtApplication"
+#include "GodziApp"
 #include "DesktopMainWindow"
 
 #define EARTH_FILE "http://demo.pelicanmapping.com/rmweb/maps/godzi.earth"
@@ -63,12 +65,16 @@ main( int argc, char** argv )
 		// Initialize cache
 		Godzi::Config appConf = conf.child("godzi_app");
 		Godzi::Config cacheOptConf = appConf.child("cache_config").child("cache_opt");
-		osgEarth::TMSCacheOptions cacheOpt;
-		osgEarth::optional<std::string> cachePath;
-		cacheOpt.setPath(cacheOptConf.getIfSet("path", cachePath) && !cachePath.get().empty() ? cachePath.get() : homepath + GODZI_CACHE_FILE);
+    osgEarth::Drivers::Sqlite3CacheOptions cacheOpt(cacheOptConf);
+
+    if (!cacheOpt.path().isSet() || cacheOpt.path().get().empty())
+      cacheOpt.path() = homepath + GODZI_CACHE_FILE;
+
+    if (!cacheOpt.maxSize().isSet())
+      cacheOpt.maxSize() = 1024;
 
 
-		osg::ref_ptr<Godzi::Application> app = new Godzi::Application(cacheOpt, appConf);
+    osg::ref_ptr<GodziApp> app = new GodziApp(cacheOpt, appConf);
 
 
 		// Attempt to initialize remote map file and use local if unsuccesful

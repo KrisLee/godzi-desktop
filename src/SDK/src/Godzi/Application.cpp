@@ -20,6 +20,7 @@
  */
 //#include <osgEarthDrivers/cache_sqlite3/Sqlite3CacheOptions>
 #include <Godzi/Application>
+#include <Godzi/Project>
 #include <Godzi/WMS/WMSDataSource>
 #include <Godzi/KML/KMLDataSource>
 
@@ -51,14 +52,13 @@ Application::initApp(const Godzi::Config& conf)
 
 	Application::dataSourceFactoryManager->addFactory(new WMS::WMSDataSourceFactory());
 	Application::dataSourceFactoryManager->addFactory(new TMSSourceFactory());
-    Application::dataSourceFactoryManager->addFactory(new KML::KMLDataSourceFactory());
+  Application::dataSourceFactoryManager->addFactory(new KML::KMLDataSourceFactory());
 }
 
 void
 Application::initMapCache(const Godzi::Config& cacheConf, const osgEarth::CacheOptions& cacheOpt)
 {
-	osgEarth::optional<std::string> cacheEnabled;
-	_mapCacheEnabled = cacheConf.getIfSet("cache_enabled", cacheEnabled) ? osgEarth::as<bool>(cacheEnabled.get(), _mapCacheEnabled) : _mapCacheEnabled;
+  _mapCacheEnabled = osgEarth::as<bool>(cacheConf.value<std::string>("cache_enabled", "false"), false);
 
 	if (cacheOpt.getDriver().empty())
 	{
@@ -119,26 +119,25 @@ Application::setCacheEnabled(bool enabled)
 
 	_mapCacheEnabled = enabled;
 
+  
+  //TODO: add functionality in osgEarth to allow disabling of the map cache
+
 	if (_mapCacheEnabled)
 	{
 		if (_mapCache)
 			_project->map()->setCache(_mapCache);
 	}
-	else
-	{
-		_project->map()->setCache(0L);
-	}
+	//else
+	//{
+	//	_project->map()->setCache(0L);
+	//}
 }
 
 std::string
 Application::getCachePath() const
 {
-	if (_project.valid() && _project->map() && _project->map()->getCache())
-	{
-		osgEarth::optional<std::string> optPath;
-		if (_project->map()->getCache()->getCacheOptions().getConfig().getIfSet("path", optPath))
-			return optPath.get();
-	}
+  if (_mapCache)
+    return _mapCache->getCacheOptions().getConfig().value("path");
 
 	return "";
 }
@@ -147,8 +146,7 @@ void
 Application::setCache(const osgEarth::CacheOptions& cacheOpt)
 {
 	_mapCache = osgEarth::CacheFactory::create(cacheOpt);
-
-	if (_mapCacheEnabled && _project.valid())
+	if (_mapCache && _mapCacheEnabled && _project.valid())
 		_project->map()->setCache(_mapCache);
 }
 

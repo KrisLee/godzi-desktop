@@ -43,7 +43,7 @@ namespace Godzi
 				Application(const Godzi::Config& conf=Godzi::Config());
 
 				/** serializes the app settings to a Config object */
-        Config toConfig();
+        virtual Config toConfig();
 
 				static DataSourceFactoryManager* const dataSourceFactoryManager;
 
@@ -71,10 +71,6 @@ namespace Godzi
 
 				void setCache(const osgEarth::CacheOptions& cacheOpt);
 
-				/** The active cache options */
-				//const osgEarth::Drivers::Sqlite3CacheOptions& getCacheOptions() const {
-				//	return _mapCacheOpt; }
-
         /** Whether the project is "dirty" (has unsaved changes) */
         bool isProjectDirty() const;
 
@@ -97,7 +93,6 @@ namespace Godzi
 
 				bool                                    _mapCacheEnabled;
 				osgEarth::Cache*                        _mapCache;
-
 
         ActionManager*                          _actionMgr;
 

@@ -24,6 +24,7 @@
 #include <osgViewer/View>
 #include <osgEarth/XmlUtils>
 #include <osgEarthUtil/SkyNode>
+#include <osgEarthDrivers/cache_sqlite3/Sqlite3CacheOptions>
 #include <Godzi/UI/ViewerWidgets>
 #include <Godzi/Earth>
 #include <Godzi/Application>
@@ -35,7 +36,7 @@
 #include "MapLayerCatalogWidget"
 #include "DesktopMainWindow"
 
-DesktopMainWindow::DesktopMainWindow(Godzi::Application* app, const std::string& configPath, const std::string& defaultMap)
+DesktopMainWindow::DesktopMainWindow(GodziApp* app, const std::string& configPath, const std::string& defaultMap)
 : _app(app), _configPath(configPath), _defaultMap(defaultMap)
 {
 	initUi();
@@ -295,15 +296,22 @@ void DesktopMainWindow::undo()
 
 void DesktopMainWindow::editSettings()
 {
-	AppSettingsDialog settingsDialog(_app->getCacheEnabled(), _app->getCachePath());
+  AppSettingsDialog settingsDialog(_app.get());
 	if (settingsDialog.exec() == QDialog::Accepted)
 	{
-		osgEarth::TMSCacheOptions tmsOpt = osgEarth::TMSCacheOptions();
-		//tmsOpt.setDriver("tms");
-		QDir cachePath(QString(settingsDialog.getCachePath().c_str()) + QDir::separator() + "godzi.cache");
-		tmsOpt.setPath(cachePath.absolutePath().toUtf8().data());
+    //TODO: process all sun settings
+    double sunLat, sunLon;
+    settingsDialog.getSunPosition(sunLat, sunLon);
+    _app->setSunPosition(sunLat, sunLon);
 
-		_app->setCache(tmsOpt);
+
+    QDir cachePath(QString(settingsDialog.getCachePath().c_str()));
+
+    osgEarth::Drivers::Sqlite3CacheOptions newOpt;
+    newOpt.path() = cachePath.absolutePath().toUtf8().data();
+    newOpt.maxSize() = settingsDialog.getCacheMax();
+
+    _app->setCache(newOpt);
 
 		_app->setCacheEnabled(settingsDialog.getCacheEnabled());
 	}
@@ -324,11 +332,13 @@ void DesktopMainWindow::onProjectChanged(osg::ref_ptr<Godzi::Project> oldProject
     _root->addChild( mapNode );
 
 #ifndef _DEBUG
-    // add a sky model:
-	osgEarth::Util::SkyNode* sky = new osgEarth::Util::SkyNode(_app->getProject()->map());
-	sky->setSunPosition(osg::Vec3(0,-1,0));
-	sky->attach(_osgViewer->getView());
-	_root->addChild(sky);
+  // add a sky model:
+  osgEarth::Util::SkyNode* sky = _app->createSkyNode();
+  if (sky)
+  {
+	  sky->attach(_osgViewer->getView());
+	  _root->addChild(sky);
+  }
 #endif // _DEBUG
 
     loadScene(_root);
