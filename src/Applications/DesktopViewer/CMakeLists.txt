@@ -14,6 +14,8 @@ set(PROJECT_FILES
     MapLayerCatalogWidget.cpp
     GodziQtApplication
     DataObjectActionAdapter.cpp
+    GodziApp
+    GodziApp.cpp
 )
 
 # Qt resrouce files
