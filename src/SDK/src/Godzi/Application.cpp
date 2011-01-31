@@ -58,7 +58,7 @@ Application::initApp(const Godzi::Config& conf)
 void
 Application::initMapCache(const Godzi::Config& cacheConf, const osgEarth::CacheOptions& cacheOpt)
 {
-  _mapCacheEnabled = osgEarth::as<bool>(cacheConf.value<std::string>("cache_enabled", "false"), false);
+  _mapCacheEnabled = osgEarth::as<bool>(cacheConf.value<std::string>("cache_enabled", "true"), true);
 
 	if (cacheOpt.getDriver().empty())
 	{
