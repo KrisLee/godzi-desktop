@@ -95,8 +95,7 @@ void AppSettingsDialog::updateSkyStates()
   _ui.sunLabel->setEnabled(skyEnabled);
   _ui.sunComboBox->setEnabled(skyEnabled);
 
-  //TODO: Fix following line after other options have been implemented
-  bool sunFixed = true; // _ui.sunComboBox->currentIndex() == GodziApp::FixedPosition;
+  bool sunFixed = _ui.sunComboBox->currentIndex() == GodziApp::FixedPosition;
   _ui.sunLatLabel->setEnabled(skyEnabled && sunFixed);
   _ui.sunLatBox->setEnabled(skyEnabled && sunFixed);
   _ui.sunLonLabel->setEnabled(skyEnabled && sunFixed);
@@ -188,6 +187,11 @@ void AppSettingsDialog::clearCache()
     if (_app.valid())
       _app->clearCache();
   }
+}
+
+GodziApp::SunMode AppSettingsDialog::getSunMode()
+{
+  return (GodziApp::SunMode)_ui.sunComboBox->currentIndex();
 }
 
 void AppSettingsDialog::getSunPosition(double& out_lat, double& out_lon)

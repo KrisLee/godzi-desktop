@@ -49,6 +49,11 @@
         </property>
         <item>
          <property name="text">
+          <string>Always Sunny</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
           <string>Fixed Position</string>
          </property>
         </item>

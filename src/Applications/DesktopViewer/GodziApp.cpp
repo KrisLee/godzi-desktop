@@ -47,7 +47,7 @@ void GodziApp::initSky(Godzi::Config conf)
   osgEarth::optional<std::string> skyEnabled;
 	_skyEnabled = conf.getIfSet("sky_enabled", skyEnabled) ? osgEarth::as<bool>(skyEnabled.get(), true) : true;
   
-  _sunMode = (SunMode)conf.value<int>("sun_mode", SunMode::Ubiquitous);
+  _sunMode = (SunMode)conf.value<int>("sun_mode", SunMode::FixedPosition);
   _sunLat = conf.value<double>("sun_lat", 0.0);
   _sunLon = conf.value<double>("sun_lon", -98.5);
 }
@@ -63,15 +63,30 @@ osgEarth::Util::SkyNode* GodziApp::createSkyNode()
   _sky = _project ? new osgEarth::Util::SkyNode(_project->map()) : 0L;
 
   if (_sky.valid())
+  {
     _sky->setSunPosition(osg::DegreesToRadians(_sunLat), osg::DegreesToRadians(_sunLon));
+    setSunMode(_sunMode);
+  }
 
   return _sky.get();
 }
 
 void GodziApp::setSunMode(SunMode mode)
 {
-  //TODO: Implement actual sun mode functionality
   _sunMode = mode;
+
+  if (_sky.valid())
+  {
+    if (_sunMode == SunMode::Ubiquitous)
+    {
+      _skyBrightness = _sky->getAmbientBrightness();
+      _sky->setAmbientBrigtness(1.0f);
+    }
+    else
+    {
+      _sky->setAmbientBrigtness(_skyBrightness);
+    }
+  }
 }
 
 /** Get the sun position (lat/lon in degrees) */
@@ -112,7 +127,7 @@ void GodziApp::clearCache() const
   //  bool tempEnabled = getCacheEnabled();
 
   //  const_cast<GodziApp*>(this)->setCacheEnabled(false);
-  //  QFile::remove(tr(cachePath.c_str()));
+  //  std::cout << std::endl << (QFile::remove(tr(cachePath.c_str())) ? "Cache cleared!" : "Failed to clear cache.") << std::endl;
   //  const_cast<GodziApp*>(this)->setCacheEnabled(tempEnabled);
   //}
 }

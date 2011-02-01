@@ -321,7 +321,8 @@ void DesktopMainWindow::editSettings()
   AppSettingsDialog settingsDialog(_app.get());
 	if (settingsDialog.exec() == QDialog::Accepted)
 	{
-    //TODO: process all sun settings
+    _app->setSunMode(settingsDialog.getSunMode());
+
     double sunLat, sunLon;
     settingsDialog.getSunPosition(sunLat, sunLon);
     _app->setSunPosition(sunLat, sunLon);

@@ -32,6 +32,7 @@ class AppSettingsDialog : public QDialog
 	public:
     AppSettingsDialog(const GodziApp* app);
 
+    GodziApp::SunMode getSunMode();
     void getSunPosition(double& out_lat, double& out_lon);
 
     bool getCacheEnabled() const { return _ui.cacheEnabledCheckBox->isChecked(); }
