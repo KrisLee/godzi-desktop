@@ -12,6 +12,7 @@ set(PROJECT_FILES
     ServerManagementWidget.cpp
     WMSOptionsWidget.cpp
     MapLayerCatalogWidget.cpp
+    PlaceSearchWidget.cpp
     GodziQtApplication
     DataObjectActionAdapter.cpp
     GodziApp
@@ -43,6 +44,7 @@ set (GODZI_DESKTOP_MOC_HDRS
     ServerManagementWidget
     WMSOptionsWidget
     MapLayerCatalogWidget
+    PlaceSearchWidget
     DataObjectActionAdapter
 )
 

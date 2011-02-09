@@ -1,0 +1,70 @@
+/* --*-c++-*-- */
+/**
+ * Godzi
+ * Copyright 2010 Pelican Mapping
+ * http://pelicanmapping.com
+ * http://github.com/gwaldron/godzi
+ *
+ * Godzi is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+#ifndef PLACE_SEARCH_WIDGET
+#define PLACE_SEARCH_WIDGET 1
+
+#include <QWidget>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QDomElement>
+#include <Godzi/Actions>
+#include <Godzi/Application>
+
+class ZoomToPlaceAction : public Godzi::Action
+{
+public:
+  ZoomToPlaceAction( double minLat, double minLon, double maxLat, double maxLon ) : _minLat(minLat), _minLon(minLon), _maxLat(maxLat), _maxLon(maxLon) { }
+  bool doAction(void* sender, Godzi::Application* app);
+
+protected:
+  double _minLat;
+  double _minLon;
+  double _maxLat;
+  double _maxLon;
+};
+
+class PlaceSearchWidget : public QWidget
+{
+Q_OBJECT
+
+public:
+	PlaceSearchWidget(Godzi::Application* app);
+
+private slots:
+  void onTextChanged();
+  void doSearch();
+  void replyFinished(QNetworkReply* reply);
+
+private:
+  osg::ref_ptr<Godzi::Application> _app;
+  QLineEdit* _searchLine;
+  QPushButton* _searchButton;
+  QNetworkAccessManager* _networkManager;
+
+  void initUi();
+  bool parseExtents(QDomElement extents, double &out_minLat, double &out_minLon, double &out_maxLat, double &out_maxLon);
+  bool parseLatLon(QDomElement parent, double &out_lat, double &out_lon);
+};
+
+#endif // PLACE_SEARCH_WIDGET

@@ -34,6 +34,7 @@
 #include "AppSettingsDialog"
 #include "AboutDialog"
 #include "MapLayerCatalogWidget"
+#include "PlaceSearchWidget"
 #include "DesktopMainWindow"
 
 #define ORG_NAME "Pelican Mapping"
@@ -143,6 +144,14 @@ void DesktopMainWindow::createToolbars()
 	_fileToolbar->addAction(_undoAction);
 	//_fileToolbar->addSeparator();
 	//_fileToolbar->addAction(_settingsAction);
+
+  //Add spacer widget to right-align items that follow
+  QWidget* spacer = new QWidget();
+  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  _fileToolbar->addWidget(spacer);
+
+  PlaceSearchWidget* searchWidget = new PlaceSearchWidget(_app);
+  _fileToolbar->addWidget(searchWidget);
 
   _viewMenu->insertAction(_viewSeparator, _fileToolbar->toggleViewAction());
 }
