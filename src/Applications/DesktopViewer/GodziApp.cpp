@@ -80,11 +80,11 @@ void GodziApp::setSunMode(SunMode mode)
     if (_sunMode == SunMode::Ubiquitous)
     {
       _skyBrightness = _sky->getAmbientBrightness();
-      _sky->setAmbientBrigtness(1.0f);
+      _sky->setAmbientBrightness(1.0f);
     }
     else
     {
-      _sky->setAmbientBrigtness(_skyBrightness);
+      _sky->setAmbientBrightness(_skyBrightness);
     }
   }
 }

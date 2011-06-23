@@ -22,9 +22,10 @@
 #define GODZI_KML_SYMBOL 1
 
 #include <osgEarth/Common>
-#include <osgEarthSymbology/MarkerSymbol>
-#include <osgEarthSymbology/GeometrySymbol>
-#include <osgEarthSymbology/Text>
+#include <osgEarthSymbology/Style>
+//#include <osgEarthSymbology/MarkerSymbol>
+//#include <osgEarthSymbology/GeometrySymbol>
+//#include <osgEarthSymbology/Text>
 
 namespace Godzi { namespace KML {
 

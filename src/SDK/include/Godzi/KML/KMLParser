@@ -55,7 +55,7 @@ namespace Godzi { namespace KML
     private:
         struct ParserContext {
             kmlengine::KmlFilePtr _kmlFile;
-            StyleCatalog _styles;
+            StyleSheet _styles; //StyleCatalog _styles;
             FeatureList& _results;
             long& _nextUID;
             ParserContext( FeatureList& output, long& nextUID ) : _results(output), _nextUID(nextUID) { }

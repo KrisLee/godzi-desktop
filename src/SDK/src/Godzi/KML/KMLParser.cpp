@@ -23,7 +23,7 @@
 #include <Godzi/Placemark>
 #include <osgEarth/HTTPClient>
 #include <osgEarthSymbology/Geometry>
-#include <osgEarthSymbology/GeometrySymbol>
+#include <osgEarthSymbology/Style>
 #include <osgEarthUtil/Viewpoint>
 
 using namespace Godzi;
@@ -290,10 +290,10 @@ namespace
     }
 
     /** Creates an osgEarth Style from a KML style. */
-    Style*
+    Style
     s_createStyle(kmldom::StylePtr kmlStyle, const kmldom::GeometryPtr kmlGeom)
     {
-        Style* earthStyle = new Style();
+        Style earthStyle;
 
         // labeling: todo: convert this to a text style.
         if (kmlStyle->has_labelstyle())
@@ -313,7 +313,7 @@ namespace
                 s->size() = s->size().value() * kmls->get_scale();
             }
 
-            earthStyle->addSymbol(s);
+            earthStyle.addSymbol(s);
         }
 
         // line style => LineSymbol
@@ -333,7 +333,7 @@ namespace
                 s->stroke()->width() = kmls->get_width();
             }
 
-            earthStyle->addSymbol(s);
+            earthStyle.addSymbol(s);
         }
 
         // poly symbol => PolygonSymbol
@@ -344,7 +344,7 @@ namespace
             if ( !kmls->has_fill() || kmls->get_fill() == true )
             {
                 PolygonSymbol* poly = s_createSymbol<KMLPolygonSymbol>( kmlGeom );
-                earthStyle->addSymbol( poly );
+                earthStyle.addSymbol( poly );
 
                 if ( kmls->has_color() )
                     poly->fill()->color() = s_getColor(kmls->get_color() );
@@ -366,22 +366,22 @@ namespace
             kmldom::IconStylePtr kmls = kmlStyle->get_iconstyle();
             KMLIconSymbol* s = s_createSymbol<KMLIconSymbol>(kmlGeom);
 
-            if (kmls->has_color()) {
-                s->fill()->color() = s_getColor(kmls->get_color());
-            }
+            //if (kmls->has_color()) {
+            //    s->fill()->color() = s_getColor(kmls->get_color());
+            //}
 
             if (kmls->has_scale()) {
-                s->size() = kmls->get_scale();
+              s->scale() = osg::Vec3f(kmls->get_scale(),kmls->get_scale(),kmls->get_scale());
             }
 
             if (kmls->has_icon() && kmls->get_icon()->has_href()) {
-                s->marker() = kmls->get_icon()->get_href();
+                s->url() = kmls->get_icon()->get_href();
             }
             else {
-                s->marker() = "http://demo.pelicanmapping.com/rmweb/godzi_marker.png";
+                s->url() = "http://demo.pelicanmapping.com/rmweb/godzi_marker.png";
             }
 
-            earthStyle->addSymbol(s);
+            earthStyle.addSymbol(s);
         }
         return earthStyle;
     }
@@ -569,15 +569,15 @@ KMLParser::parsePlacemark(const kmldom::PlacemarkPtr& kmlPlacemark)
 
             if (kmlModel->has_link())
             {
-                modelSymbol->marker() = kmlModel->get_link()->get_href();
+                modelSymbol->url() = kmlModel->get_link()->get_href();
             }
             else
             {
                 OE_WARN << LC << "no link found on Model " << p->getName() << std::endl;
             }
 
-            Style* style = new Style();
-            style->addSymbol( modelSymbol );
+            Style style; //* style = new Style();
+            style.addSymbol( modelSymbol );
             p->style() = style;
             // no geometry for the model.
         }
@@ -589,9 +589,7 @@ KMLParser::parsePlacemark(const kmldom::PlacemarkPtr& kmlPlacemark)
             {
                 p->setGeometry(geom);
 
-                Style* style = s_createStyle(kmlStyle, kmlPlacemark->get_geometry());
-                if (style)
-                    p->style() = style;
+                p->style() = s_createStyle(kmlStyle, kmlPlacemark->get_geometry());
             } 
 
             else
@@ -600,15 +598,15 @@ KMLParser::parsePlacemark(const kmldom::PlacemarkPtr& kmlPlacemark)
             }
         }
 
-        KMLLabelSymbol* label = p->style().get()->getSymbol<KMLLabelSymbol>();
+        KMLLabelSymbol* label = p->style()->get<KMLLabelSymbol>();
         if (!label)
         {
             label = new KMLLabelSymbol;
-            p->style().get()->addSymbol(label);
+            p->style()->addSymbol(label);
             label->size() = DEFAULT_LABEL_SIZE;
         }
         label->content() = p->getName();
-        osg::notify(osg::NOTICE) << "label " << label->content().value() << std::endl;
+        osg::notify(osg::NOTICE) << "label " << label->content()->expr() << std::endl;
 
         s_printIndented("Placemark", _depth);
 
