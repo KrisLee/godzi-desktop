@@ -42,5 +42,15 @@ create_imported_library(
     LIBRARY_SEARCH_PATH ${KML_DIR}/lib ${KML_DIR}/msvc ENV{KML_DIR}/lib
 )
 
+create_imported_library(
+    MINIZIP
+    minizip.lib STATIC
+)
+
+create_imported_library(
+    URIPARSER
+    uriparser.lib STATIC
+)
+
 set(KML_ALL_LIBDEPENDENCIES
-    KML_DOM KML_BASE KML_ENGINE KML_XSD KML_CONVENIENCE KML_REGIONATOR)
+    KML_DOM KML_BASE KML_ENGINE KML_XSD KML_CONVENIENCE KML_REGIONATOR MINIZIP URIPARSER)

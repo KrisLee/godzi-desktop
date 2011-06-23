@@ -17,7 +17,7 @@ create_project(
 # ----- CORE namespace -------------------------------------------------
 
 set(CORE_INCLUDE
-    include/Godzi/Common
+  include/Godzi/Common
 	include/Godzi/Actions
 	include/Godzi/Application
 	include/Godzi/Placemark
@@ -38,7 +38,7 @@ source_group( Core FILES ${CORE_INCLUDE} ${CORE_SOURCE} )
 # ----- KML namespace ---------------------------------------------------
 
 set(KML_INCLUDE
-    include/Godzi/KML/KMLActions
+  include/Godzi/KML/KMLActions
 	include/Godzi/KML/KMLFeatureSourceOptions
 	include/Godzi/KML/KMLFeatureSource
 	include/Godzi/KML/KMLDataSource
@@ -46,8 +46,8 @@ set(KML_INCLUDE
 	include/Godzi/KML/KMLSymbol
 )
 set(KML_SOURCE
-    src/Godzi/KML/KMLActions.cpp
-    src/Godzi/KML/KMLDataSource.cpp
+  src/Godzi/KML/KMLActions.cpp
+  src/Godzi/KML/KMLDataSource.cpp
 	src/Godzi/KML/KMLFeatureSource.cpp
 	src/Godzi/KML/KMLParser.cpp
 )   
