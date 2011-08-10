@@ -29,6 +29,7 @@
 using namespace Godzi;
 using namespace Godzi::KML;
 using namespace osgEarth::Util;
+using namespace osgEarth::Symbology;
 
 #define LC "[Godzi.KMLParser] "
 #define DEFAULT_LABEL_SIZE 32
@@ -75,23 +76,26 @@ namespace
     }
 
     /** Converts a KML coordinate array to an OSG coordinate array */
-    osg::Vec3dArray*
-    s_kmlCoordinatesToVec3dArray(kmldom::CoordinatesPtr coords)
+    void
+    s_kmlCoordinatesToVec3dVector(kmldom::CoordinatesPtr coords, Vec3dVector& output)
     {
         if (!coords || !coords->get_coordinates_array_size())
-            return 0;
+            return;
 
-        osg::Vec3dArray* array = new osg::Vec3dArray(coords->get_coordinates_array_size());
+        //osg::Vec3dArray* array = new osg::Vec3dArray(coords->get_coordinates_array_size());
+        output.reserve( coords->get_coordinates_array_size() );
+        output.clear();
+
         for (size_t i = 0; i < coords->get_coordinates_array_size(); ++i)
         {
             kmlbase::Vec3 in = coords->get_coordinates_array_at(i);
 
-            (*array)[i] = osg::Vec3d(
+            output.push_back( osg::Vec3d(
                 in.get_longitude(),
                 in.get_latitude(),
-                in.has_altitude()? in.get_altitude() : 0);
+                in.has_altitude()? in.get_altitude() : 0) );
         }
-        return array;
+        //return array;
     }
 
     /** Dumps indented text */
@@ -113,9 +117,11 @@ namespace
         case kmldom::Type_Point:
             {
                 const kmldom::CoordinatesPtr coord = kmldom::AsPoint(kmlGeom)->get_coordinates();
-                osg::Vec3dArray* array = s_kmlCoordinatesToVec3dArray(coord);
-                if (array) {
-                    PointSet* geom = new PointSet(array);
+                Vec3dVector points;
+                s_kmlCoordinatesToVec3dVector(coord, points);
+                if (points.size() > 0)
+                {
+                    PointSet* geom = new PointSet(&points);
                     return (geom);
                 }
             }
@@ -124,9 +130,11 @@ namespace
         case kmldom::Type_LineString:
             {
                 const kmldom::CoordinatesPtr coord = kmldom::AsLineString(kmlGeom)->get_coordinates();
-                osg::Vec3dArray* array = s_kmlCoordinatesToVec3dArray(coord);
-                if (array) {
-                    LineString* geom = new LineString(array);
+                Vec3dVector points;
+                s_kmlCoordinatesToVec3dVector(coord, points);
+                if (points.size() > 0)
+                {
+                    LineString* geom = new LineString(&points);
                     return (geom);
                 }
             }
@@ -135,10 +143,11 @@ namespace
         case kmldom::Type_LinearRing:
             {
                 const kmldom::CoordinatesPtr coord = kmldom::AsLinearRing(kmlGeom)->get_coordinates();
-                osg::Vec3dArray* array = s_kmlCoordinatesToVec3dArray(coord);
-                if (array)
+                Vec3dVector points;
+                s_kmlCoordinatesToVec3dVector(coord, points);
+                if (points.size() > 0)
                 {
-                    Ring* geom = new Ring(array);
+                    Ring* geom = new Ring(&points);
                     geom->rewind( Ring::ORIENTATION_CCW );
                     return (geom);
                 }
@@ -152,10 +161,11 @@ namespace
                 {
                     const kmldom::CoordinatesPtr coord = poly->get_outerboundaryis()->get_linearring()->get_coordinates();
 
-                    osg::Vec3dArray* array = s_kmlCoordinatesToVec3dArray(coord);
-                    if (array)
+                    Vec3dVector points;
+                    s_kmlCoordinatesToVec3dVector(coord, points);
+                    if (points.size() > 0 )
                     {
-                        Polygon* geom = new Polygon(array);
+                        Polygon* geom = new Polygon(&points);
                         geom->rewind( Ring::ORIENTATION_CCW );
 
                         for (size_t i = 0; i < poly->get_innerboundaryis_array_size(); ++i)
@@ -163,9 +173,14 @@ namespace
                             const kmldom::CoordinatesPtr inner = poly->get_innerboundaryis_array_at(i)->get_linearring()->get_coordinates();
                             if (inner)
                             {
-                                Ring* hole = new Ring(s_kmlCoordinatesToVec3dArray(inner));
-                                hole->rewind( Ring::ORIENTATION_CW );
-                                geom->getHoles().push_back( hole );
+                                Vec3dVector holePoints;
+                                s_kmlCoordinatesToVec3dVector(coord, holePoints);
+                                if ( holePoints.size() > 0 )
+                                {
+                                    Ring* hole = new Ring(&holePoints);
+                                    hole->rewind( Ring::ORIENTATION_CW );
+                                    geom->getHoles().push_back( hole );
+                                }
                             }
                         }
 
